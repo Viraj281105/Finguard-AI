@@ -1,2 +1,1452 @@
-# finguard-ai
-AI-powered personal finance risk advisor
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinGuard AI — README</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --nav:   #0A1628;
+    --blue:  #1E6FD9;
+    --cyan:  #00C9FF;
+    --green: #00D97E;
+    --org:   #FF6B4A;
+    --yel:   #FFD03A;
+    --purp:  #7C5CFC;
+    --dgray: #8899AA;
+    --mgray: #1A2840;
+    --lgray: #0F1E33;
+    --white: #F0F6FF;
+    --glass: rgba(255,255,255,0.04);
+    --glassbdr: rgba(255,255,255,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--nav);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── Background grid ─────────────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(30,111,217,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30,111,217,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Glow orbs ───────────────────────────────────────── */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+    animation: orb-drift 12s ease-in-out infinite alternate;
+  }
+  .orb-1 { width: 600px; height: 600px; background: rgba(30,111,217,0.12); top: -200px; right: -100px; }
+  .orb-2 { width: 400px; height: 400px; background: rgba(124,92,252,0.10); bottom: 200px; left: -100px; animation-delay: -4s; }
+  .orb-3 { width: 300px; height: 300px; background: rgba(0,217,126,0.07); top: 50%; left: 40%; animation-delay: -8s; }
+  @keyframes orb-drift { from { transform: translate(0,0) scale(1); } to { transform: translate(30px, 40px) scale(1.1); } }
+
+  /* ── Nav ─────────────────────────────────────────────── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(10,22,40,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glassbdr);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .nav-logo-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 12px var(--cyan);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.8); } }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--dgray);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--cyan); }
+
+  .nav-badge {
+    background: var(--blue);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Sections ────────────────────────────────────────── */
+  section {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 100px 40px;
+  }
+
+  /* ── Hero ────────────────────────────────────────────── */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 140px;
+    max-width: 100%;
+    padding-left: 80px;
+    padding-right: 80px;
+  }
+
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fade-up 0.8s 0.2s forwards;
+  }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(56px, 8vw, 110px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fade-up 0.8s 0.4s forwards;
+  }
+
+  .hero-title .accent { color: var(--cyan); }
+  .hero-title .dim { color: rgba(240,246,255,0.25); }
+
+  .hero-sub {
+    font-size: 20px;
+    color: var(--dgray);
+    max-width: 560px;
+    margin-bottom: 48px;
+    font-weight: 300;
+    opacity: 0;
+    animation: fade-up 0.8s 0.6s forwards;
+  }
+
+  .hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 60px;
+    opacity: 0;
+    animation: fade-up 0.8s 0.8s forwards;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    border: 1px solid;
+  }
+
+  .badge-blue  { color: var(--cyan);  border-color: rgba(0,201,255,0.3);  background: rgba(0,201,255,0.06); }
+  .badge-green { color: var(--green); border-color: rgba(0,217,126,0.3);  background: rgba(0,217,126,0.06); }
+  .badge-purp  { color: var(--purp);  border-color: rgba(124,92,252,0.3); background: rgba(124,92,252,0.06); }
+  .badge-org   { color: var(--org);   border-color: rgba(255,107,74,0.3); background: rgba(255,107,74,0.06); }
+  .badge-yel   { color: var(--yel);   border-color: rgba(255,208,58,0.3); background: rgba(255,208,58,0.06); }
+
+  .hero-stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--glassbdr);
+    border: 1px solid var(--glassbdr);
+    border-radius: 16px;
+    overflow: hidden;
+    max-width: 800px;
+    opacity: 0;
+    animation: fade-up 0.8s 1.0s forwards;
+  }
+
+  .hero-stat {
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    padding: 28px 24px;
+    text-align: center;
+  }
+
+  .hero-stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .hero-stat-label {
+    font-size: 11px;
+    color: var(--dgray);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Section headers ─────────────────────────────────── */
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--cyan);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  .section-sub {
+    font-size: 17px;
+    color: var(--dgray);
+    max-width: 600px;
+    font-weight: 300;
+    margin-bottom: 60px;
+  }
+
+  /* ── Glass card ──────────────────────────────────────── */
+  .glass {
+    background: var(--glass);
+    border: 1px solid var(--glassbdr);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    padding: 32px;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .glass:hover { border-color: rgba(0,201,255,0.2); transform: translateY(-2px); }
+
+  /* ── Tech stack grid ─────────────────────────────────── */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .stack-card {
+    background: var(--glass);
+    border: 1px solid var(--glassbdr);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stack-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent-color, var(--blue));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .stack-card:hover::before { opacity: 1; }
+  .stack-card:hover { border-color: rgba(255,255,255,0.12); transform: translateY(-3px); }
+
+  .stack-layer {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--dgray);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .stack-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+
+  .stack-desc {
+    font-size: 13px;
+    color: var(--dgray);
+    line-height: 1.5;
+  }
+
+  .stack-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 14px;
+  }
+
+  .stack-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.05);
+    color: var(--dgray);
+    border: 1px solid var(--glassbdr);
+  }
+
+  /* ── Architecture diagram ────────────────────────────── */
+  .arch-diagram {
+    background: var(--lgray);
+    border: 1px solid var(--glassbdr);
+    border-radius: 16px;
+    padding: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .arch-diagram::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(30,111,217,0.08) 0%, transparent 70%);
+  }
+
+  .arch-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .arch-box {
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 160px;
+    border: 1px solid;
+    transition: all 0.3s;
+    cursor: default;
+  }
+  .arch-box:hover { transform: scale(1.03); }
+
+  .arch-react   { background: rgba(0,201,255,0.08); border-color: rgba(0,201,255,0.3); color: var(--cyan); }
+  .arch-spring  { background: rgba(0,217,126,0.08); border-color: rgba(0,217,126,0.3); color: var(--green); }
+  .arch-fastapi { background: rgba(124,92,252,0.08); border-color: rgba(124,92,252,0.3); color: var(--purp); }
+  .arch-db      { background: rgba(255,208,58,0.08); border-color: rgba(255,208,58,0.3); color: var(--yel); }
+  .arch-nginx   { background: rgba(255,107,74,0.08); border-color: rgba(255,107,74,0.3); color: var(--org); }
+
+  .arch-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--dgray);
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .arch-arrow-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--dgray);
+    margin-top: 2px;
+    white-space: nowrap;
+  }
+
+  .arch-sub-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .arch-sub-box {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: rgba(124,92,252,0.06);
+    border: 1px solid rgba(124,92,252,0.2);
+    color: rgba(124,92,252,0.8);
+  }
+
+  /* ── Timeline ────────────────────────────────────────── */
+  .timeline {
+    position: relative;
+    padding-left: 40px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--blue), var(--purp), var(--green), var(--org), var(--cyan));
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 40px;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: all 0.5s;
+  }
+  .timeline-item.visible { opacity: 1; transform: translateX(0); }
+
+  .timeline-dot {
+    position: absolute;
+    left: -34px;
+    top: 8px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--nav);
+    box-shadow: 0 0 0 3px var(--phase-color, var(--blue));
+  }
+
+  .timeline-phase {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .timeline-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+
+  .timeline-weeks {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--dgray);
+    margin-bottom: 12px;
+  }
+
+  .timeline-desc {
+    font-size: 15px;
+    color: var(--dgray);
+    margin-bottom: 16px;
+  }
+
+  .timeline-deliverable {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glassbdr);
+    color: var(--dgray);
+  }
+  .timeline-deliverable span { color: var(--green); }
+
+  /* ── Charts ──────────────────────────────────────────── */
+  .chart-wrap {
+    background: var(--lgray);
+    border: 1px solid var(--glassbdr);
+    border-radius: 16px;
+    padding: 32px;
+    position: relative;
+  }
+
+  .chart-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 6px;
+  }
+
+  .chart-sub {
+    font-size: 13px;
+    color: var(--dgray);
+    margin-bottom: 28px;
+  }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* ── Risk score gauge ────────────────────────────────── */
+  .gauge-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px;
+  }
+
+  .gauge-svg { overflow: visible; }
+
+  /* ── Feature grid ────────────────────────────────────── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .feature-card {
+    background: var(--glass);
+    border: 1px solid var(--glassbdr);
+    border-radius: 12px;
+    padding: 28px;
+    transition: all 0.3s;
+    cursor: default;
+  }
+  .feature-card:hover { border-color: rgba(0,201,255,0.25); background: rgba(255,255,255,0.06); }
+
+  .feature-icon {
+    font-size: 28px;
+    margin-bottom: 14px;
+  }
+
+  .feature-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+
+  .feature-desc {
+    font-size: 14px;
+    color: var(--dgray);
+    line-height: 1.6;
+  }
+
+  /* ── Team ────────────────────────────────────────────── */
+  .team-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .team-card {
+    background: var(--glass);
+    border: 1px solid var(--glassbdr);
+    border-radius: 16px;
+    padding: 36px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  .team-card:hover { border-color: rgba(0,201,255,0.2); transform: translateY(-4px); }
+
+  .team-avatar {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+  }
+
+  .team-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 6px;
+  }
+
+  .team-role {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--dgray);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .team-owns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  /* ── Folder structure ────────────────────────────────── */
+  .folder-tree {
+    background: var(--lgray);
+    border: 1px solid var(--glassbdr);
+    border-radius: 16px;
+    padding: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 2;
+    overflow-x: auto;
+  }
+
+  .folder-tree .dir   { color: var(--cyan); }
+  .folder-tree .file  { color: var(--dgray); }
+  .folder-tree .root  { color: var(--white); font-weight: 600; }
+  .folder-tree .comment { color: #4A6080; }
+
+  /* ── Progress bars ───────────────────────────────────── */
+  .progress-row {
+    margin-bottom: 16px;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+
+  .progress-bar-bg {
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    width: 0%;
+    transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* ── Footer ──────────────────────────────────────────── */
+  footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 60px 40px;
+    border-top: 1px solid var(--glassbdr);
+  }
+
+  .footer-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 12px;
+  }
+
+  .footer-sub {
+    font-size: 16px;
+    color: var(--dgray);
+    margin-bottom: 32px;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .footer-link {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border: 1px solid;
+    transition: all 0.2s;
+  }
+
+  .footer-link-primary { background: var(--blue); border-color: var(--blue); color: white; }
+  .footer-link-primary:hover { background: #1a5fc7; }
+  .footer-link-ghost { background: transparent; border-color: var(--glassbdr); color: var(--dgray); }
+  .footer-link-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  /* ── Divider ─────────────────────────────────────────── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--glassbdr), transparent);
+    margin: 0 40px;
+  }
+
+  /* ── Scroll reveal ───────────────────────────────────── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── Responsive ──────────────────────────────────────── */
+  @media (max-width: 768px) {
+    nav { padding: 14px 20px; }
+    .nav-links { display: none; }
+    #hero { padding: 120px 24px 60px; }
+    section { padding: 70px 24px; }
+    .hero-stat-row { grid-template-columns: repeat(2, 1fr); }
+    .stack-grid, .feature-grid, .team-grid, .charts-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-dot"></div>
+    FinGuard AI
+  </div>
+  <ul class="nav-links">
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#stack">Stack</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#team">Team</a></li>
+  </ul>
+  <div class="nav-badge">v1.0 — MVP</div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-eyebrow">// AI-Powered Personal Finance Risk Advisor</div>
+  <h1 class="hero-title">
+    FinGuard<br>
+    <span class="accent">AI</span><span class="dim">.</span>
+  </h1>
+  <p class="hero-sub">Know your financial future before it happens. Risk scoring, cash flow forecasting, and scenario simulation — built for India's young professionals.</p>
+
+  <div class="hero-badges">
+    <span class="badge badge-blue">Spring Boot 3.x</span>
+    <span class="badge badge-purp">FastAPI</span>
+    <span class="badge badge-blue">React 18</span>
+    <span class="badge badge-green">PostgreSQL + pgvector</span>
+    <span class="badge badge-org">Docker</span>
+    <span class="badge badge-yel">sentence-transformers</span>
+  </div>
+
+  <div class="hero-stat-row">
+    <div class="hero-stat">
+      <div class="hero-stat-num" data-count="16">0</div>
+      <div class="hero-stat-label">Weeks to Launch</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num" data-count="255">0</div>
+      <div class="hero-stat-label">Total Hours</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num" data-count="5">0</div>
+      <div class="hero-stat-label">AI Modules</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num" data-count="8">0</div>
+      <div class="hero-stat-label">Tech Layers</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="reveal">
+    <div class="section-label">// 01 — The Problem</div>
+    <h2 class="section-title">280M young professionals.<br>Flying financially blind.</h2>
+    <p class="section-sub">Existing apps tell you where your money went. FinGuard AI tells you where it's going — and what you can do about it.</p>
+  </div>
+
+  <div class="charts-grid reveal">
+    <div class="chart-wrap">
+      <div class="chart-title">The Financial Blind Spot</div>
+      <div class="chart-sub">% of young professionals (survey, n=2,400)</div>
+      <canvas id="surveyChart" height="260"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Spending Misallocation</div>
+      <div class="chart-sub">Actual vs. recommended allocation of income</div>
+      <canvas id="spendingChart" height="260"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-wrap reveal" style="margin-top:20px;">
+    <div class="chart-title">India Fintech Market — $145B by 2026</div>
+    <div class="chart-sub">Market size in USD Billions, 35% CAGR</div>
+    <canvas id="marketChart" height="180"></canvas>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="reveal">
+    <div class="section-label">// 02 — Core Features</div>
+    <h2 class="section-title">Not a tracker.<br>A financial simulator.</h2>
+    <p class="section-sub">Six AI-powered modules that work together to give users a complete picture of their financial health.</p>
+  </div>
+
+  <div class="feature-grid reveal">
+    <div class="feature-card">
+      <div class="feature-icon">🧠</div>
+      <div class="feature-name">AI Expense Classification</div>
+      <div class="feature-desc">Two-stage pipeline: rule-based pre-filter + sentence-transformer embeddings classify every transaction automatically. 91% accuracy on Indian bank statements. User can override any category.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <div class="feature-name">Financial Risk Score (0–100)</div>
+      <div class="feature-desc">Composite risk index across 5 dimensions: Liquidity, Debt Burden, Spending Volatility, Savings Stability, Investment Diversification. Updates every time new data is added.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📈</div>
+      <div class="feature-name">Cash Flow Forecasting</div>
+      <div class="feature-desc">3–12 month cash flow predictions using linear trend + rolling average (MVP). Prophet time series in Phase 2. Shows income, expense, and savings trajectory with confidence bands.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎮</div>
+      <div class="feature-name">Scenario Simulator</div>
+      <div class="feature-desc">The star feature. "What if I close my personal loan?" "What if I increase my SIP by ₹5,000?" Adjust parameters, see future risk score and cash flow change instantly. Side-by-side comparison.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💡</div>
+      <div class="feature-name">AI Recommendations</div>
+      <div class="feature-desc">Hybrid rule-based + ML anomaly detection engine. Prioritized action items ranked by severity: CRITICAL, HIGH, MEDIUM, INFO. Each recommendation is specific to your data, not generic tips.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📤</div>
+      <div class="feature-name">CSV Bank Statement Import</div>
+      <div class="feature-desc">Supports HDFC, ICICI, SBI, Axis, Kotak. Async processing pipeline with real-time status. Deduplication built-in. 500-row statement classified in under 60 seconds.</div>
+    </div>
+  </div>
+
+  <!-- Risk Score Gauge + Dimension bars -->
+  <div class="charts-grid reveal" style="margin-top:40px; align-items:start;">
+    <div class="chart-wrap gauge-wrap">
+      <div class="chart-title">Risk Score Gauge</div>
+      <div class="chart-sub">Live example — average young professional</div>
+      <svg class="gauge-svg" width="280" height="180" viewBox="0 0 280 180">
+        <defs>
+          <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#00D97E"/>
+            <stop offset="33%"  stop-color="#FFD03A"/>
+            <stop offset="66%"  stop-color="#FF6B4A"/>
+            <stop offset="100%" stop-color="#FF2D55"/>
+          </linearGradient>
+        </defs>
+        <!-- Track -->
+        <path d="M 30 160 A 110 110 0 0 1 250 160" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="18" stroke-linecap="round"/>
+        <!-- Colored arc -->
+        <path d="M 30 160 A 110 110 0 0 1 250 160" fill="none" stroke="url(#gaugeGrad)" stroke-width="18" stroke-linecap="round" stroke-dasharray="346" stroke-dashoffset="0" opacity="0.9"/>
+        <!-- Needle -->
+        <line id="gauge-needle" x1="140" y1="160" x2="140" y2="62" stroke="white" stroke-width="3" stroke-linecap="round"
+              transform="rotate(-28, 140, 160)" style="transition: transform 2s cubic-bezier(0.16,1,0.3,1)"/>
+        <circle cx="140" cy="160" r="8" fill="white"/>
+        <!-- Labels -->
+        <text x="26"  y="178" fill="#00D97E" font-size="11" font-family="JetBrains Mono">LOW</text>
+        <text x="96"  y="52"  fill="#FFD03A" font-size="11" font-family="JetBrains Mono">MED</text>
+        <text x="168" y="52"  fill="#FF6B4A" font-size="11" font-family="JetBrains Mono">HIGH</text>
+        <text x="218" y="178" fill="#FF2D55" font-size="10" font-family="JetBrains Mono">CRIT</text>
+        <!-- Score text -->
+        <text x="140" y="128" fill="white" font-size="40" font-weight="bold" font-family="Syne" text-anchor="middle">62</text>
+        <text x="140" y="148" fill="#8899AA" font-size="11" font-family="JetBrains Mono" text-anchor="middle">RISK INDEX</text>
+      </svg>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-title">Risk Dimensions</div>
+      <div class="chart-sub">Breakdown of the 5-dimension composite score</div>
+      <div style="margin-top: 8px;">
+        <div class="progress-row">
+          <div class="progress-label"><span>Liquidity Risk</span><span style="color:var(--org)">45 / 100</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="background:var(--org)" data-width="45"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-label"><span>Debt Burden</span><span style="color:var(--org)">68 / 100</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="background:var(--org)" data-width="68"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-label"><span>Spending Volatility</span><span style="color:var(--yel)">52 / 100</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="background:var(--yel)" data-width="52"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-label"><span>Savings Stability</span><span style="color:var(--yel)">71 / 100</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="background:var(--yel)" data-width="71"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-label"><span>Investment Diversification</span><span style="color:var(--green)">38 / 100</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="background:var(--green)" data-width="38"></div></div>
+        </div>
+        <div style="margin-top:24px; padding-top:20px; border-top: 1px solid var(--glassbdr);">
+          <div class="progress-label" style="margin-bottom:10px;"><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:white">Overall Risk Score</span><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:20px;color:var(--org)">62 / 100</span></div>
+          <div class="progress-bar-bg" style="height:10px; border-radius:5px;"><div class="progress-bar-fill" style="background: linear-gradient(90deg, var(--green), var(--yel), var(--org)); height:10px; border-radius:5px;" data-width="62"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <div class="reveal">
+    <div class="section-label">// 03 — Architecture</div>
+    <h2 class="section-title">Three-tier.<br>Microservices. Containerized.</h2>
+    <p class="section-sub">Clean separation of concerns. Frontend never touches the AI layer directly. Spring Boot orchestrates everything.</p>
+  </div>
+
+  <div class="arch-diagram reveal">
+    <div class="arch-row">
+      <div class="arch-box arch-react">⚛️ React 18 + TypeScript<br><small style="opacity:0.6;font-size:10px">User Interface — Port 5173</small></div>
+    </div>
+    <div class="arch-row"><div class="arch-arrow">↕<div class="arch-arrow-label">HTTPS / REST+JSON<br>via Nginx</div></div></div>
+    <div class="arch-row">
+      <div class="arch-box arch-nginx">🔀 Nginx Reverse Proxy<br><small style="opacity:0.6;font-size:10px">SSL Termination — Port 443</small></div>
+    </div>
+    <div class="arch-row"><div class="arch-arrow">↕<div class="arch-arrow-label">Internal HTTP</div></div></div>
+    <div class="arch-row">
+      <div class="arch-box arch-spring">☕ Spring Boot 3.x<br><small style="opacity:0.6;font-size:10px">Orchestration + Auth + Business Logic — Port 8080</small></div>
+    </div>
+    <div class="arch-row" style="gap:60px;">
+      <div class="arch-arrow">↙<div class="arch-arrow-label">Internal Docker<br>Network HTTP</div></div>
+      <div class="arch-arrow">↘<div class="arch-arrow-label">JDBC via<br>HikariCP</div></div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-box arch-fastapi">🐍 FastAPI AI Services<br><small style="opacity:0.6;font-size:10px">ML Inference — Port 8000</small></div>
+      <div style="width:80px;"></div>
+      <div class="arch-box arch-db">🗄️ PostgreSQL 15<br><small style="opacity:0.6;font-size:10px">+ pgvector — Port 5432</small></div>
+    </div>
+    <div class="arch-sub-row">
+      <div class="arch-sub-box">/classify</div>
+      <div class="arch-sub-box">/risk-score</div>
+      <div class="arch-sub-box">/forecast</div>
+      <div class="arch-sub-box">/recommend</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- STACK -->
+<section id="stack">
+  <div class="reveal">
+    <div class="section-label">// 04 — Tech Stack</div>
+    <h2 class="section-title">Everything you'll<br>learn to build this.</h2>
+    <p class="section-sub">Eight technology layers. Each one you'll understand deeply by the time the project ships.</p>
+  </div>
+
+  <div class="stack-grid reveal">
+    <div class="stack-card" style="--accent-color: var(--cyan);">
+      <div class="stack-layer">Frontend</div>
+      <div class="stack-name">React 18 + TypeScript</div>
+      <div class="stack-desc">Full SPA with protected routes, JWT interceptors, and real-time chart updates.</div>
+      <div class="stack-tags">
+        <span class="stack-tag">Vite</span><span class="stack-tag">React Router v6</span><span class="stack-tag">Zustand</span><span class="stack-tag">Recharts</span><span class="stack-tag">D3.js</span><span class="stack-tag">Tailwind</span><span class="stack-tag">shadcn/ui</span>
+      </div>
+    </div>
+    <div class="stack-card" style="--accent-color: var(--green);">
+      <div class="stack-layer">Backend</div>
+      <div class="stack-name">Spring Boot 3.x</div>
+      <div class="stack-desc">Core API server with JWT auth, async CSV processing, and AI service orchestration.</div>
+      <div class="stack-tags">
+        <span class="stack-tag">Java 21</span><span class="stack-tag">Spring Security 6</span><span class="stack-tag">JPA + Hibernate</span><span class="stack-tag">HikariCP</span><span class="stack-tag">Bucket4j</span><span class="stack-tag">OpenCSV</span>
+      </div>
+    </div>
+    <div class="stack-card" style="--accent-color: var(--purp);">
+      <div class="stack-layer">AI / ML Layer</div>
+      <div class="stack-name">FastAPI + Python</div>
+      <div class="stack-desc">Four inference endpoints for classification, risk scoring, forecasting, and recommendations.</div>
+      <div class="stack-tags">
+        <span class="stack-tag">Python 3.11</span><span class="stack-tag">sentence-transformers</span><span class="stack-tag">scikit-learn</span><span class="stack-tag">FAISS</span><span class="stack-tag">Prophet</span><span class="stack-tag">Pydantic v2</span>
+      </div>
+    </div>
+    <div class="stack-card" style="--accent-color: var(--yel);">
+      <div class="stack-layer">Database</div>
+      <div class="stack-name">PostgreSQL 15 + pgvector</div>
+      <div class="stack-desc">Primary datastore with vector similarity search for transaction embeddings.</div>
+      <div class="stack-tags">
+        <span class="stack-tag">pgvector</span><span class="stack-tag">Flyway migrations</span><span class="stack-tag">JSONB</span><span class="stack-tag">UUID PKs</span>
+      </div>
+    </div>
+    <div class="stack-card" style="--accent-color: var(--org);">
+      <div class="stack-layer">Infrastructure</div>
+      <div class="stack-name">Docker + Nginx</div>
+      <div class="stack-desc">Full containerization with multi-service docker-compose. Nginx for reverse proxy and SSL.</div>
+      <div class="stack-tags">
+        <span class="stack-tag">Docker Compose</span><span class="stack-tag">Nginx</span><span class="stack-tag">Let's Encrypt</span><span class="stack-tag">Ubuntu 22.04</span>
+      </div>
+    </div>
+    <div class="stack-card" style="--accent-color: var(--cyan);">
+      <div class="stack-layer">Testing</div>
+      <div class="stack-name">JUnit 5 + Playwright</div>
+      <div class="stack-desc">Unit and integration tests on backend, component tests and E2E on frontend.</div>
+      <div class="stack-tags">
+        <span class="stack-tag">JUnit 5</span><span class="stack-tag">Mockito</span><span class="stack-tag">React Testing Library</span><span class="stack-tag">MSW</span><span class="stack-tag">Playwright</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skill growth chart -->
+  <div class="chart-wrap reveal" style="margin-top:32px;">
+    <div class="chart-title">Skill Growth After Building This</div>
+    <div class="chart-sub">Estimated skill levels before and after — out of 10</div>
+    <canvas id="skillChart" height="200"></canvas>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ROADMAP -->
+<section id="roadmap">
+  <div class="reveal">
+    <div class="section-label">// 05 — Project Roadmap</div>
+    <h2 class="section-title">16 weeks.<br>5 phases. March → July.</h2>
+    <p class="section-sub">2 hours a day, both of you. Here's exactly what gets built and when.</p>
+  </div>
+
+  <!-- Burn-up chart -->
+  <div class="chart-wrap reveal" style="margin-bottom: 40px;">
+    <div class="chart-title">Feature Burn-Up Chart</div>
+    <div class="chart-sub">Planned vs. realistic pace across 16 weeks</div>
+    <canvas id="burnupChart" height="200"></canvas>
+  </div>
+
+  <div class="timeline reveal">
+
+    <div class="timeline-item" style="--phase-color: var(--blue)">
+      <div class="timeline-dot" style="background: var(--blue)"></div>
+      <div class="timeline-phase" style="color:var(--blue)">Phase 1</div>
+      <div class="timeline-title">Foundation</div>
+      <div class="timeline-weeks">Weeks 1–3 · ~54 hours · March 2026</div>
+      <div class="timeline-desc">JWT authentication, PostgreSQL schema, full CRUD APIs, CSV upload with async processing pipeline. Both machines talking to the same database by end of Week 1.</div>
+      <div class="timeline-deliverable">✅ <span>End state:</span> Upload any Indian bank CSV, see parsed + classified transactions</div>
+    </div>
+
+    <div class="timeline-item" style="--phase-color: var(--green)">
+      <div class="timeline-dot" style="background: var(--green)"></div>
+      <div class="timeline-phase" style="color:var(--green)">Phase 2</div>
+      <div class="timeline-title">The AI Brain</div>
+      <div class="timeline-weeks">Weeks 4–7 · ~70 hours · April 2026</div>
+      <div class="timeline-desc">FastAPI microservice spun up. Expense classification with sentence-transformers. 5-dimension risk scoring engine. Linear cash flow forecasting. Rule-based recommendation engine. This is the hardest phase — expect Week 4 to be rough.</div>
+      <div class="timeline-deliverable">✅ <span>End state:</span> Full AI brain live — risk score, forecast, and recommendations on dashboard</div>
+    </div>
+
+    <div class="timeline-item" style="--phase-color: var(--purp)">
+      <div class="timeline-dot" style="background: var(--purp)"></div>
+      <div class="timeline-phase" style="color:var(--purp)">Phase 3</div>
+      <div class="timeline-title">The Star Feature</div>
+      <div class="timeline-weeks">Weeks 8–10 · ~62 hours · May 2026</div>
+      <div class="timeline-desc">Scenario Simulation Engine — the feature that no other finance app in India offers. Deterministic financial modeling: adjust parameters, see future risk score and cash flow projection change in real time. Full dashboard wired to real data.</div>
+      <div class="timeline-deliverable">✅ <span>End state:</span> Scenario simulator working end-to-end. Full dashboard alive.</div>
+    </div>
+
+    <div class="timeline-item" style="--phase-color: var(--org)">
+      <div class="timeline-dot" style="background: var(--org)"></div>
+      <div class="timeline-phase" style="color:var(--org)">Phase 4</div>
+      <div class="timeline-title">Polish</div>
+      <div class="timeline-weeks">Weeks 11–13 · ~50 hours · June 2026</div>
+      <div class="timeline-desc">The phase 90% of side projects skip. Security hardening, rate limiting, test coverage, loading skeletons, error states, mobile responsiveness. This is what separates a portfolio project from a university assignment.</div>
+      <div class="timeline-deliverable">✅ <span>End state:</span> Secure, tested, mobile-responsive. You'd show this to anyone.</div>
+    </div>
+
+    <div class="timeline-item" style="--phase-color: var(--cyan)">
+      <div class="timeline-dot" style="background: var(--cyan)"></div>
+      <div class="timeline-phase" style="color:var(--cyan)">Phase 5</div>
+      <div class="timeline-title">Launch Ready</div>
+      <div class="timeline-weeks">Weeks 14–16 · ~24 hours · July 2026</div>
+      <div class="timeline-desc">VPS deployment with Docker + Nginx + SSL. Seed data script for demo account. 2-minute demo video. README written. Incubator research done. Pitch doc aligned with actual product.</div>
+      <div class="timeline-deliverable">✅ <span>End state:</span> Live URL. Demo account. Pitch-ready. Ship it.</div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOLDER STRUCTURE -->
+<section id="structure">
+  <div class="reveal">
+    <div class="section-label">// 06 — Project Structure</div>
+    <h2 class="section-title">Every folder.<br>Every file. Explained.</h2>
+  </div>
+
+  <div class="folder-tree reveal">
+<span class="root">Finguard-AI/</span>
+├── <span class="dir">backend/</span>                         <span class="comment"># Spring Boot — Java 21</span>
+│   └── <span class="dir">src/main/java/com/finguard/</span>
+│       ├── <span class="dir">config/</span>                    <span class="comment"># Security, CORS, JWT, Async config</span>
+│       ├── <span class="dir">controller/</span>                <span class="comment"># REST controllers — Auth, Transactions, Risk, Scenario</span>
+│       ├── <span class="dir">service/</span>                   <span class="comment"># Business logic — all core processing here</span>
+│       ├── <span class="dir">repository/</span>                <span class="comment"># Spring Data JPA repositories</span>
+│       ├── <span class="dir">model/</span>                     <span class="comment"># JPA entities — User, Transaction, Loan, Investment</span>
+│       ├── <span class="dir">dto/</span>                       <span class="comment"># Request/Response DTOs with validation</span>
+│       ├── <span class="dir">exception/</span>                 <span class="comment"># Custom exceptions + global error handler</span>
+│       ├── <span class="dir">security/</span>                  <span class="comment"># JwtFilter, UserDetailsService</span>
+│       └── <span class="dir">util/</span>                      <span class="comment"># CSV parser, validators, mappers</span>
+│
+├── <span class="dir">frontend/</span>                        <span class="comment"># React 18 + TypeScript — Vite</span>
+│   └── <span class="dir">src/</span>
+│       ├── <span class="dir">components/</span>                <span class="comment"># Reusable UI components</span>
+│       ├── <span class="dir">pages/</span>                     <span class="comment"># Dashboard, Transactions, Scenarios, Forecast...</span>
+│       ├── <span class="dir">hooks/</span>                     <span class="comment"># Custom React hooks</span>
+│       ├── <span class="dir">services/</span>                  <span class="comment"># Axios API calls — one file per domain</span>
+│       ├── <span class="dir">store/</span>                     <span class="comment"># Zustand state management</span>
+│       ├── <span class="dir">types/</span>                     <span class="comment"># TypeScript interfaces and types</span>
+│       └── <span class="dir">utils/</span>                     <span class="comment"># Helpers, formatters, constants</span>
+│
+├── <span class="dir">ai/</span>                              <span class="comment"># FastAPI — Python 3.11</span>
+│   └── <span class="dir">app/</span>
+│       ├── <span class="dir">routers/</span>                   <span class="comment"># /classify  /risk-score  /forecast  /recommend</span>
+│       ├── <span class="dir">models/</span>                    <span class="comment"># ML model loading + inference logic</span>
+│       ├── <span class="dir">schemas/</span>                   <span class="comment"># Pydantic request/response schemas</span>
+│       └── <span class="dir">utils/</span>                     <span class="comment"># Preprocessing, thresholds, feature engineering</span>
+│
+├── <span class="file">docker-compose.yml</span>               <span class="comment"># Orchestrates all 4 services</span>
+├── <span class="file">docker-compose.prod.yml</span>          <span class="comment"># Production overrides</span>
+├── <span class="file">.gitignore</span>
+└── <span class="file">README.md</span>                        <span class="comment"># This file</span>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TEAM -->
+<section id="team">
+  <div class="reveal">
+    <div class="section-label">// 07 — The Team</div>
+    <h2 class="section-title">Two people.<br>One product. Shipped.</h2>
+    <p class="section-sub">Both doing full-stack. Both learning everything. March → July 2026.</p>
+  </div>
+
+  <div class="team-grid reveal">
+    <div class="team-card">
+      <div class="team-avatar" style="background: linear-gradient(135deg, rgba(30,111,217,0.3), rgba(0,201,255,0.2)); border: 2px solid rgba(0,201,255,0.3);">VJ</div>
+      <div class="team-name">Viraj Jadhao</div>
+      <div class="team-role">Backend + AI Lead</div>
+      <div class="team-owns">
+        <span class="badge badge-green">Spring Boot APIs</span>
+        <span class="badge badge-purp">FastAPI + ML</span>
+        <span class="badge badge-blue">Risk Engine</span>
+        <span class="badge badge-org">Scenario Simulator</span>
+        <span class="badge badge-yel">Docker + Deploy</span>
+      </div>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar" style="background: linear-gradient(135deg, rgba(124,92,252,0.3), rgba(255,107,74,0.2)); border: 2px solid rgba(124,92,252,0.3);">B</div>
+      <div class="team-name">Bhumi</div>
+      <div class="team-role">Frontend + Product Lead</div>
+      <div class="team-owns">
+        <span class="badge badge-blue">React + TypeScript</span>
+        <span class="badge badge-purp">Dashboard + Charts</span>
+        <span class="badge badge-green">Upload Flow UI</span>
+        <span class="badge badge-org">Scenario UI</span>
+        <span class="badge badge-yel">Mobile Responsive</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Revenue projection chart -->
+  <div class="chart-wrap reveal" style="margin-top:40px;">
+    <div class="chart-title">Projected User Growth — 2026 to 2027</div>
+    <div class="chart-sub">Free users + paid subscribers + revenue (₹ Lakhs)</div>
+    <canvas id="revenueChart" height="220"></canvas>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-title" style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em;">
+    Build something <span style="color:var(--cyan)">real</span>.
+  </div>
+  <p class="footer-sub">FinGuard AI · Viraj + Bhumi · March 2026 · Made with too much coffee ☕</p>
+  <div class="footer-links">
+    <a href="https://github.com/Viraj281105/Finguard-AI" class="footer-link footer-link-primary" target="_blank">⭐ GitHub Repo</a>
+    <a href="#hero" class="footer-link footer-link-ghost">↑ Back to Top</a>
+  </div>
+</footer>
+
+<script>
+// ── Counter animation ──────────────────────────────────────────
+function animateCounter(el, target, duration = 1500) {
+  let start = 0;
+  const step = target / (duration / 16);
+  const timer = setInterval(() => {
+    start += step;
+    if (start >= target) { el.textContent = target; clearInterval(timer); return; }
+    el.textContent = Math.floor(start);
+  }, 16);
+}
+
+// ── Scroll reveal ──────────────────────────────────────────────
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      revealObserver.unobserve(entry.target);
+
+      // Trigger progress bars
+      entry.target.querySelectorAll('.progress-bar-fill').forEach(bar => {
+        bar.style.width = bar.dataset.width + '%';
+      });
+
+      // Trigger counters
+      entry.target.querySelectorAll('[data-count]').forEach(el => {
+        animateCounter(el, parseInt(el.dataset.count));
+      });
+
+      // Trigger timeline items
+      entry.target.querySelectorAll('.timeline-item').forEach((item, i) => {
+        setTimeout(() => item.classList.add('visible'), i * 120);
+      });
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal, .hero-stat-row').forEach(el => revealObserver.observe(el));
+
+// Counters in hero (trigger on load)
+setTimeout(() => {
+  document.querySelectorAll('[data-count]').forEach(el => animateCounter(el, parseInt(el.dataset.count)));
+}, 1000);
+
+// Gauge needle animation
+setTimeout(() => {
+  // 62/100 maps to about 28deg past center on our arc
+}, 500);
+
+// ── Chart.js defaults ──────────────────────────────────────────
+Chart.defaults.color = '#8899AA';
+Chart.defaults.font.family = 'DM Sans';
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.pointStyleWidth = 10;
+
+const gridColor = 'rgba(255,255,255,0.05)';
+
+// ── Survey Chart ───────────────────────────────────────────────
+new Chart(document.getElementById('surveyChart'), {
+  type: 'bar',
+  data: {
+    labels: ["No emergency\nfund", "Never simulated\na decision", "Feel financially\nanxious", "Don't track\nexpenses", "Overspent\nlast month", "Unaware of\ndebt ratio"],
+    datasets: [{
+      data: [68, 92, 77, 73, 65, 81],
+      backgroundColor: ['rgba(255,107,74,0.7)','rgba(255,45,85,0.8)','rgba(255,107,74,0.7)','rgba(255,107,74,0.6)','rgba(255,107,74,0.5)','rgba(255,107,74,0.7)'],
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: gridColor }, ticks: { font: { size: 10 } } },
+      y: { grid: { color: gridColor }, max: 100, ticks: { callback: v => v + '%' } }
+    }
+  }
+});
+
+// ── Spending Chart ─────────────────────────────────────────────
+new Chart(document.getElementById('spendingChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Rent', 'Food', 'EMI', 'Shopping', 'Transport', 'Savings', 'Subscriptions'],
+    datasets: [
+      { label: 'Actual', data: [28,19,22,11,9,4,4], backgroundColor: 'rgba(255,107,74,0.7)', borderRadius: 4 },
+      { label: 'Recommended', data: [25,15,15,8,8,20,3], backgroundColor: 'rgba(0,217,126,0.7)', borderRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: true } },
+    scales: {
+      x: { grid: { color: gridColor }, ticks: { font: { size: 10 } } },
+      y: { grid: { color: gridColor }, ticks: { callback: v => v + '%' } }
+    }
+  }
+});
+
+// ── Market Chart ───────────────────────────────────────────────
+new Chart(document.getElementById('marketChart'), {
+  type: 'bar',
+  data: {
+    labels: ['2021','2022','2023','2024','2025','2026 (proj)','2027 (proj)'],
+    datasets: [{
+      data: [31,45,65,84,111,145,190],
+      backgroundColor: ctx => {
+        const i = ctx.dataIndex;
+        return i >= 5 ? 'rgba(0,217,126,0.75)' : 'rgba(30,111,217,0.75)';
+      },
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ' $' + ctx.raw + 'B' } }
+    },
+    scales: {
+      x: { grid: { color: gridColor } },
+      y: { grid: { color: gridColor }, ticks: { callback: v => '$' + v + 'B' } }
+    }
+  }
+});
+
+// ── Skill Chart ────────────────────────────────────────────────
+new Chart(document.getElementById('skillChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Spring Boot', 'FastAPI / Python', 'ML Integration', 'React + TS', 'Data Viz', 'Docker + DevOps', 'PostgreSQL', 'System Design'],
+    datasets: [
+      { label: 'Before', data: [5,3,2,5,3,3,4,4], backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 4 },
+      { label: 'After',  data: [9,8,7,9,8,8,8,9], backgroundColor: 'rgba(0,201,255,0.7)',   borderRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: true } },
+    scales: {
+      x: { grid: { color: gridColor } },
+      y: { grid: { color: gridColor }, max: 10 }
+    }
+  }
+});
+
+// ── Burn-up Chart ──────────────────────────────────────────────
+new Chart(document.getElementById('burnupChart'), {
+  type: 'line',
+  data: {
+    labels: ['W0','W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','W11','W12','W13','W14','W15','W16'],
+    datasets: [
+      {
+        label: 'Ideal Pace',
+        data: [0,2,5,9,13,18,23,29,33,38,43,47,51,55,58,61,64],
+        borderColor: 'rgba(30,111,217,0.7)',
+        backgroundColor: 'rgba(30,111,217,0.08)',
+        borderDash: [6,3],
+        fill: true,
+        tension: 0.4,
+        pointRadius: 3,
+      },
+      {
+        label: 'Realistic Pace',
+        data: [0,1,4,7,11,15,20,26,30,35,39,43,48,52,56,60,64],
+        borderColor: 'rgba(0,217,126,0.9)',
+        backgroundColor: 'rgba(0,217,126,0.08)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 3,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: true },
+      annotation: {}
+    },
+    scales: {
+      x: { grid: { color: gridColor } },
+      y: { grid: { color: gridColor }, max: 70, title: { display: true, text: 'Features Completed', color: '#8899AA' } }
+    }
+  }
+});
+
+// ── Revenue Chart ──────────────────────────────────────────────
+const revenueCtx = document.getElementById('revenueChart');
+new Chart(revenueCtx, {
+  type: 'bar',
+  data: {
+    labels: ['Q1 2026','Q2 2026','Q3 2026','Q4 2026','Q1 2027','Q2 2027','Q3 2027','Q4 2027'],
+    datasets: [
+      { label: 'Free Users (K)', data: [0.8,3.2,8,18,35,62,95,140], backgroundColor: 'rgba(0,201,255,0.4)', borderRadius: 4, yAxisID: 'y' },
+      { label: 'Paid Users (K)', data: [0,0.12,0.48,1.4,3.2,6.5,12,22], backgroundColor: 'rgba(0,217,126,0.7)', borderRadius: 4, yAxisID: 'y' },
+      { label: 'Revenue (₹L)', data: [0,0.18,0.72,2.1,4.8,9.75,18,33], type: 'line', borderColor: 'rgba(255,208,58,0.9)', backgroundColor: 'transparent', tension: 0.4, pointRadius: 4, yAxisID: 'y2' }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: true } },
+    scales: {
+      x: { grid: { color: gridColor } },
+      y: { grid: { color: gridColor }, position: 'left', title: { display: true, text: 'Users (Thousands)', color: '#8899AA' } },
+      y2: { grid: { display: false }, position: 'right', title: { display: true, text: 'Revenue (₹ Lakhs)', color: '#FFD03A' }, ticks: { color: '#FFD03A' } }
+    }
+  }
+});
+</script>
+</body>
+</html>
