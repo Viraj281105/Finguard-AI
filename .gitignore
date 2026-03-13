@@ -1,0 +1,39 @@
+# ===== BACKEND =====
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/*.log
+backend/logs/
+
+# ===== FRONTEND =====
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/*.local
+
+# ===== AI =====
+ai/models-cache/
+ai/__pycache__/
+ai/.venv/
+ai/venv/
+*.pyc
+
+# ===== DOCKER =====
+postgres-data/
+
+# ===== IDE =====
+.idea/
+*.iml
+.vscode/
+*.suo
+*.user
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== ENV / SECRETS =====
+.env
+.env.local
+.env.production
+*.secret
