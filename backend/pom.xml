@@ -78,6 +78,16 @@
 			<version>0.12.6</version>
 			<scope>runtime</scope>
 		</dependency>
+
+		<!-- OpenCSV — for parsing Indian bank statement CSV files -->
+		<!-- Used by CsvParserUtil to handle quoted fields, commas inside -->
+		<!-- descriptions, and other edge cases in bank CSVs              -->
+		<dependency>
+			<groupId>com.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>5.9</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
