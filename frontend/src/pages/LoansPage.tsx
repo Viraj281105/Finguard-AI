@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loanAPI, type Loan, type LoanType } from "../services/api";
+import AddLoanModal from "../components/AddLoanModal";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("en-IN", {
@@ -31,6 +32,7 @@ export default function LoansPage() {
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [showActive, setShowActive] = useState<"ALL" | "ACTIVE" | "CLOSED">("ALL");
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -63,20 +65,17 @@ export default function LoansPage() {
     }
   };
 
+  const handleAdded = (loan: Loan) => {
+    setLoans((prev) => [loan, ...prev]);
+  };
+
   const filtered =
-    showActive === "ALL"
-      ? loans
-      : showActive === "ACTIVE"
-      ? loans.filter((l) => l.active)
-      : loans.filter((l) => !l.active);
+    showActive === "ALL" ? loans
+    : showActive === "ACTIVE" ? loans.filter((l) => l.active)
+    : loans.filter((l) => !l.active);
 
-  const totalEMI = loans
-    .filter((l) => l.active)
-    .reduce((s, l) => s + l.emiAmount, 0);
-
-  const totalPrincipal = loans
-    .filter((l) => l.active)
-    .reduce((s, l) => s + l.principal, 0);
+  const totalEMI = loans.filter((l) => l.active).reduce((s, l) => s + l.emiAmount, 0);
+  const totalPrincipal = loans.filter((l) => l.active).reduce((s, l) => s + l.principal, 0);
 
   if (loading) {
     return (
@@ -88,21 +87,22 @@ export default function LoansPage() {
 
   return (
     <div className="min-h-screen bg-[#080a0e] text-white font-['DM_Sans',sans-serif]">
-      <nav className="sticky top-0 z-50 border-b border-white/[0.05] bg-[#080a0e]/80 backdrop-blur-xl px-6 py-4">
+      {showModal && (
+        <AddLoanModal
+          onClose={() => setShowModal(false)}
+          onAdded={handleAdded}
+        />
+      )}
+
+      <nav className="sticky top-0 z-40 border-b border-white/[0.05] bg-[#080a0e]/80 backdrop-blur-xl px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="text-white/50 hover:text-white transition-colors text-sm"
-          >
+          <button onClick={() => navigate("/dashboard")} className="text-white/50 hover:text-white transition-colors text-sm">
             ← Dashboard
           </button>
-          <span className="font-bold text-lg tracking-tight">
-            Fin<span className="text-[#00d4ff]">Guard</span>
-          </span>
+          <span className="font-bold text-lg tracking-tight">Fin<span className="text-[#00d4ff]">Guard</span></span>
           <button
-            onClick={() => navigate("/loans/new")}
-            className="px-4 py-2 text-sm bg-[#fb7185] text-black font-semibold rounded-xl
-                       hover:bg-[#f43f5e] transition-colors"
+            onClick={() => setShowModal(true)}
+            className="px-4 py-2 text-sm bg-[#fb7185] text-black font-semibold rounded-xl hover:bg-[#f43f5e] transition-colors"
           >
             + Add
           </button>
@@ -127,16 +127,13 @@ export default function LoansPage() {
           </div>
         </div>
 
-        {/* Filter tabs */}
         <div className="flex gap-2 mb-6">
           {(["ALL", "ACTIVE", "CLOSED"] as const).map((f) => (
             <button
               key={f}
               onClick={() => setShowActive(f)}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                showActive === f
-                  ? "bg-white/10 text-white"
-                  : "text-white/40 hover:text-white/70"
+                showActive === f ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"
               }`}
             >
               {f.charAt(0) + f.slice(1).toLowerCase()}
@@ -145,28 +142,27 @@ export default function LoansPage() {
         </div>
 
         {error && (
-          <div className="mb-4 px-4 py-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm">
-            {error}
-          </div>
+          <div className="mb-4 px-4 py-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm">{error}</div>
         )}
 
         <div className="rounded-2xl bg-[#0f1117] border border-white/[0.06] overflow-hidden">
           {filtered.length === 0 ? (
             <div className="text-center py-16 text-white/30">
               <p className="text-4xl mb-3">🏷️</p>
-              <p className="text-sm">No loans found.</p>
+              <p className="text-sm mb-4">No loans found.</p>
+              <button
+                onClick={() => setShowModal(true)}
+                className="px-4 py-2 text-sm bg-[#fb7185] text-black font-semibold rounded-xl hover:bg-[#f43f5e] transition-colors"
+              >
+                + Add your first loan
+              </button>
             </div>
           ) : (
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/[0.06]">
                   {["Name", "Type", "EMI / mo", "Interest", "End Date", "Status", ""].map((h) => (
-                    <th
-                      key={h}
-                      className={`px-5 py-4 text-xs text-white/30 uppercase tracking-widest font-medium ${
-                        h === "Name" ? "text-left" : "text-right"
-                      }`}
-                    >
+                    <th key={h} className={`px-5 py-4 text-xs text-white/30 uppercase tracking-widest font-medium ${h === "Name" ? "text-left" : "text-right"}`}>
                       {h}
                     </th>
                   ))}
@@ -176,38 +172,21 @@ export default function LoansPage() {
                 {filtered.map((loan) => {
                   const colors = TYPE_COLORS[loan.type];
                   return (
-                    <tr
-                      key={loan.id}
-                      className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
-                    >
+                    <tr key={loan.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
                       <td className="px-5 py-4">
                         <p className="text-sm font-medium text-white/90">{loan.name}</p>
-                        <p className="text-xs text-white/30 mt-0.5">
-                          Principal: {fmt(loan.principal)}
-                        </p>
+                        <p className="text-xs text-white/30 mt-0.5">Principal: {fmt(loan.principal)}</p>
                       </td>
                       <td className="px-5 py-4 text-right">
-                        <span className={`text-xs font-medium px-2 py-1 rounded-lg ${colors.bg} ${colors.text}`}>
-                          {loan.type}
-                        </span>
+                        <span className={`text-xs font-medium px-2 py-1 rounded-lg ${colors.bg} ${colors.text}`}>{loan.type}</span>
                       </td>
-                      <td className="px-5 py-4 text-right text-sm font-medium text-white">
-                        {fmt(loan.emiAmount)}
-                      </td>
-                      <td className="px-5 py-4 text-right text-sm text-white/60">
-                        {loan.interestRate}%
-                      </td>
-                      <td className="px-5 py-4 text-right text-xs text-white/40">
-                        {formatDate(loan.endDate)}
-                      </td>
+                      <td className="px-5 py-4 text-right text-sm font-medium text-white">{fmt(loan.emiAmount)}</td>
+                      <td className="px-5 py-4 text-right text-sm text-white/60">{loan.interestRate}%</td>
+                      <td className="px-5 py-4 text-right text-xs text-white/40">{formatDate(loan.endDate)}</td>
                       <td className="px-5 py-4 text-right">
-                        <span
-                          className={`text-xs font-semibold px-2 py-1 rounded-lg ${
-                            loan.active
-                              ? "bg-emerald-500/10 text-emerald-400"
-                              : "bg-white/5 text-white/30"
-                          }`}
-                        >
+                        <span className={`text-xs font-semibold px-2 py-1 rounded-lg ${
+                          loan.active ? "bg-emerald-500/10 text-emerald-400" : "bg-white/5 text-white/30"
+                        }`}>
                           {loan.active ? "Active" : "Closed"}
                         </span>
                       </td>
