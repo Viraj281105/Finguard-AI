@@ -14,8 +14,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const res = await authAPI.login(form)
-      localStorage.setItem('accessToken', res.data.accessToken)
-      localStorage.setItem('user', JSON.stringify({ email: res.data.email, name: res.data.name }))
+      localStorage.setItem('token', res.accessToken)
       navigate('/dashboard')
     } catch (err) {
       const error = err as any
