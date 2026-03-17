@@ -200,3 +200,50 @@ export const loanAPI = {
   delete: (id: number) =>
     axiosInstance.delete(`/loans/${id}`).then((r) => r.data),
 };
+
+// ─── Upload API ───────────────────────────────────────────────────────────────
+// Add these to the bottom of your existing api.ts file
+
+export type JobStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+
+export interface UploadStatusResponse {
+  jobId: string;
+  status: JobStatus;
+  bankName: string;
+  originalFilename: string;
+  totalRows: number;
+  rowsProcessed: number;
+  errorMessage: string | null;
+  createdAt: string | null;
+  completedAt: string | null;
+}
+
+export const uploadAPI = {
+  /*
+   * uploadCsv()
+   * -----------
+   * Sends the CSV file as multipart/form-data.
+   * Returns immediately with jobId and status = PENDING.
+   * Backend processes the file asynchronously in the background.
+   */
+  uploadCsv: (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return axiosInstance
+      .post<UploadStatusResponse>("/upload/csv", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((r) => r.data);
+  },
+
+  /*
+   * getStatus()
+   * -----------
+   * Polls the status of an upload job.
+   * Frontend calls this every 2 seconds until status = COMPLETED or FAILED.
+   */
+  getStatus: (jobId: string) =>
+    axiosInstance
+      .get<UploadStatusResponse>(`/upload/status/${jobId}`)
+      .then((r) => r.data),
+};

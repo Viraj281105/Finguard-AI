@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   transactionAPI,
@@ -8,6 +8,7 @@ import {
   type DashboardSummary,
   type Transaction,
 } from "../services/api";
+import CsvUpload from "../components/CsvUpload";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -112,13 +113,21 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  /*
+   * loadDashboardData()
+   * -------------------
+   * Extracted into a useCallback so it can be called:
+   *   1. On initial page load (useEffect below)
+   *   2. After a successful CSV upload (passed to CsvUpload as onUploadComplete)
+   */
+  const loadDashboardData = useCallback(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
       return;
     }
 
+    setLoading(true);
     Promise.all([
       transactionAPI.getAll(),
       investmentAPI.getAll(),
@@ -139,9 +148,15 @@ export default function DashboardPage() {
         const totalCurrent = invs.reduce((s, i) => s + i.currentValue, 0);
         setGainPct(pct(totalCurrent, totalInvested));
       })
-      .catch(() => setError("Failed to load dashboard data. Is the backend running?"))
+      .catch(() =>
+        setError("Failed to load dashboard data. Is the backend running?")
+      )
       .finally(() => setLoading(false));
   }, [navigate]);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -153,7 +168,9 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-[#080a0e] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-2 border-[#00d4ff]/30 border-t-[#00d4ff] animate-spin" />
-          <p className="text-white/40 text-sm tracking-widest uppercase">Loading</p>
+          <p className="text-white/40 text-sm tracking-widest uppercase">
+            Loading
+          </p>
         </div>
       </div>
     );
@@ -216,6 +233,11 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* ── CSV Upload Component ── */}
+        <div className="mb-10">
+          <CsvUpload onUploadComplete={loadDashboardData} />
+        </div>
+
         {/* ── Summary Cards ── */}
         {summary && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
@@ -277,7 +299,7 @@ export default function DashboardPage() {
           </div>
           {recentTx.length === 0 ? (
             <p className="text-white/30 text-sm text-center py-8">
-              No transactions yet. Add one to get started.
+              No transactions yet. Upload a bank statement above to get started.
             </p>
           ) : (
             recentTx.map((tx) => <RecentTxRow key={tx.id} tx={tx} />)
