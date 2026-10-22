@@ -1,14 +1,12 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { investmentAPI, type Investment, type InvestmentType } from "../services/api";
-import AddInvestmentModal from "../components/AddInvestmentModal";
-
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(n);
+import { useState } from "react";
+import { useResource } from "../../shared/hooks/useResource";
+import { formatCurrency } from "../../shared/utils/format";
+import ErrorBanner from "../../shared/components/ErrorBanner";
+import PageNav, { AddButton } from "../../shared/components/PageNav";
+import FullPageSpinner from "../../shared/components/Spinner";
+import AddInvestmentModal from "./AddInvestmentModal";
+import { investmentAPI } from "./api";
+import { currentValueOf, type Investment, type InvestmentType } from "./types";
 
 const TYPE_COLORS: Record<InvestmentType, { bg: string; text: string }> = {
   STOCKS:      { bg: "bg-blue-500/10",   text: "text-blue-400" },
@@ -19,87 +17,47 @@ const TYPE_COLORS: Record<InvestmentType, { bg: string; text: string }> = {
   OTHER:       { bg: "bg-white/10",      text: "text-white/50" },
 };
 
+const LOAD_ERROR = "Could not fetch investments.";
+
 export default function InvestmentsPage() {
-  const navigate = useNavigate();
-  const [investments, setInvestments] = useState<Investment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const { data, loading, error, update } = useResource(investmentAPI.getAll, LOAD_ERROR);
+  const [actionError, setActionError] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) { navigate("/login"); return; }
+  const investments = data ?? [];
 
-    investmentAPI
-      .getAll()
-      .then((data) =>
-        setInvestments(
-          [...data].sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          )
-        )
-      )
-      .catch(() => setError("Could not fetch investments."))
-      .finally(() => setLoading(false));
-  }, [navigate]);
-
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!window.confirm("Delete this investment?")) return;
+    setActionError("");
     setDeletingId(id);
     try {
       await investmentAPI.delete(id);
-      setInvestments((prev) => prev.filter((i) => i.id !== id));
+      update((prev) => prev.filter((i) => i.id !== id));
     } catch {
-      alert("Failed to delete.");
+      setActionError("Failed to delete.");
     } finally {
       setDeletingId(null);
     }
   };
 
-  const handleAdded = (inv: Investment) => {
-    setInvestments((prev) => [inv, ...prev]);
-  };
+  const handleAdded = (inv: Investment) => update((prev) => [inv, ...prev]);
 
   const totalInvested = investments.reduce((s, i) => s + i.amountInvested, 0);
-  const totalCurrent  = investments.reduce((s, i) => s + i.currentValue, 0);
-  const overallGain   = totalCurrent - totalInvested;
-  const overallPct    = totalInvested > 0
-    ? ((overallGain / totalInvested) * 100).toFixed(2)
-    : "0.00";
+  const totalCurrent = investments.reduce((s, i) => s + currentValueOf(i), 0);
+  const overallGain = totalCurrent - totalInvested;
+  const overallPct =
+    totalInvested > 0 ? ((overallGain / totalInvested) * 100).toFixed(2) : "0.00";
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#080a0e] flex items-center justify-center">
-        <div className="w-10 h-10 rounded-full border-2 border-[#a78bfa]/30 border-t-[#a78bfa] animate-spin" />
-      </div>
-    );
-  }
+  if (loading) return <FullPageSpinner accent="violet" />;
 
   return (
     <div className="min-h-screen bg-[#080a0e] text-white font-['DM_Sans',sans-serif]">
       {showModal && (
-        <AddInvestmentModal
-          onClose={() => setShowModal(false)}
-          onAdded={handleAdded}
-        />
+        <AddInvestmentModal onClose={() => setShowModal(false)} onAdded={handleAdded} />
       )}
 
-      <nav className="sticky top-0 z-40 border-b border-white/[0.05] bg-[#080a0e]/80 backdrop-blur-xl px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <button onClick={() => navigate("/dashboard")} className="text-white/50 hover:text-white transition-colors text-sm">
-            ← Dashboard
-          </button>
-          <span className="font-bold text-lg tracking-tight">Fin<span className="text-[#00d4ff]">Guard</span></span>
-          <button
-            onClick={() => setShowModal(true)}
-            className="px-4 py-2 text-sm bg-[#a78bfa] text-black font-semibold rounded-xl hover:bg-[#9061f9] transition-colors"
-          >
-            + Add
-          </button>
-        </div>
-      </nav>
+      <PageNav accent="violet" onAdd={() => setShowModal(true)} />
 
       <main className="max-w-5xl mx-auto px-6 py-10">
         <div className="mb-8 flex items-start justify-between">
@@ -110,7 +68,7 @@ export default function InvestmentsPage() {
           <div className="flex gap-3">
             <div className="px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
               <p className="text-xs text-purple-400/60 uppercase tracking-widest">Invested</p>
-              <p className="text-sm font-semibold text-purple-400">{fmt(totalInvested)}</p>
+              <p className="text-sm font-semibold text-purple-400">{formatCurrency(totalInvested)}</p>
             </div>
             <div className={`px-4 py-2 rounded-xl border ${
               overallGain >= 0 ? "bg-emerald-500/10 border-emerald-500/20" : "bg-rose-500/10 border-rose-500/20"
@@ -123,21 +81,16 @@ export default function InvestmentsPage() {
           </div>
         </div>
 
-        {error && (
-          <div className="mb-4 px-4 py-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm">{error}</div>
-        )}
+        <ErrorBanner message={error || actionError} />
 
         <div className="rounded-2xl bg-[#0f1117] border border-white/[0.06] overflow-hidden">
           {investments.length === 0 ? (
             <div className="text-center py-16 text-white/30">
               <p className="text-4xl mb-3">📊</p>
               <p className="text-sm mb-4">No investments yet.</p>
-              <button
-                onClick={() => setShowModal(true)}
-                className="px-4 py-2 text-sm bg-[#a78bfa] text-black font-semibold rounded-xl hover:bg-[#9061f9] transition-colors"
-              >
+              <AddButton accent="violet" onClick={() => setShowModal(true)}>
                 + Add your first investment
-              </button>
+              </AddButton>
             </div>
           ) : (
             <table className="w-full">
@@ -152,7 +105,8 @@ export default function InvestmentsPage() {
               </thead>
               <tbody>
                 {investments.map((inv) => {
-                  const gain = inv.currentValue - inv.amountInvested;
+                  const current = currentValueOf(inv);
+                  const gain = current - inv.amountInvested;
                   const gainP = inv.amountInvested > 0 ? ((gain / inv.amountInvested) * 100).toFixed(2) : "0.00";
                   const colors = TYPE_COLORS[inv.type];
                   return (
@@ -166,8 +120,8 @@ export default function InvestmentsPage() {
                           {inv.type.replace("_", " ")}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right text-sm text-white/70">{fmt(inv.amountInvested)}</td>
-                      <td className="px-6 py-4 text-right text-sm font-medium text-white">{fmt(inv.currentValue)}</td>
+                      <td className="px-6 py-4 text-right text-sm text-white/70">{formatCurrency(inv.amountInvested)}</td>
+                      <td className="px-6 py-4 text-right text-sm font-medium text-white">{formatCurrency(current)}</td>
                       <td className="px-6 py-4 text-right">
                         <span className={`text-sm font-semibold ${gain >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                           {gain >= 0 ? "+" : ""}{gainP}%
@@ -177,6 +131,7 @@ export default function InvestmentsPage() {
                         <button
                           onClick={() => handleDelete(inv.id)}
                           disabled={deletingId === inv.id}
+                          aria-label={`Delete ${inv.name}`}
                           className="text-white/20 hover:text-rose-400 transition-colors text-sm disabled:opacity-40"
                         >
                           {deletingId === inv.id ? "…" : "✕"}
