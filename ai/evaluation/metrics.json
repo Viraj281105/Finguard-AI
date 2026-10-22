@@ -1,0 +1,416 @@
+{
+  "dev": {
+    "abstention_correct": 1.0,
+    "accuracy": 1.0,
+    "confusion": {
+      "CARD_PAYMENTS": {
+        "CARD_PAYMENTS": 3
+      },
+      "DINING": {
+        "DINING": 3
+      },
+      "EDUCATION": {
+        "EDUCATION": 2
+      },
+      "ENTERTAINMENT": {
+        "ENTERTAINMENT": 2
+      },
+      "FEES": {
+        "FEES": 3
+      },
+      "GROCERIES": {
+        "GROCERIES": 3
+      },
+      "HEALTHCARE": {
+        "HEALTHCARE": 3
+      },
+      "HOUSING": {
+        "HOUSING": 2
+      },
+      "INCOME": {
+        "INCOME": 3
+      },
+      "INSURANCE": {
+        "INSURANCE": 2
+      },
+      "INVESTMENTS": {
+        "INVESTMENTS": 4
+      },
+      "LOAN_PAYMENTS": {
+        "LOAN_PAYMENTS": 2
+      },
+      "REFUNDS": {
+        "REFUNDS": 3
+      },
+      "SHOPPING": {
+        "SHOPPING": 3
+      },
+      "SUBSCRIPTIONS": {
+        "SUBSCRIPTIONS": 3
+      },
+      "TRANSFERS": {
+        "TRANSFERS": 3
+      },
+      "TRANSPORT": {
+        "TRANSPORT": 3
+      },
+      "UNCATEGORIZED": {
+        "UNCATEGORIZED": 9
+      },
+      "UTILITIES": {
+        "UTILITIES": 3
+      }
+    },
+    "confusion_columns": [
+      "CARD_PAYMENTS",
+      "DINING",
+      "EDUCATION",
+      "ENTERTAINMENT",
+      "FEES",
+      "GROCERIES",
+      "HEALTHCARE",
+      "HOUSING",
+      "INCOME",
+      "INSURANCE",
+      "INVESTMENTS",
+      "LOAN_PAYMENTS",
+      "REFUNDS",
+      "SHOPPING",
+      "SUBSCRIPTIONS",
+      "TRANSFERS",
+      "TRANSPORT",
+      "UNCATEGORIZED",
+      "UTILITIES"
+    ],
+    "coverage_of_assignable": 1.0,
+    "errors": [],
+    "macro_f1": 1.0,
+    "per_class": {
+      "CARD_PAYMENTS": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 3
+      },
+      "DINING": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 3
+      },
+      "EDUCATION": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 2
+      },
+      "ENTERTAINMENT": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 2
+      },
+      "FEES": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 3
+      },
+      "GROCERIES": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 3
+      },
+      "HEALTHCARE": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 3
+      },
+      "HOUSING": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 2
+      },
+      "INCOME": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 3
+      },
+      "INSURANCE": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 2
+      },
+      "INVESTMENTS": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 4
+      },
+      "LOAN_PAYMENTS": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 2
+      },
+      "REFUNDS": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 3
+      },
+      "SHOPPING": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 3
+      },
+      "SUBSCRIPTIONS": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 3
+      },
+      "TRANSFERS": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 3
+      },
+      "TRANSPORT": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 3
+      },
+      "UTILITIES": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 3
+      }
+    },
+    "precision_when_classified": 1.0,
+    "recall_on_assignable": 1.0,
+    "review_flag": {
+      "flagged": 6,
+      "precision_when_flagged": 1.0,
+      "precision_when_unflagged": 1.0,
+      "unflagged": 44
+    },
+    "rows": 59,
+    "wrong_category_asserted": 0
+  },
+  "holdout": {
+    "abstention_correct": 1.0,
+    "accuracy": 1.0,
+    "confusion": {
+      "CARD_PAYMENTS": {
+        "CARD_PAYMENTS": 4
+      },
+      "DINING": {
+        "DINING": 7
+      },
+      "EDUCATION": {
+        "EDUCATION": 6
+      },
+      "ENTERTAINMENT": {
+        "ENTERTAINMENT": 5
+      },
+      "FEES": {
+        "FEES": 7
+      },
+      "GROCERIES": {
+        "GROCERIES": 8
+      },
+      "HEALTHCARE": {
+        "HEALTHCARE": 7
+      },
+      "HOUSING": {
+        "HOUSING": 4
+      },
+      "INCOME": {
+        "INCOME": 8
+      },
+      "INSURANCE": {
+        "INSURANCE": 5
+      },
+      "INVESTMENTS": {
+        "INVESTMENTS": 9
+      },
+      "LOAN_PAYMENTS": {
+        "LOAN_PAYMENTS": 6
+      },
+      "REFUNDS": {
+        "REFUNDS": 5
+      },
+      "SHOPPING": {
+        "SHOPPING": 8
+      },
+      "SUBSCRIPTIONS": {
+        "SUBSCRIPTIONS": 7
+      },
+      "TRANSFERS": {
+        "TRANSFERS": 6
+      },
+      "TRANSPORT": {
+        "TRANSPORT": 10
+      },
+      "UNCATEGORIZED": {
+        "UNCATEGORIZED": 13
+      },
+      "UTILITIES": {
+        "UTILITIES": 8
+      }
+    },
+    "confusion_columns": [
+      "CARD_PAYMENTS",
+      "DINING",
+      "EDUCATION",
+      "ENTERTAINMENT",
+      "FEES",
+      "GROCERIES",
+      "HEALTHCARE",
+      "HOUSING",
+      "INCOME",
+      "INSURANCE",
+      "INVESTMENTS",
+      "LOAN_PAYMENTS",
+      "REFUNDS",
+      "SHOPPING",
+      "SUBSCRIPTIONS",
+      "TRANSFERS",
+      "TRANSPORT",
+      "UNCATEGORIZED",
+      "UTILITIES"
+    ],
+    "coverage_of_assignable": 1.0,
+    "errors": [],
+    "macro_f1": 1.0,
+    "per_class": {
+      "CARD_PAYMENTS": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 4
+      },
+      "DINING": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 7
+      },
+      "EDUCATION": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 6
+      },
+      "ENTERTAINMENT": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 5
+      },
+      "FEES": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 7
+      },
+      "GROCERIES": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 8
+      },
+      "HEALTHCARE": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 7
+      },
+      "HOUSING": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 4
+      },
+      "INCOME": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 8
+      },
+      "INSURANCE": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 5
+      },
+      "INVESTMENTS": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 9
+      },
+      "LOAN_PAYMENTS": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 6
+      },
+      "REFUNDS": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 5
+      },
+      "SHOPPING": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 8
+      },
+      "SUBSCRIPTIONS": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 7
+      },
+      "TRANSFERS": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 6
+      },
+      "TRANSPORT": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 10
+      },
+      "UTILITIES": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 8
+      }
+    },
+    "precision_when_classified": 1.0,
+    "recall_on_assignable": 1.0,
+    "review_flag": {
+      "flagged": 13,
+      "precision_when_flagged": 1.0,
+      "precision_when_unflagged": 1.0,
+      "unflagged": 107
+    },
+    "rows": 133,
+    "wrong_category_asserted": 0
+  }
+}
