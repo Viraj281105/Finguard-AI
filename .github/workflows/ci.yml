@@ -1,0 +1,122 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend:
+    name: Backend (Java / Spring Boot)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Make Maven wrapper executable
+        run: chmod +x backend/mvnw
+
+      # The backend tests start the real Python AI service to verify the Java <-> Python contract.
+      - name: Set up Python 3.12 for the live AI contract tests
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install the AI service
+        working-directory: ai
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
+
+      - name: Run Backend Tests and JaCoCo Coverage
+        working-directory: backend
+        env:
+          FINGUARD_AI_PYTHON: python
+          FINGUARD_REQUIRE_LIVE_AI: 'true'
+        run: ./mvnw -B test
+
+      - name: Upload JaCoCo Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: backend/target/site/jacoco/
+          if-no-files-found: ignore
+
+  frontend:
+    name: Frontend (React / TypeScript / Vite)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: frontend
+        run: npm run typecheck
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Run Tests with Coverage
+        working-directory: frontend
+        run: npm run test:coverage
+
+      - name: Production Build
+        working-directory: frontend
+        run: npm run build
+
+      - name: Security Audit
+        working-directory: frontend
+        run: npm audit --audit-level=critical
+        continue-on-error: true
+
+  ai-service:
+    name: AI Service (Python / FastAPI)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        working-directory: ai
+        run: |
+          python -m pip install --upgrade pip
+          pip install .[dev]
+
+      - name: Lint with Ruff
+        working-directory: ai
+        run: ruff check .
+
+      - name: Run Tests
+        working-directory: ai
+        run: pytest -q
+
+      - name: Evaluation metrics are current
+        working-directory: ai
+        run: python -m evaluation.evaluate --check

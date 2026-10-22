@@ -7,6 +7,7 @@ backend/logs/
 # ===== FRONTEND =====
 frontend/node_modules/
 frontend/dist/
+frontend/coverage/
 frontend/.vite/
 frontend/*.local
 
@@ -15,7 +16,10 @@ ai/models-cache/
 ai/__pycache__/
 ai/.venv/
 ai/venv/
+ai/*.egg-info/
 *.pyc
+.pytest_cache/
+.ruff_cache/
 
 # ===== DOCKER =====
 postgres-data/

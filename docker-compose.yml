@@ -1,15 +1,33 @@
+# Local development infrastructure. The Spring Boot backend and the React dev server run on the host
+# (see start.ps1 / docs). Every value can be overridden through a root .env file (see .env.example).
 services:
   postgres:
     image: postgres:15
     container_name: finguard-postgres
     environment:
-      POSTGRES_DB: finguard
-      POSTGRES_USER: finguard_user
-      POSTGRES_PASSWORD: finguard_pass
+      POSTGRES_DB: ${POSTGRES_DB:-finguard}
+      POSTGRES_USER: ${POSTGRES_USER:-finguard_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-finguard_pass}
     ports:
-      - "5432:5432"
+      # Host port 5433 (not 5432) so it never collides with a PostgreSQL installed on the machine.
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  ai:
+    build: ./ai
+    container_name: finguard-ai
+    environment:
+      AI_LOG_LEVEL: ${AI_LOG_LEVEL:-INFO}
+      AI_INTERNAL_TOKEN: ${AI_INTERNAL_TOKEN:-}
+    ports:
+      - "${AI_HOST_PORT:-8000}:8000"
+    # The image defines its own HEALTHCHECK (GET /health).
 
 volumes:
   postgres_data:
