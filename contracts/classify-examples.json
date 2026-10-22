@@ -1,0 +1,157 @@
+{
+  "request": {
+    "transactions": [
+      {
+        "id": "tx-groceries",
+        "description": "UPI-BIGBASKET-bigbasket@hdfcbank-412345678901",
+        "type": "EXPENSE",
+        "amount": 1250.5
+      },
+      {
+        "id": "tx-salary",
+        "description": "NEFT-ACME LTD-SALARY MARCH",
+        "type": "INCOME",
+        "amount": 75000
+      },
+      {
+        "id": "tx-card-bill",
+        "description": "HDFC CREDIT CARD BILL PAYMENT",
+        "type": "EXPENSE",
+        "amount": 18000
+      },
+      {
+        "id": "tx-refund",
+        "description": "REFUND FROM AMAZON ORDER",
+        "type": "INCOME",
+        "amount": 499
+      },
+      {
+        "id": "tx-weak-transfer",
+        "description": "NEFT-SOME PERSON-NEFT",
+        "type": "EXPENSE",
+        "amount": 2000
+      },
+      {
+        "id": "tx-unknown-upi",
+        "description": "UPI-RAMESH KUMAR-ramesh@oksbi-412345678901",
+        "type": "EXPENSE",
+        "amount": 300
+      },
+      {
+        "id": "tx-credit-from-merchant",
+        "description": "UPI-SWIGGY-swiggy@icici",
+        "type": "INCOME",
+        "amount": 220
+      },
+      {
+        "id": "tx-atm",
+        "description": "ATM WDL MG ROAD",
+        "type": "EXPENSE",
+        "amount": 10000
+      }
+    ]
+  },
+  "response": {
+    "model_version": "rules-1.0.0",
+    "results": [
+      {
+        "id": "tx-groceries",
+        "category": "GROCERIES",
+        "confidence": 0.9,
+        "confidence_calibrated": false,
+        "method": "rule",
+        "model_version": "rules-1.0.0",
+        "rule_id": "groceries.big_basket",
+        "needs_review": false,
+        "reason": "Matched rule groceries.big_basket",
+        "alternatives": []
+      },
+      {
+        "id": "tx-salary",
+        "category": "INCOME",
+        "confidence": 0.9,
+        "confidence_calibrated": false,
+        "method": "rule",
+        "model_version": "rules-1.0.0",
+        "rule_id": "income.salary",
+        "needs_review": false,
+        "reason": "Matched rule income.salary",
+        "alternatives": []
+      },
+      {
+        "id": "tx-card-bill",
+        "category": "CARD_PAYMENTS",
+        "confidence": 0.9,
+        "confidence_calibrated": false,
+        "method": "rule",
+        "model_version": "rules-1.0.0",
+        "rule_id": "card_payments.credit_card_payment_pmt_bill_autopay_aut",
+        "needs_review": false,
+        "reason": "Matched rule card_payments.credit_card_payment_pmt_bill_autopay_aut",
+        "alternatives": []
+      },
+      {
+        "id": "tx-refund",
+        "category": "REFUNDS",
+        "confidence": 0.9,
+        "confidence_calibrated": false,
+        "method": "rule",
+        "model_version": "rules-1.0.0",
+        "rule_id": "refunds.refund_ed",
+        "needs_review": false,
+        "reason": "Matched rule refunds.refund_ed",
+        "alternatives": []
+      },
+      {
+        "id": "tx-weak-transfer",
+        "category": "TRANSFERS",
+        "confidence": 0.55,
+        "confidence_calibrated": false,
+        "method": "rule",
+        "model_version": "rules-1.0.0",
+        "rule_id": "transfers.neft",
+        "needs_review": true,
+        "reason": "Matched rule transfers.neft",
+        "alternatives": []
+      },
+      {
+        "id": "tx-unknown-upi",
+        "category": "UNCATEGORIZED",
+        "confidence": 0.0,
+        "confidence_calibrated": false,
+        "method": "none",
+        "model_version": "rules-1.0.0",
+        "rule_id": null,
+        "needs_review": true,
+        "reason": "UPI payee is not a recognised merchant",
+        "alternatives": []
+      },
+      {
+        "id": "tx-credit-from-merchant",
+        "category": "UNCATEGORIZED",
+        "confidence": 0.0,
+        "confidence_calibrated": false,
+        "method": "none",
+        "model_version": "rules-1.0.0",
+        "rule_id": null,
+        "needs_review": true,
+        "reason": "Matched dining.swiggy but a credit is unusual for DINING",
+        "alternatives": [
+          "REFUNDS"
+        ]
+      },
+      {
+        "id": "tx-atm",
+        "category": "UNCATEGORIZED",
+        "confidence": 0.0,
+        "confidence_calibrated": false,
+        "method": "none",
+        "model_version": "rules-1.0.0",
+        "rule_id": null,
+        "needs_review": true,
+        "reason": "Cash movement; what the cash was used for is unknown",
+        "alternatives": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "description": "Canonical transaction category taxonomy. Single source of truth for identifiers shared by the Python AI service (ai/app/classification/taxonomy.py), the Java backend (TransactionCategory), the database CHECK constraint (V5 migration) and the TypeScript frontend (shared/categories). Each implementation is verified against this file by its own test suite. flow: INCOME = money earned; EXPENSE = ordinary spending; NON_SPENDING = money moved or settled, not consumed (never an ordinary expense); REFUND = money returned, reduces the related expense; UNKNOWN = no decision. types: which transaction types (direction) the category may be assigned to automatically.",
+  "categories": [
+    { "id": "INCOME", "label": "Income", "flow": "INCOME", "types": ["INCOME"] },
+    { "id": "GROCERIES", "label": "Groceries", "flow": "EXPENSE", "types": ["EXPENSE"] },
+    { "id": "DINING", "label": "Dining", "flow": "EXPENSE", "types": ["EXPENSE"] },
+    { "id": "TRANSPORT", "label": "Transport", "flow": "EXPENSE", "types": ["EXPENSE"] },
+    { "id": "HOUSING", "label": "Housing", "flow": "EXPENSE", "types": ["EXPENSE"] },
+    { "id": "UTILITIES", "label": "Utilities", "flow": "EXPENSE", "types": ["EXPENSE"] },
+    { "id": "HEALTHCARE", "label": "Healthcare", "flow": "EXPENSE", "types": ["EXPENSE"] },
+    { "id": "INSURANCE", "label": "Insurance", "flow": "EXPENSE", "types": ["EXPENSE"] },
+    { "id": "SHOPPING", "label": "Shopping", "flow": "EXPENSE", "types": ["EXPENSE"] },
+    { "id": "SUBSCRIPTIONS", "label": "Subscriptions", "flow": "EXPENSE", "types": ["EXPENSE"] },
+    { "id": "EDUCATION", "label": "Education", "flow": "EXPENSE", "types": ["EXPENSE"] },
+    { "id": "ENTERTAINMENT", "label": "Entertainment", "flow": "EXPENSE", "types": ["EXPENSE"] },
+    { "id": "FEES", "label": "Fees & charges", "flow": "EXPENSE", "types": ["EXPENSE"] },
+    { "id": "LOAN_PAYMENTS", "label": "Loan payments", "flow": "EXPENSE", "types": ["EXPENSE"] },
+    { "id": "INVESTMENTS", "label": "Investments", "flow": "NON_SPENDING", "types": ["INCOME", "EXPENSE"] },
+    { "id": "TRANSFERS", "label": "Transfers", "flow": "NON_SPENDING", "types": ["INCOME", "EXPENSE"] },
+    { "id": "CARD_PAYMENTS", "label": "Credit card payments", "flow": "NON_SPENDING", "types": ["EXPENSE"] },
+    { "id": "REFUNDS", "label": "Refunds & reversals", "flow": "REFUND", "types": ["INCOME"] },
+    { "id": "UNCATEGORIZED", "label": "Uncategorized", "flow": "UNKNOWN", "types": ["INCOME", "EXPENSE"] }
+  ]
+}
