@@ -1,73 +1,36 @@
-# React + TypeScript + Vite
+# FinGuard AI — frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 · TypeScript 5.9 · Vite 7 · Tailwind CSS 3 · React Router 7 · axios · Vitest + Testing Library.
+The app only talks to the Spring Boot API ([docs/API.md](../docs/API.md)); it holds no business data of its own.
 
-Currently, two official plugins are available:
+## Commands
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```powershell
+npm install
+npm run dev          # http://localhost:5173
+npm run typecheck    # tsc -b
+npm run lint         # eslint
+npm test             # vitest run   (49 tests; npm run test:watch for watch mode)
+npm run build        # typecheck + production build into dist/
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Configuration: `VITE_API_BASE_URL` (default `http://localhost:8080/api`) — copy `.env.example` to `.env.local`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Structure
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+src/
+  app/         App (routes) · PrivateRoute (token present and not expired)
+  shared/      api/ (axios client, 401 handling) · auth/ (token storage) · hooks/ (useResource)
+               lib/ (formatCurrency, formatDate) · ui/ (spinner, error banner, modal parts, accent styles)
+  features/    auth · transactions · investments · loans · statement-import · dashboard
+               (each: api.ts, types.ts, components/pages, tests)
+  test/        Vitest setup
+```
+Conventions and the planned changes (server-side summary, charts, category review) are in
+[docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) and [docs/ROADMAP.md](../docs/ROADMAP.md).
+
+## Notes
+- The session token is stored in `localStorage` under the key `token` (planned to change — [docs/DECISIONS.md](../docs/DECISIONS.md) D-01).
+- Dashboard totals are currently computed in the browser (`features/dashboard/summary.ts`); this moves to the backend in v0.6.0.
+- Tested with jsdom only; layout, responsiveness and accessibility have not been checked in a real browser.
