@@ -1,28 +1,59 @@
-import { investmentAPI } from "../investments/api";
-import { loanAPI } from "../loans/api";
+import { analyticsAPI } from "../analytics/api";
+import type {
+  CategoryBreakdown,
+  DataQuality,
+  FinancialSummary,
+  InsightsData,
+  MonthlyFlow,
+  RecurringExpenses,
+} from "../analytics/types";
 import { transactionAPI } from "../transactions/api";
 import type { Transaction } from "../transactions/types";
-import { computeSummary, gainPercent, type DashboardSummary } from "./summary";
+
+import { budgetAPI, goalAPI } from "../budgeting/api";
+import type { Goal, MonthlyBudgetOverview } from "../budgeting/types";
 
 export interface DashboardData {
-  summary: DashboardSummary;
+  summary: FinancialSummary;
+  monthly: MonthlyFlow[];
+  categories: CategoryBreakdown;
+  recurring: RecurringExpenses;
+  dataQuality: DataQuality;
+  insights: InsightsData;
   recentTransactions: Transaction[];
-  gainPct: string;
+  budgetOverview: MonthlyBudgetOverview | null;
+  goals: Goal[];
 }
 
 const RECENT_COUNT = 5;
 
-/** Fetches everything the dashboard shows. The API returns transactions newest first. */
-export async function loadDashboardData(): Promise<DashboardData> {
-  const [transactions, investments, loans] = await Promise.all([
-    transactionAPI.getAll(),
-    investmentAPI.getAll(),
-    loanAPI.getAll(),
-  ]);
-  const summary = computeSummary(transactions, investments, loans);
+/**
+ * Loads server-calculated financial analytics and recent ledger entries.
+ * Arithmetic is strictly server-side (BigDecimal scale 2); the frontend formats only.
+ */
+export async function loadDashboardData(from?: string, to?: string): Promise<DashboardData> {
+  const [summary, monthly, categories, recurring, dataQuality, insights, transactions, budgetOverview, goals] =
+    await Promise.all([
+      analyticsAPI.getSummary(from, to),
+      analyticsAPI.getMonthly(from, to),
+      analyticsAPI.getCategories(from, to),
+      analyticsAPI.getRecurring(from, to),
+      analyticsAPI.getDataQuality(from, to),
+      analyticsAPI.getInsights(from, to),
+      transactionAPI.getAll(),
+      budgetAPI.getOverview().catch(() => null),
+      goalAPI.listGoals().catch(() => []),
+    ]);
+
   return {
     summary,
+    monthly,
+    categories,
+    recurring,
+    dataQuality,
+    insights,
     recentTransactions: transactions.slice(0, RECENT_COUNT),
-    gainPct: gainPercent(summary.totalCurrentValue, summary.totalInvested),
+    budgetOverview,
+    goals,
   };
 }

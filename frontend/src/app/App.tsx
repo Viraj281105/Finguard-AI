@@ -1,7 +1,9 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "../features/auth/LoginPage";
 import RegisterPage from "../features/auth/RegisterPage";
+import BudgetsGoalsPage from "../features/budgeting/BudgetsGoalsPage";
 import DashboardPage from "../features/dashboard/DashboardPage";
+import ForecastingPage from "../features/forecasting/ForecastingPage";
 import InvestmentsPage from "../features/investments/InvestmentsPage";
 import LoansPage from "../features/loans/LoansPage";
 import TransactionsPage from "../features/transactions/TransactionsPage";
@@ -18,6 +20,9 @@ export default function App() {
         {/* Protected */}
         <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
         <Route path="/transactions" element={<PrivateRoute><TransactionsPage /></PrivateRoute>} />
+        <Route path="/budgets" element={<PrivateRoute><BudgetsGoalsPage /></PrivateRoute>} />
+        <Route path="/goals" element={<PrivateRoute><BudgetsGoalsPage /></PrivateRoute>} />
+        <Route path="/forecasting" element={<PrivateRoute><ForecastingPage /></PrivateRoute>} />
         <Route path="/investments" element={<PrivateRoute><InvestmentsPage /></PrivateRoute>} />
         <Route path="/loans" element={<PrivateRoute><LoansPage /></PrivateRoute>} />
 
