@@ -56,7 +56,7 @@ class LegacyDatabaseAdoptionTest {
 
             List<Map<String, Object>> history = jdbc.queryForList(
                     "select version, type, success from flyway_schema_history order by installed_rank");
-            assertThat(history).hasSize(5);
+            assertThat(history).hasSize(6);
             assertThat(history.get(0)).containsEntry("version", "1").containsEntry("type", "BASELINE")
                     .containsEntry("success", true);
             assertThat(history.get(1)).containsEntry("version", "2").containsEntry("type", "SQL")
@@ -67,6 +67,22 @@ class LegacyDatabaseAdoptionTest {
                     .containsEntry("success", true);
             assertThat(history.get(4)).containsEntry("version", "5").containsEntry("type", "SQL")
                     .containsEntry("success", true);
+            assertThat(history.get(5)).containsEntry("version", "6").containsEntry("type", "SQL")
+                    .containsEntry("success", true);
+
+            // Verify V6 tables (budgets, financial_goals, goal_contributions)
+            jdbc.update("insert into budgets (id, user_id, year_month, category, amount, created_at, updated_at) " +
+                    "values ('b1', 'u1', '2026-10', 'DINING', 5000.00, now(), now())");
+            assertThat(jdbc.queryForObject("select amount from budgets where id = 'b1'", java.math.BigDecimal.class))
+                    .isEqualByComparingTo("5000.00");
+            assertThatThrownBy(() -> jdbc.update("insert into budgets (id, user_id, year_month, category, amount, created_at, updated_at) " +
+                    "values ('b2', 'u1', '2026-10', 'TRANSFERS', 5000.00, now(), now())"))
+                    .hasMessageContaining("ck_budgets_category");
+
+            jdbc.update("insert into financial_goals (id, user_id, name, target_amount, current_amount, status, created_at, updated_at) " +
+                    "values ('g1', 'u1', 'Emergency', 100000.00, 0.00, 'ACTIVE', now(), now())");
+            assertThat(jdbc.queryForObject("select target_amount from financial_goals where id = 'g1'", java.math.BigDecimal.class))
+                    .isEqualByComparingTo("100000.00");
 
             // V5 normalised the free-text categories without losing anything.
             assertThat(category(jdbc, "c1")).containsEntry("category", "DINING").containsEntry("category_source", "USER");
