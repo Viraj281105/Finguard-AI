@@ -348,6 +348,13 @@ plan's v0.9.0 "simulation" is therefore partly advanced: cash-flow scenarios exi
 **Risks:** compound uncertainty (forecast × adjustment) must be communicated; interest/prepayment rules vary by lender (document the simplifications explicitly).
 **Done when:** criteria checked, tag `v0.9.0`.
 
+**Delivery status (uncommitted, untagged).** Delivered in the Java backend on top of the v0.8.0 simulator (no separate `simulation` engine). Scope delivered: close / prepay / change-EMI
+loan adjustments with `BigDecimal` amortisation checked against reference values, one-time income / expense items, income, category and recurring adjustments (v0.8.0), `loanEffects`
+with per-month deltas that are differences of two deterministic runs, saved scenarios (`saved_scenarios`, V7, `/api/scenarios`) with a re-run that reports change, and a builder with a
+side-by-side comparison. Acceptance: identity property ✅ (no adjustments / EMI to itself) · each delta explained by named inputs ✅ (`explanations`, `loanEffects`, category effects) ·
+saved scenario re-runs identically while data is unchanged ✅ · missing history makes the scenario unavailable with a reason ✅ · KI-011 scenario part ✅. **Not delivered:** investment
+contribution adjustments and risk-model re-run (nothing exists to build them on; KI-047), and `POST /api/scenarios/run` as a separate path (the existing simulate endpoint is the ephemeral run).
+
 ---
 
 ## v0.10.0 — Data-grounded recommendations

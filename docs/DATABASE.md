@@ -136,7 +136,7 @@ erDiagram
 
 Imported rows reference their originating statement job via `transactions.import_job_id` (foreign key to `upload_jobs.id`), resolving KI-002.
 
-## Tables (migrations `V1` – `V6`)
+## Tables (migrations `V1` – `V7`)
 
 All ids are application-generated UUID strings (`varchar(255)`). Column names are snake_case (Spring's default
 physical naming). Timestamps are `timestamp(6)` and are read and written in UTC (`hibernate.jdbc.time_zone=UTC`).
@@ -165,6 +165,7 @@ Loan interest rate is `numeric(10,4)` allowing up to 4 decimal places (e.g. 8.75
 - `budgets`: `uq_budgets_user_month_category ON budgets (user_id, year_month, category) WHERE category IS NOT NULL`, `uq_budgets_user_month_overall ON budgets (user_id, year_month) WHERE category IS NULL`, `idx_budgets_user_month ON budgets (user_id, year_month)`.
 - `financial_goals`: `idx_goals_user_id ON financial_goals (user_id)`.
 - `goal_contributions`: `idx_goal_contributions_goal ON goal_contributions (goal_id, contribution_date DESC)`, `idx_goal_contributions_user ON goal_contributions (user_id)`.
+- `saved_scenarios`: `idx_saved_scenarios_user_created ON saved_scenarios (user_id, created_at DESC)` (V7).
 - Foreign keys: `idx_upload_jobs_user_id ON upload_jobs (user_id)`, `idx_investments_user_id ON investments (user_id)`, `idx_loans_user_id ON loans (user_id)`.
 
 ## Flyway rules
@@ -209,6 +210,7 @@ Loan interest rate is `numeric(10,4)` allowing up to 4 decimal places (e.g. 8.75
 | `V4__resilient_ingestion_reports.sql` | `upload_jobs`: adds `rejected_rows`, `skipped_rows`, `row_errors_json`, `closing_balance`, `statement_from`, and `statement_to` for transparent row-level import reporting. |
 | `V5__transaction_categorisation.sql` | Categorisation (v0.5.0). `transactions`: adds `category_needs_review`, `category_confidence_calibrated`, `category_rule`, `category_updated_at`; **normalises existing free-text categories** to the canonical taxonomy (known labels mapped — `Food`→`DINING`, `Rent`→`HOUSING`, `EMI`→`LOAN_PAYMENTS`, `Salary`/`Freelance`/`Business`/`Investment Returns`→`INCOME`, `Other`→`UNCATEGORIZED`, …; blank → null; anything else → `UNCATEGORIZED` with the original text appended to `note` as `Previous category: …`, so nothing is lost); marks every pre-existing categorised row `category_source = 'USER'` (only people could set categories before, and automation must never overwrite them); repairs rows that kept a source after their category was cleared; adds the three `CHECK` constraints above and `idx_transactions_user_category_source`. `upload_jobs`: adds `classification_status` and `classified_rows`. Verified with data by `LegacyDatabaseAdoptionTest` and the taxonomy list by `TaxonomyContractTest`. |
 | `V6__budgeting_and_financial_goals.sql` | Budgeting & Goals (v0.7.0). Adds `budgets` table with month/amount/category check constraints and partial unique indexes (`uq_budgets_user_month_category`, `uq_budgets_user_month_overall`); adds `financial_goals` table with status constraints (`ACTIVE`, `COMPLETED`, `ARCHIVED`) and positive target amount checks; adds `goal_contributions` table with positive amount check and cascading foreign key to `financial_goals`. Verified by `LegacyDatabaseAdoptionTest` and `BackendApplicationTests`. |
+| `V7__saved_scenarios.sql` | Saved scenarios (v0.9.0). Adds `saved_scenarios` (`id`, `user_id` -> `users` ON DELETE CASCADE, `name` <= 80 and not blank, `horizon_months` 1..12, `request_json` and `result_json` as text, `method_version`, `created_at`) with an index on `(user_id, created_at DESC)`. Stores the user-chosen adjustments and the result snapshot only; no ledger data is copied. Verified by `LegacyDatabaseAdoptionTest` (seven history rows) and `SavedScenarioApiTest`. |
 
 ## Planned schema changes (not implemented)
 
@@ -217,6 +219,6 @@ Outline only; exact columns are fixed in the version that implements them. See [
 | Version | Change |
 |---|---|
 | v0.8.0 | *(none: forecasts are calculated on demand and not persisted; no migration)* |
-| v0.9.0 | `scenarios` |
+| v0.9.0 | *(delivered: `saved_scenarios`, migration V7)* |
 | v0.10.0 | Optional recommendation dismissals |
 

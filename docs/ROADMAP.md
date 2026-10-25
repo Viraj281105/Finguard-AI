@@ -60,7 +60,7 @@ flowchart LR
 | **0.6.0** | Analytics | Server-side metrics, transfers/refunds handled, recurring detection, charts | L | 0.5.0 | D-08, D-10 |
 | **0.7.0** | Budgeting & Goals | Monthly overall & category budgets, actual vs budget tracking, savings goals & pacing | L | 0.6.0 | — |
 | **0.8.0** | Forecast | Statistical cash-flow, category, budget-outlook and savings forecasts, scenarios, backtesting; honest about thin history (Java, no ML) | L | 0.6.0, 0.7.0 | D-13 (taken: A-16) |
-| **0.9.0** | Scenarios | Baseline vs scenario with explained deltas | XL | 0.7.0, 0.8.0 | — |
+| **0.9.0** | Scenarios | Baseline vs scenario with explained deltas (loan, one-time, income and category what-ifs; saved and compared) | XL | 0.7.0, 0.8.0 | A-19 |
 | **0.10.0** | Recommendations | Evidence-backed, prioritised guidance | M | 0.7.0 (0.9.0 for links) | — |
 | **0.11.0** | Polish & delivery | Responsive, accessible, containerised, browser e2e | L | 0.10.0 | — |
 | **1.0.0** | Deployable | Production config, backups rehearsed, security review, demo | M | 0.11.0 | D-11 |

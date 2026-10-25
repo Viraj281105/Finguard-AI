@@ -4,6 +4,26 @@ Format: [Keep a Changelog](https://keepachangelog.com); versioning: [VERSIONING.
 Only work that **exists in the repository** is listed. Planned releases are in [RELEASE_PLAN.md](RELEASE_PLAN.md).
 No version has been tagged yet; v0.1.0 is pending (see [PROGRESS.md](PROGRESS.md)).
 
+## [0.9.0] — Scenario simulator
+
+Working-tree changes for Stage 8. **Nothing here is committed or tagged.** Builds on the v0.8.0 scenario endpoint: loan and one-time what-ifs, saved scenarios (migration V7)
+and a builder / comparison UI. Rules: [FINANCIAL_RULES.md §8](FINANCIAL_RULES.md#8-loan-one-time-and-saved-scenario-rules-v090).
+
+### Added
+- `LoanAmortization` (BigDecimal EMI, balance, payoff and interest, checked against published reference values).
+- `loanAdjustments` (close, prepay, change EMI) and `oneTimeItems` on `POST /api/forecast/scenarios/simulate`, with per-loan `loanEffects` (payoff months and remaining interest
+  before / after, interest saved, in-horizon cash change). Identity property: no adjustments (or an EMI changed to itself) reproduce the baseline exactly. Loans are owner-scoped.
+- **Migration V7** `saved_scenarios` and `/api/scenarios` (save, list, get, re-run, delete; 50 per user): stores adjustments, result snapshot and method version only.
+  Re-run recalculates on current records and reports `unchanged` / `methodVersionChanged`; the snapshot is never overwritten.
+- **Frontend:** loan and one-time-item builder, loan-effects table, "Keep this scenario", a saved-scenarios card with re-run, delete and a side-by-side comparison of up to three
+  scenarios with the same horizon.
+- Tests: `LoanScenarioTest` (13), `SavedScenarioApiTest` (7), a loan-ownership API test, `ScenarioLoansAndSaved.test` (14).
+- Versions aligned to 0.9.0.
+
+### Not done
+Investment-contribution adjustments (no investment cash-flow baseline exists) and re-running a risk model (none exists) — KI-047. Loan balances are estimates (KI-046).
+Saved scenarios cannot be loaded back into the builder (KI-048). The planned `POST /api/scenarios/run` is the existing `POST /api/forecast/scenarios/simulate`.
+
 ## [0.8.0] — Financial Forecasting & Predictive Insights
 
 Working-tree changes for Stage 7. **Nothing here is committed.** Statistical, deterministic forecasting in the Java backend (no machine

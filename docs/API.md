@@ -872,6 +872,13 @@ Projected cumulative **cash-flow surplus**, kept apart from self-tracked goal co
 
 ### `POST /api/forecast/scenarios/simulate`
 
+**v0.9.0 additions (optional request fields):** `loanAdjustments` (max 10: `{loanId, action: CLOSE|PREPAY|CHANGE_EMI, amount}`; `amount` required for
+PREPAY and CHANGE_EMI; one adjustment per loan; the loan must belong to the caller, be active, have a start date and not be repaid -> otherwise 400) and
+`oneTimeItems` (max 20: `{title, kind: INCOME|EXPENSE, month: 1..12, amount}`; `month` must not exceed `horizonMonths`). The response gains `loanEffects[]`
+(`loanId, loanName, action, estimatedOutstandingBalance, baselineMonthsToPayoff, scenarioMonthsToPayoff, baselineRemainingInterest, scenarioRemainingInterest,
+interestSaved, cashOutInHorizonChange, notes`). Rules: [FINANCIAL_RULES.md section 8](FINANCIAL_RULES.md#8-loan-one-time-and-saved-scenario-rules-v090).
+
+
 Hypothetical what-if. Reads the ledger, **writes nothing** (verified by a test that compares transactions, budgets and goals before and after).
 ```json
 { "name": "optional, ≤ 80 chars", "horizonMonths": 6,
@@ -886,6 +893,19 @@ Response: `{ name, hypothetical: true, disclaimer, available, unavailableReason,
 ### `GET /api/forecast/backtest`
 
 How the method would have done on the **caller's own** history, by chronological rolling origin: each forecast uses only months before its origin. For `EXPENSES`, `INCOME` and `NET`, horizons 1, 2, 3 and 6 (those that can be scored): `samples`, and for the method and two baselines (`naive` = last month repeats, `mean3` = mean of the last three) the `mae`, `wapePercent` (`null` when every actual is zero), `rmse`, `bias`; `verdict` is `INCONCLUSIVE` below 6 samples, otherwise `MODEL_BETTER`/`SIMILAR`/`BASELINE_BETTER` by MAE with a 10 % margin. `status: "INSUFFICIENT_DATA"` below 4 usable months. `evaluatedOn` is always `USER_HISTORY`; the synthetic evaluation is documented separately.
+
+### Saved scenarios — `/api/scenarios` (v0.9.0)
+
+Calculating without keeping anything stays at `POST /api/forecast/scenarios/simulate`. These endpoints keep a scenario the user wants to return to. All are authenticated and
+owner-scoped (another user's id is `404`).
+
+| Method | Path | Behaviour |
+|---|---|---|
+| `POST` | `/api/scenarios` | Body = the same request as `simulate`, with a required `name` (<= 80). Runs the validated simulation once and stores the request and the result snapshot with the method version. `201` + `{ summary, request, snapshot }`. `400` when the name is blank, any adjustment is invalid, or the baseline is unavailable (nothing is saved). `409` after 50 saved scenarios. |
+| `GET` | `/api/scenarios` | Newest first: `[{ id, name, horizonMonths, methodVersion, createdAt, netChange, spendingChange }]` (changes from the snapshot; `null` without an income baseline). |
+| `GET` | `/api/scenarios/{id}` | `{ summary, request, snapshot }` — the stored adjustments and result. |
+| `POST` | `/api/scenarios/{id}/rerun` | Recalculates on the **current** ledger: `{ summary, request, snapshot, current, unchanged, methodVersionChanged, currentMethodVersion }`. `unchanged` is `true` only when the fresh result is byte-identical to the snapshot and the method version is the same. Never overwrites the snapshot. |
+| `DELETE` | `/api/scenarios/{id}` | `204`. |
 
 ## Errors
 

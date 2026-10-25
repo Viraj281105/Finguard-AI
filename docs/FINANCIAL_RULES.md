@@ -268,3 +268,28 @@ Net bands use the past errors of the net forecast itself; scenario results and c
 - **Scenarios.** Flat monthly adjustments on top of the baseline: income % or ₹; category % or ₹; assumed recurring expenses;
   removing a detected recurring payment. A category cannot fall below zero; removing a recurring payment lowers its category rather than the total
   twice. No baseline ⇒ no scenario. Nothing is persisted.
+
+---
+
+## 8. Loan, one-time and saved-scenario rules (v0.9.0)
+
+Loan arithmetic lives in `LoanAmortization` (BigDecimal, scale 2, HALF_UP) and is applied by `ScenarioSimulator`.
+
+- **EMI** = P r (1+r)^n / ((1+r)^n - 1), r = annual rate / 1200 (reference: 1,00,000 at 12 % for 12 months = 8,884.88; 10,00,000 at 10 % for 120 months = 13,215.07).
+- **Outstanding balance is an estimate.** The `loans` table stores the principal, EMI, rate and start date, not a statement. The balance is the principal amortised
+  with the stored EMI for the whole months between the start date and the current month. A loan with no start date, an inactive loan or one that is already
+  repaid under this rule cannot be simulated (400 with the reason). The annual rate is read as a percentage.
+- **Adjustments** (at most one per loan): `CLOSE` pays the whole estimated balance at the start of projected month 1 and removes later instalments; `PREPAY` pays
+  an extra amount at the start of month 1 and keeps the EMI (shorter tenure); `CHANGE_EMI` replaces the instalment. An EMI that does not exceed the first month of
+  interest is rejected.
+- **Deltas are differences of two deterministic runs** of the same loan (before and after), per month; they are added to the baseline spending for that month.
+  The baseline forecast is not re-estimated, so an EMI already in the history is reduced by exactly the schedule difference. Per loan the response reports payoff
+  months, remaining interest before and after, interest saved over the remaining life and the change in cash out inside the horizon. Closing a loan costs more cash
+  inside a short horizon (the lump sum) even though it saves interest later; both are shown.
+- **One-time items** (`INCOME`/`EXPENSE`, month 1..horizon, positive amount) land in exactly one projected month. A one-time income needs an income baseline.
+- **Saved scenarios** store the adjustments, the result snapshot and the method version (`LEVEL_DAMPED_TREND 2.0.0`). They store no ledger data, so a re-run always uses
+  today's records. **Reproducibility:** re-running while the records and the method are unchanged yields a byte-identical result (tested); if either changed, the response says which
+  and returns the saved and the current figures side by side. The snapshot is never rewritten. A scenario whose baseline was unavailable cannot be saved.
+- **Comparison** (UI) is subtraction of figures the backend calculated, over one horizon only; scenarios saved on different data show a warning that their baselines differ.
+- **Not modelled:** prepayment charges, fees, floating-rate resets, day-count conventions, investment contributions (there is no investment cash-flow data to build a baseline from), and re-running a risk model (no risk model exists).
+  Results are hypothetical estimates, never a lender statement, and are not stored.
