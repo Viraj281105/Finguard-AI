@@ -22,29 +22,47 @@ class ArchitectureTest {
     static final ArchRule commonDependsOnNoModule = noClasses().that().resideInAPackage("..backend.common..")
             .should().dependOnClassesThat().resideInAnyPackage(
                     "..backend.identity..", "..backend.ledger..", "..backend.ingestion..", "..backend.ai..",
-                    "..backend.categorization..");
+                    "..backend.categorization..", "..backend.intelligence..", "..backend.budgeting..", "..backend.forecasting..");
 
     @ArchTest
     static final ArchRule aiDependsOnNoModule = noClasses().that().resideInAPackage("..backend.ai..")
             .should().dependOnClassesThat().resideInAnyPackage(
                     "..backend.identity..", "..backend.ledger..", "..backend.ingestion..",
-                    "..backend.categorization..");
+                    "..backend.categorization..", "..backend.intelligence..", "..backend.budgeting..", "..backend.forecasting..");
 
     @ArchTest
     static final ArchRule identityIsTheBase = noClasses().that().resideInAPackage("..backend.identity..")
             .should().dependOnClassesThat().resideInAnyPackage(
-                    "..backend.ledger..", "..backend.ingestion..", "..backend.ai..", "..backend.categorization..");
+                    "..backend.ledger..", "..backend.ingestion..", "..backend.ai..", "..backend.categorization..",
+                    "..backend.intelligence..", "..backend.budgeting..", "..backend.forecasting..");
 
     @ArchTest
     static final ArchRule ledgerDoesNotDependOnImportAiOrCategorization = noClasses()
             .that().resideInAPackage("..backend.ledger..")
             .should().dependOnClassesThat().resideInAnyPackage(
-                    "..backend.ingestion..", "..backend.ai..", "..backend.categorization..");
+                    "..backend.ingestion..", "..backend.ai..", "..backend.categorization..",
+                    "..backend.intelligence..", "..backend.budgeting..", "..backend.forecasting..");
 
     @ArchTest
-    static final ArchRule categorizationDoesNotDependOnIngestion = noClasses()
+    static final ArchRule categorizationDoesNotDependOnIngestionOrIntelligence = noClasses()
             .that().resideInAPackage("..backend.categorization..")
-            .should().dependOnClassesThat().resideInAPackage("..backend.ingestion..");
+            .should().dependOnClassesThat().resideInAnyPackage("..backend.ingestion..", "..backend.intelligence..", "..backend.budgeting..", "..backend.forecasting..");
+
+    @ArchTest
+    static final ArchRule intelligenceDoesNotDependOnIngestionOrCategorization = noClasses()
+            .that().resideInAPackage("..backend.intelligence..")
+            .should().dependOnClassesThat().resideInAnyPackage("..backend.ingestion..", "..backend.categorization..", "..backend.budgeting..", "..backend.forecasting..");
+
+    @ArchTest
+    static final ArchRule budgetingDoesNotDependOnIngestionAiCategorizationOrIntelligence = noClasses()
+            .that().resideInAPackage("..backend.budgeting..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                    "..backend.ingestion..", "..backend.ai..", "..backend.categorization..", "..backend.intelligence..", "..backend.forecasting..");
+
+    @ArchTest
+    static final ArchRule forecastingDoesNotDependOnIngestionAiOrCategorization = noClasses()
+            .that().resideInAPackage("..backend.forecasting..")
+            .should().dependOnClassesThat().resideInAnyPackage("..backend.ingestion..", "..backend.ai..", "..backend.categorization..");
 
     @ArchTest
     static final ArchRule domainDoesNotDependOnUpperLayers = noClasses()

@@ -22,6 +22,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
 
     List<Transaction> findByUserIdOrderByDateDescCreatedAtDesc(String userId);
 
+    /** The user's transactions on or after {@code from}; bounds the history that forecasting reads. */
+    List<Transaction> findByUserIdAndDateGreaterThanEqualOrderByDateDescCreatedAtDesc(String userId, java.time.LocalDate from);
+
     Optional<Transaction> findByIdAndUserId(String id, String userId);
 
     boolean existsByUserIdAndFingerprint(String userId, String fingerprint);

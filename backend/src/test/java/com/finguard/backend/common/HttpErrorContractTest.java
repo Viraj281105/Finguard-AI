@@ -32,6 +32,15 @@ class HttpErrorContractTest extends IntegrationTest {
     }
 
     @Test
+    void aParameterOfTheWrongTypeReturns400NotAServerError() throws Exception {
+        TestUser user = registerUser();
+        mvc.perform(as(user, get("/api/forecast/cash-flow?horizonMonths=abc")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Parameter 'horizonMonths' has an invalid value"));
+    }
+
+    @Test
     void unknownAuthenticatedRouteReturns404WithStandardApiError() throws Exception {
         TestUser user = registerUser();
         mvc.perform(as(user, get("/api/nonexistent-resource")))
