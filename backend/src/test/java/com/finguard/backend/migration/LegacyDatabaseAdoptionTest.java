@@ -56,7 +56,7 @@ class LegacyDatabaseAdoptionTest {
 
             List<Map<String, Object>> history = jdbc.queryForList(
                     "select version, type, success from flyway_schema_history order by installed_rank");
-            assertThat(history).hasSize(6);
+            assertThat(history).hasSize(7);
             assertThat(history.get(0)).containsEntry("version", "1").containsEntry("type", "BASELINE")
                     .containsEntry("success", true);
             assertThat(history.get(1)).containsEntry("version", "2").containsEntry("type", "SQL")
@@ -68,6 +68,8 @@ class LegacyDatabaseAdoptionTest {
             assertThat(history.get(4)).containsEntry("version", "5").containsEntry("type", "SQL")
                     .containsEntry("success", true);
             assertThat(history.get(5)).containsEntry("version", "6").containsEntry("type", "SQL")
+                    .containsEntry("success", true);
+            assertThat(history.get(6)).containsEntry("version", "7").containsEntry("type", "SQL")
                     .containsEntry("success", true);
 
             // Verify V6 tables (budgets, financial_goals, goal_contributions)
