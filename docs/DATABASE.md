@@ -17,7 +17,40 @@ erDiagram
     users ||--o{ loans : owns
     users ||--o{ upload_jobs : starts
     users ||--o{ refresh_tokens : owns
+    users ||--o{ budgets : owns
+    users ||--o{ financial_goals : owns
+    financial_goals ||--o{ goal_contributions : tracks
     upload_jobs ||--o{ transactions : produces
+    budgets {
+        varchar id PK
+        varchar user_id FK
+        varchar year_month "YYYY-MM"
+        varchar category "nullable, expense category"
+        numeric amount "positive"
+        timestamp created_at
+        timestamp updated_at
+    }
+    financial_goals {
+        varchar id PK
+        varchar user_id FK
+        varchar name
+        numeric target_amount "positive"
+        numeric current_amount "non-negative"
+        date target_date "nullable"
+        text description "nullable"
+        varchar status "ACTIVE|COMPLETED|ARCHIVED"
+        timestamp created_at
+        timestamp updated_at
+    }
+    goal_contributions {
+        varchar id PK
+        varchar goal_id FK
+        varchar user_id FK
+        numeric amount "positive"
+        date contribution_date
+        text note "nullable"
+        timestamp created_at
+    }
     users {
         varchar id PK
         varchar name
@@ -103,7 +136,7 @@ erDiagram
 
 Imported rows reference their originating statement job via `transactions.import_job_id` (foreign key to `upload_jobs.id`), resolving KI-002.
 
-## Tables (migrations `V1` – `V5`)
+## Tables (migrations `V1` – `V6`)
 
 All ids are application-generated UUID strings (`varchar(255)`). Column names are snake_case (Spring's default
 physical naming). Timestamps are `timestamp(6)` and are read and written in UTC (`hibernate.jdbc.time_zone=UTC`).
@@ -116,8 +149,11 @@ physical naming). Timestamps are `timestamp(6)` and are read and written in UTC 
 | `loans` | Loans (snapshot) | `user_id` FK → `users`; `type` check in (`HOME`, `CAR`, `PERSONAL`, `EDUCATION`, `OTHER`); `name`, `principal`, `emi_amount`, `interest_rate` not null; `interest_rate` is `numeric(10,4)` |
 | `upload_jobs` | State of a statement import | `user_id` FK → `users`; `status` check in (`PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`); `duplicate_rows`, `rejected_rows`, `skipped_rows` not null default 0; `classification_status` check in (`NOT_ATTEMPTED`, `COMPLETED`, `PARTIAL`, `UNAVAILABLE`), default `NOT_ATTEMPTED`; `classified_rows` not null default 0 |
 | `refresh_tokens` | Server-side refresh token rotation | `user_id` FK → `users`; `token_hash` unique; `expires_at`, `revoked` not null |
+| `budgets` | Monthly overall and category spending limits | `user_id` FK → `users`; `year_month` check format `YYYY-MM`; `amount` check `> 0`; `category` check null or allowed expense category; unique indexes `uq_budgets_user_month_category` and `uq_budgets_user_month_overall` |
+| `financial_goals` | Savings goals tracking | `user_id` FK → `users`; `name` not blank; `target_amount` check `> 0`; `current_amount` check `≥ 0`; `status` check in (`ACTIVE`, `COMPLETED`, `ARCHIVED`) |
+| `goal_contributions` | Self-tracked goal allocations | `goal_id` FK → `financial_goals` ON DELETE CASCADE; `user_id` FK → `users`; `amount` check `> 0`; `contribution_date` not null |
 
-Money amounts are `numeric(38,2)` (`transactions.amount`, `investments.*`, `loans.principal`, `loans.emi_amount`, `upload_jobs.closing_balance`).
+Money amounts are `numeric(38,2)` (`transactions.amount`, `investments.*`, `loans.principal`, `loans.emi_amount`, `upload_jobs.closing_balance`, `budgets.amount`, `financial_goals.target_amount`, `financial_goals.current_amount`, `goal_contributions.amount`).
 Loan interest rate is `numeric(10,4)` allowing up to 4 decimal places (e.g. 8.7550%, resolving KI-026).
 
 **Indexes:**
@@ -126,6 +162,9 @@ Loan interest rate is `numeric(10,4)` allowing up to 4 decimal places (e.g. 8.75
 - `refresh_tokens`: `uq_refresh_tokens_hash ON refresh_tokens (token_hash)`, `idx_refresh_tokens_user_id ON refresh_tokens (user_id)`.
 - `transactions`: `idx_transactions_user_date ON transactions (user_id, txn_date DESC, created_at DESC)`, `uq_transactions_user_fingerprint ON transactions (user_id, fingerprint) WHERE fingerprint IS NOT NULL`, `idx_transactions_user_category ON transactions (user_id, category)`, `idx_transactions_import_job_id ON transactions (import_job_id)`.
 - `idx_transactions_user_category_source ON transactions (user_id, category_source)` (V5): the uncategorised listing and re-classification.
+- `budgets`: `uq_budgets_user_month_category ON budgets (user_id, year_month, category) WHERE category IS NOT NULL`, `uq_budgets_user_month_overall ON budgets (user_id, year_month) WHERE category IS NULL`, `idx_budgets_user_month ON budgets (user_id, year_month)`.
+- `financial_goals`: `idx_goals_user_id ON financial_goals (user_id)`.
+- `goal_contributions`: `idx_goal_contributions_goal ON goal_contributions (goal_id, contribution_date DESC)`, `idx_goal_contributions_user ON goal_contributions (user_id)`.
 - Foreign keys: `idx_upload_jobs_user_id ON upload_jobs (user_id)`, `idx_investments_user_id ON investments (user_id)`, `idx_loans_user_id ON loans (user_id)`.
 
 ## Flyway rules
@@ -169,6 +208,7 @@ Loan interest rate is `numeric(10,4)` allowing up to 4 decimal places (e.g. 8.75
 | `V3__dated_idempotent_ledger.sql` | `transactions`: `txn_date` (backfilled from note or `created_at::date`), `source`, `import_job_id` FK, user-scoped unique `fingerprint`, category provenance (`category_source`, `category_confidence`, `category_model_version`); `upload_jobs.duplicate_rows`; widens `loans.interest_rate` to `numeric(10,4)`; adds foreign key and ledger query composite indexes. |
 | `V4__resilient_ingestion_reports.sql` | `upload_jobs`: adds `rejected_rows`, `skipped_rows`, `row_errors_json`, `closing_balance`, `statement_from`, and `statement_to` for transparent row-level import reporting. |
 | `V5__transaction_categorisation.sql` | Categorisation (v0.5.0). `transactions`: adds `category_needs_review`, `category_confidence_calibrated`, `category_rule`, `category_updated_at`; **normalises existing free-text categories** to the canonical taxonomy (known labels mapped — `Food`→`DINING`, `Rent`→`HOUSING`, `EMI`→`LOAN_PAYMENTS`, `Salary`/`Freelance`/`Business`/`Investment Returns`→`INCOME`, `Other`→`UNCATEGORIZED`, …; blank → null; anything else → `UNCATEGORIZED` with the original text appended to `note` as `Previous category: …`, so nothing is lost); marks every pre-existing categorised row `category_source = 'USER'` (only people could set categories before, and automation must never overwrite them); repairs rows that kept a source after their category was cleared; adds the three `CHECK` constraints above and `idx_transactions_user_category_source`. `upload_jobs`: adds `classification_status` and `classified_rows`. Verified with data by `LegacyDatabaseAdoptionTest` and the taxonomy list by `TaxonomyContractTest`. |
+| `V6__budgeting_and_financial_goals.sql` | Budgeting & Goals (v0.7.0). Adds `budgets` table with month/amount/category check constraints and partial unique indexes (`uq_budgets_user_month_category`, `uq_budgets_user_month_overall`); adds `financial_goals` table with status constraints (`ACTIVE`, `COMPLETED`, `ARCHIVED`) and positive target amount checks; adds `goal_contributions` table with positive amount check and cascading foreign key to `financial_goals`. Verified by `LegacyDatabaseAdoptionTest` and `BackendApplicationTests`. |
 
 ## Planned schema changes (not implemented)
 
@@ -176,8 +216,7 @@ Outline only; exact columns are fixed in the version that implements them. See [
 
 | Version | Change |
 |---|---|
-| v0.6.0 | Transaction flow classification (transfer / refund …) and recurring-item storage if needed |
-| v0.7.0 | `risk_reports` (inputs snapshot, model version, result) |
+| v0.8.0 | *(none: forecasts are calculated on demand and not persisted; no migration)* |
 | v0.9.0 | `scenarios` |
 | v0.10.0 | Optional recommendation dismissals |
 

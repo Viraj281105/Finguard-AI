@@ -53,20 +53,24 @@ Package root `com.finguard.backend`. Organized by business domain with dedicated
 | `ledger` | `transactions/`, `investments/`, `loans/` (each holding its entity, repository, service, controller, and DTO records); `transactions/TransactionCategory` is the canonical taxonomy and `AutomaticCategory` the validated automatic result | `identity.domain` (the `User` owner), `common` |
 | `ingestion` | `parser` (per-bank parsers + `StatementParserRegistry`); `service` (`ImportService`, `ImportWorker`, `UploadJob`, `UploadJobRepository`); `web` (`UploadController`, `UploadStatusResponse`) | `categorization`, `ledger.transactions`, `identity`, `ai`, `common` |
 | `categorization` | `CategorizationService` (asks the AI service, validates every answer, applies it through `TransactionService.applyAutomaticCategories`), `CategorizationController` (`POST /api/transactions/reclassify`), `ClassificationStatus`, `CategorizationSummary`, `ReclassifyResponse` | `ledger.transactions`, `ai`, `identity`, `common` |
+| `intelligence` | `service/` (`AnalyticsService`, `RecurringExpenseDetector`, `UnusualTransactionDetector`, `InsightGenerator`), `web/` (`AnalyticsController`), `dto/` (14 typed DTOs); server-side cash flow, net metrics, recurring commitments, statistical outlier detection, data quality diagnostics | `ledger`, `identity`, `common` |
+| `budgeting` | `domain/` (`Budget`, `Goal`, `GoalContribution`, `GoalStatus`), `repository/` (`BudgetRepository`, `GoalRepository`, `GoalContributionRepository`), `service/` (`BudgetService`, `GoalService`), `web/` (`BudgetController`, `GoalController`), `dto/` (12 typed DTOs); monthly spending limits (overall and category), actual vs budget performance, savings goals with concurrency-safe contribution tracking and pacing | `ledger`, `identity`, `common` |
+| `forecasting` | `service/` (`ForecastMethod` and `ForecastBacktest`: pure functions; `HistoryLoader` + `ForecastHistory`: one bounded owner-scoped read per request; `ForecastingService`, `BudgetOverrunPredictor`, `ScenarioSimulator`), `web/` (`ForecastController`), `dto/`; on-demand statistical forecasts, budget month-end outlook, savings projection, scenarios, rolling-origin backtest. Persists nothing, calls no external service | `intelligence` (analytics definitions, recurring detector), `budgeting`, `ledger`, `identity`, `common` |
 | `ai` | `AiClient`, `AiProperties`, `AiConfig`, `AiPrediction`, `ClassifyOutcome`, `ClassifyRequest/Response` | `common` only |
 
-### Dependency rules — enforced by `ArchitectureTest` (ArchUnit, 9 rules)
+### Dependency rules — enforced by `ArchitectureTest` (ArchUnit, 11 rules)
 
 1. `common` depends on no other module; `ai` depends on no business module.
-2. `identity` is the base: it depends on none of `ledger`, `ingestion`, `ai`.
-3. `ledger` does not depend on `ingestion`, `ai` or `categorization`; `categorization` does not depend on `ingestion`.
-4. Domain entities (`@Entity`) and repositories (`*Repository`) never depend on services or controllers.
-5. Controllers do not touch repositories directly.
-6. Nothing outside of controllers depends on controllers.
-7. No dependency cycles between modules (`slices().matching("com.finguard.backend.(*)..")`).
+2. `identity` is the base: it depends on none of `ledger`, `ingestion`, `ai`, `intelligence`, `budgeting`.
+3. `ledger` does not depend on `ingestion`, `ai`, `categorization`, `intelligence`, or `budgeting`; `categorization` does not depend on `ingestion`.
+4. `intelligence` depends on `ledger`, `identity`, and `common`, but no existing business modules (`identity`, `ledger`, `ingestion`, `categorization`, `ai`) depend on `intelligence`.
+5. `budgeting` depends on `ledger`, `identity`, and `common`, but no existing business modules (`identity`, `ledger`, `ingestion`, `categorization`, `intelligence`, `ai`) depend on `budgeting`.
+6. Domain entities (`@Entity`) and repositories (`*Repository`) never depend on services or controllers.
+7. Controllers do not touch repositories directly.
+8. Nothing outside of controllers depends on controllers.
+9. No dependency cycles between modules (`slices().matching("com.finguard.backend.(*)..")`).
 
-**Planned modules** (not created yet; created by the version that needs them): `intelligence` (analytics, risk,
-recommendations — v0.6.0, v0.7.0, v0.10.0) and `simulation` (v0.9.0). They will depend on `ledger` and `ai` only.
+**Planned modules** (not created yet; created by the version that needs them): `simulation` (v0.9.0).
 
 ## 3. Key flows
 
@@ -246,3 +250,28 @@ Identity, ingestion, intelligence and simulation are *not* extraction candidates
 | 8080 | Spring Boot | |
 | 8000 | AI service | `AI_HOST_PORT` in Compose |
 | 5433 | PostgreSQL (host side) | container port 5432; `POSTGRES_HOST_PORT` |
+
+## 9. Forecasting (v0.8.0)
+
+```mermaid
+flowchart LR
+    SPA["Forecast page<br/>(React, SVG charts)"] -->|"GET/POST /api/forecast/*"| FC["ForecastController"]
+    FC --> FS["ForecastingService"]
+    FS --> HL["HistoryLoader<br/>one query, last 36 months, owner-scoped"]
+    HL --> AN["AnalyticsService<br/>monthlyFlowsOf · monthlyCategoryNetSpendOf"]
+    HL --> RD["RecurringExpenseDetector"]
+    FS --> FM["ForecastMethod · ForecastBacktest<br/>pure functions"]
+    FS --> BO["BudgetOverrunPredictor"] --> BR[("budgets")]
+    FS --> SS["ScenarioSimulator<br/>pure, no I/O"]
+    FS --> GR[("goals (read only)")]
+    HL --> TX[("transactions")]
+```
+
+- **Decision: implemented in Java, not in the Python service.** The release plan sketched a `POST /v1/forecast` Python endpoint (D-13). The
+  chosen method is a few dozen lines of arithmetic over at most 12 numbers per series, it must reuse the Java financial definitions
+  exactly, and a network hop would add a failure mode without adding capability. The Python service therefore still serves only
+  `classify`; there is no AI-service dependency, so a forecast works when the AI service is down (A-16).
+- **No persistence, no cache, no migration.** Forecasts are recomputed per request from the ledger; there is nothing to invalidate
+  when a transaction, category, budget or goal changes. One bounded query per request (36 months) replaces the full-ledger scans.
+- **Time** comes from an injectable `Clock` (`ClockConfig`); tests fix it.
+- **Boundaries** (ArchUnit): `forecasting` depends on `intelligence`, `budgeting`, `ledger`, `identity`, `common` and not on `ingestion`, `ai` or `categorization`; nothing depends on `forecasting`.

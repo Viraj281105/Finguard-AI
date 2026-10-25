@@ -5,8 +5,7 @@ upload (`multipart/form-data`).
 
 **Status:** every endpoint listed here exists and is exercised by an automated test unless a row says otherwise
 (tests: `AuthApiTest`, `OwnershipApiTest`, `LedgerApiTest`, `CategoryApiTest`, `ImportApiTest`,
-`ImportClassificationTest`). Nothing outside this list exists — in particular there are **no** risk, forecast,
-scenario, recommendation, analytics or profile endpoints yet (see [ROADMAP.md](ROADMAP.md)).
+`ImportClassificationTest`, `AnalyticsApiTest`, `BudgetApiTest`, `GoalApiTest`, `ForecastApiTest`). Nothing outside this list exists (see [ROADMAP.md](ROADMAP.md)).
 
 There is no API version prefix. See [DECISIONS.md](DECISIONS.md) D-07.
 
@@ -324,6 +323,569 @@ Returns `200 OK` with a JSON array of all upload jobs owned by the authenticated
   }
 ]
 ```
+
+## Financial Intelligence & Analytics — `/api/analytics`
+
+All analytics endpoints require `Authorization: Bearer <access token>`, enforce strict authenticated user isolation, and perform exact monetary calculations server-side using `BigDecimal` (scale 2, `RoundingMode.HALF_UP`).
+
+Query Parameters (supported across all endpoints):
+
+| Parameter | Type | Description |
+|---|---|---|
+| `from` | `yyyy-MM-dd` | Inclusive start date. Optional. |
+| `to` | `yyyy-MM-dd` | Inclusive end date. Optional. |
+
+If `from` is after `to`, every endpoint returns `400 Bad Request` with an explanatory validation error.
+
+### Financial Correctness Guarantees:
+1. **Exclusions**: `TRANSFERS`, `CARD_PAYMENTS`, and `INVESTMENTS` are non-spending flows and excluded from both income and expense calculations to prevent double-counting.
+2. **Refund Treatment**: `REFUNDS` are subtracted directly from gross expenses (`netExpenses = grossExpenses - refunds`), never counted as earned income.
+3. **Cash Flow Identity**: $\text{netCashFlow} = \text{totalIncome} - \text{netExpenses}$ holds exactly across summary and monthly aggregations.
+4. **Savings Rate**: $\text{savingsRate} = ((\text{totalIncome} - \text{netExpenses}) / \text{totalIncome}) \times 100$. Calculated only when recorded income $> 0$. When income is 0 or unrecorded, `savingsRate` returns `null` with `savingsRateApplicable: false` and an explainable caveat string.
+5. **No Hallucinated Data**: Only persisted transactions, active loans, and tracked investments owned by the caller are included.
+
+---
+
+### `GET /api/analytics/summary`
+
+Returns top-level financial KPIs, month-over-month comparisons, investment/debt rollups, and data-quality summaries.
+
+`200 OK` →
+```json
+{
+  "period": { "from": "2026-03-01", "to": "2026-03-31" },
+  "totalIncome": 120000.00,
+  "grossExpenses": 45000.00,
+  "totalRefunds": 2000.00,
+  "totalExpenses": 43000.00,
+  "netCashFlow": 77000.00,
+  "savingsRate": 64.17,
+  "savingsRateApplicable": true,
+  "savingsRateCaveat": null,
+  "totalInvested": 300000.00,
+  "totalCurrentValue": 345000.00,
+  "unrealizedGain": 45000.00,
+  "gainPercentage": 15.00,
+  "activeLoansCount": 1,
+  "totalMonthlyEmi": 18500.00,
+  "totalPrincipal": 100000.00,
+  "momComparison": {
+    "previousIncome": 100000.00,
+    "incomeChange": 20000.00,
+    "incomeChangePct": 20.00,
+    "previousExpenses": 50000.00,
+    "expenseChange": -7000.00,
+    "expenseChangePct": -14.00,
+    "previousNet": 50000.00,
+    "netChange": 27000.00
+  },
+  "excludes": ["TRANSFERS", "CARD_PAYMENTS", "INVESTMENTS"],
+  "dataQuality": {
+    "totalTransactions": 60,
+    "uncategorizedCount": 2,
+    "uncategorizedPercentage": 3.33,
+    "hasSufficientHistory": true
+  },
+  "topInsights": [ ... ]
+}
+```
+
+---
+
+### `GET /api/analytics/monthly`
+
+Returns an ordered calendar-month time series of inflows, gross expenses, refunds, net expenses, net cash flow, and savings rates.
+
+`200 OK` →
+```json
+[
+  {
+    "month": "2026-02",
+    "income": 100000.00,
+    "grossExpenses": 50000.00,
+    "refunds": 0.00,
+    "expenses": 50000.00,
+    "netCashFlow": 50000.00,
+    "savingsRate": 50.00,
+    "transactionCount": 24,
+    "momExpenseChangePct": null,
+    "momIncomeChangePct": null
+  },
+  {
+    "month": "2026-03",
+    "income": 120000.00,
+    "grossExpenses": 45000.00,
+    "refunds": 2000.00,
+    "expenses": 43000.00,
+    "netCashFlow": 77000.00,
+    "savingsRate": 64.17,
+    "transactionCount": 32,
+    "momExpenseChangePct": -14.00,
+    "momIncomeChangePct": 20.00
+  }
+]
+```
+
+---
+
+### `GET /api/analytics/categories`
+
+Returns expense breakdown across classified canonical categories, percentage of net spending, transaction counts, average size, and month-over-month trend indicators.
+
+`200 OK` →
+```json
+{
+  "period": { "from": "2026-03-01", "to": "2026-03-31" },
+  "categories": [
+    {
+      "category": "HOUSING",
+      "label": "Housing",
+      "flow": "EXPENSE",
+      "amount": 25000.00,
+      "percentage": 58.14,
+      "transactionCount": 1,
+      "averageTransactionAmount": 25000.00,
+      "momChangePct": 0.00,
+      "isIncreasing": false,
+      "largestTransaction": {
+        "id": "tx-1",
+        "title": "Apartment Rent",
+        "amount": 25000.00,
+        "date": "2026-03-01",
+        "category": "HOUSING"
+      }
+    }
+  ],
+  "totalGrossExpenses": 45000.00,
+  "totalRefunds": 2000.00,
+  "totalNetExpenses": 43000.00,
+  "largestCategory": "HOUSING",
+  "risingCategories": ["GROCERIES"]
+}
+```
+
+---
+
+### `GET /api/analytics/recurring`
+
+Detects potential periodic payment commitments (subscriptions, bills, rent, SIPs) using transaction title normalization, amount variance checking ($\le 15\%$), and interval clustering (monthly $\approx 30$ days, weekly $\approx 7$ days).
+
+`200 OK` →
+```json
+{
+  "period": { "from": "2026-01-01", "to": "2026-03-31" },
+  "items": [
+    {
+      "id": "rec-netflix",
+      "title": "Netflix",
+      "merchant": "Netflix",
+      "category": "SUBSCRIPTIONS",
+      "amount": 649.00,
+      "cadence": "MONTHLY",
+      "occurrences": 3,
+      "lastDate": "2026-03-15",
+      "confidence": "HIGH",
+      "isConfirmed": false,
+      "explanation": "Regular monthly debits of ~₹649 detected across 3 cycles."
+    }
+  ],
+  "totalMonthlyRecurring": 649.00,
+  "recurringPercentageOfExpenses": 1.51
+}
+```
+
+---
+
+### `GET /api/analytics/data-quality`
+
+Exposes data coverage diagnostics, ledger timeline spans, missing month gaps, and uncategorized transaction volume so partial data is never mistaken for a complete financial picture.
+
+`200 OK` →
+```json
+{
+  "coverageFrom": "2026-01-01",
+  "coverageTo": "2026-03-31",
+  "totalDaysCovered": 90,
+  "totalMonthsCovered": 3,
+  "totalTransactions": 60,
+  "uncategorizedCount": 2,
+  "uncategorizedPercentage": 3.33,
+  "missingMonths": [],
+  "hasSufficientHistory": true,
+  "caveats": [
+    "2 uncategorized transactions (₹1,500.00) excluded from category breakdowns."
+  ]
+}
+```
+
+---
+
+### `GET /api/analytics/insights`
+
+Returns explainable, deterministic financial observations and statistical spending outliers. Every insight specifies the triggering rule, supporting figures, and confidence caveats.
+
+`200 OK` →
+```json
+{
+  "period": { "from": "2026-03-01", "to": "2026-03-31" },
+  "insights": [
+    {
+      "id": "ins-savings-rate",
+      "title": "Strong Savings Rate: 64.2%",
+      "type": "POSITIVE",
+      "message": "You saved 64.2% of your recorded income (₹77,000 net surplus).",
+      "period": "Selected Period",
+      "supportingFigures": { "savingsRate": 64.17 },
+      "ruleTriggered": "SAVINGS_RATE_STRONG",
+      "confidenceCaveat": null
+    }
+  ],
+  "unusualTransactions": [
+    {
+      "transactionId": "tx-outlier-1",
+      "title": "Croma Electronics",
+      "amount": 28000.00,
+      "date": "2026-03-18",
+      "category": "SHOPPING",
+      "benchmarkAmount": 3500.00,
+      "ratio": 8.00,
+      "reason": "Transaction amount (₹28,000.00) is 8.0x the median category expense (₹3,500.00).",
+      "rule": "OUTLIER_VS_MEDIAN"
+    }
+  ]
+}
+```
+
+## Budgets — `/api/budgets`
+
+All budget amounts are positive `BigDecimal` numbers with scale 2. Budget periods are represented by `yearMonth` formatted as `YYYY-MM`. Each budget belongs strictly to the authenticated user.
+
+### `GET /api/budgets`
+List all budgets for the authenticated user, optionally filtered by `yearMonth`.
+
+Query Parameters:
+- `yearMonth` (optional, string `YYYY-MM`): Filter by month.
+
+Response `200`: Array of `BudgetDto`:
+```json
+[
+  {
+    "id": "bgt-1",
+    "yearMonth": "2026-10",
+    "category": null,
+    "amount": 50000.00,
+    "createdAt": "2026-10-01T10:00:00Z",
+    "updatedAt": "2026-10-01T10:00:00Z"
+  },
+  {
+    "id": "bgt-2",
+    "yearMonth": "2026-10",
+    "category": "DINING",
+    "amount": 8000.00,
+    "createdAt": "2026-10-01T10:00:00Z",
+    "updatedAt": "2026-10-01T10:00:00Z"
+  }
+]
+```
+
+### `GET /api/budgets/overview`
+Get comprehensive monthly budget performance, comparing actual spending with budgeted limits.
+
+Query Parameters:
+- `yearMonth` (optional, string `YYYY-MM`, defaults to current calendar month).
+
+Response `200`: `MonthlyBudgetOverviewResponse`:
+```json
+{
+  "yearMonth": "2026-10",
+  "overall": {
+    "budgetId": "bgt-1",
+    "budgetAmount": 50000.00,
+    "actualSpending": 32450.00,
+    "remainingAmount": 17550.00,
+    "percentageUsed": 64.90,
+    "status": "UNDER_BUDGET"
+  },
+  "categoryBudgets": [
+    {
+      "budgetId": "bgt-2",
+      "category": "DINING",
+      "budgetAmount": 8000.00,
+      "actualSpending": 7200.00,
+      "remainingAmount": 800.00,
+      "percentageUsed": 90.00,
+      "status": "APPROACHING_LIMIT",
+      "transactionCount": 12
+    }
+  ],
+  "unbudgetedSpending": 5400.00,
+  "totalSpending": 32450.00,
+  "warnings": [
+    "DINING has reached 90.0% of its budget limit."
+  ]
+}
+```
+Status values:
+- `UNDER_BUDGET`: $\text{percentageUsed} < 80\%$
+- `APPROACHING_LIMIT`: $80\% \le \text{percentageUsed} \le 100\%$
+- `OVER_BUDGET`: $\text{percentageUsed} > 100\%$
+
+### `POST /api/budgets`
+Create an overall or category budget for a specified month.
+```json
+{
+  "yearMonth": "2026-10",
+  "category": "DINING",
+  "amount": 8000.00
+}
+```
+- `yearMonth`: required, format `YYYY-MM`.
+- `category`: optional. If `null` or omitted, sets the **overall** monthly budget. If specified, must be an active expense category from the taxonomy.
+- `amount`: required, `> 0`.
+- Response: `201 Created` with `BudgetDto`. Duplicate budget for the same user, month, and category returns `409 Conflict`.
+
+### `PUT /api/budgets/{id}`
+Update the budgeted amount of an existing budget.
+```json
+{
+  "amount": 9500.00
+}
+```
+- Response: `200 OK` with updated `BudgetDto`. Returns `404 Not Found` if budget id belongs to another user.
+
+### `DELETE /api/budgets/{id}`
+Delete a budget.
+- Response: `204 No Content`. Returns `404 Not Found` if budget id belongs to another user.
+
+---
+
+## Financial Goals — `/api/goals`
+
+Savings goals track personal targets and manual contributions.
+
+> [!NOTE]
+> **Banking Disclaimer:** Goal contributions recorded here represent self-tracked savings allocations for financial planning and target pacing. They do NOT represent verified bank account balances or automated bank transfers.
+
+### `GET /api/goals`
+List all active and archived goals for the authenticated user.
+
+Response `200`: Array of `GoalResponseDto`:
+```json
+[
+  {
+    "id": "goal-1",
+    "name": "Emergency Fund",
+    "description": "6 months of living expenses",
+    "targetAmount": 150000.00,
+    "currentAmount": 60000.00,
+    "targetDate": "2027-03-31",
+    "status": "ACTIVE",
+    "progressPercentage": 40.00,
+    "remainingAmount": 90000.00,
+    "isCompleted": false,
+    "isOverdue": false,
+    "requiredMonthlyContribution": 18000.00,
+    "contributionCount": 4,
+    "createdAt": "2026-10-01T10:00:00Z",
+    "updatedAt": "2026-10-24T10:00:00Z"
+  }
+]
+```
+
+### `GET /api/goals/{id}`
+Get detailed goal information including complete contribution history.
+
+Response `200`: `GoalDetailResponse`:
+```json
+{
+  "goal": { ... },
+  "contributions": [
+    {
+      "id": "gc-1",
+      "goalId": "goal-1",
+      "amount": 15000.00,
+      "contributionDate": "2026-10-15",
+      "note": "October savings allocation",
+      "createdAt": "2026-10-15T12:00:00Z"
+    }
+  ],
+  "disclaimer": "Recorded contributions are self-tracked allocations for planning purposes only, not verified bank deposits."
+}
+```
+
+### `POST /api/goals`
+Create a new savings goal.
+```json
+{
+  "name": "Emergency Fund",
+  "description": "6 months of living expenses",
+  "targetAmount": 150000.00,
+  "targetDate": "2027-03-31"
+}
+```
+- `name`: required, 1-100 characters.
+- `targetAmount`: required, positive `BigDecimal`.
+- `targetDate`: optional, `YYYY-MM-DD`.
+- `description`: optional, max 500 characters.
+- Response: `201 Created` with `GoalResponseDto`.
+
+### `PUT /api/goals/{id}`
+Update goal metadata or archive status.
+```json
+{
+  "name": "Emergency Fund (Updated)",
+  "description": "Expanded to 8 months of living expenses",
+  "targetAmount": 200000.00,
+  "targetDate": "2027-06-30",
+  "status": "ACTIVE"
+}
+```
+- `status`: optional `ACTIVE`, `COMPLETED`, `ARCHIVED`.
+- Response: `200 OK` with updated `GoalResponseDto`.
+
+### `DELETE /api/goals/{id}`
+Delete a goal and all its recorded contributions (cascading).
+- Response: `204 No Content`.
+
+### `POST /api/goals/{id}/contributions`
+Record a contribution toward a goal. Protected by database row locking (`SELECT ... FOR UPDATE`) to prevent concurrent race conditions.
+```json
+{
+  "amount": 10000.00,
+  "contributionDate": "2026-10-24",
+  "note": "Bonus allocation"
+}
+```
+- `amount`: required, `> 0`.
+- `contributionDate`: optional, defaults to today.
+- `note`: optional, max 255 characters.
+- If `currentAmount + amount >= targetAmount`, status transitions automatically to `COMPLETED`.
+- Response: `201 Created` with `GoalContributionDto`.
+
+### `DELETE /api/goals/{id}/contributions/{contributionId}`
+Delete a recorded contribution. Atomically subtracts `amount` from `currentAmount` under row lock. If goal was previously `COMPLETED` and `currentAmount < targetAmount`, status reverts to `ACTIVE`.
+- Response: `204 No Content`.
+
+## Forecasting — `/api/forecast`
+
+*(v0.8.0; calculated on demand from the persisted ledger, owner-scoped, nothing stored, so there is no cache to invalidate.)*
+All six endpoints require authentication (`401` otherwise) and see only the caller's own data. Errors use the standard
+`ApiError`. Method, assumptions, evidence rules and the evaluation results are in
+[FINANCIAL_RULES.md §7](FINANCIAL_RULES.md#7-forecasting-rules-v080) and [TESTING.md](TESTING.md#7-forecast-evaluation).
+
+**Conventions shared by every forecast response**
+
+| Field | Meaning |
+|---|---|
+| `reliability` | `RELIABLE` · `LIMITED` · `UNAVAILABLE`. How much *evidence* the forecast rests on, **not** how accurate it will be. `UNAVAILABLE` means nothing is projected: the lists are empty and the totals are `null` — never zeros. |
+| `method` / `algorithmVersion` | `LEVEL_DAMPED_TREND` / `2.0.0`. Statistical and rule-based; no machine learning. |
+| `asOf` | The date the calculation treats as "today" (server clock). |
+| `horizonMonths` | 1 – 12 (otherwise `400`). Projected months are the months **after** the current one. |
+| `history` | `from`/`to` (first and last complete month used), `monthsUsed`, the thresholds (`minMonthsLimited` 3, `minMonthsReliable` 6), `missingMonths` (complete months in range with no usable data: *unknown, not zero*), `transactionsUsed`, `firstMonthPossiblyPartial`. |
+| `warnings` | Data-quality problems found (gaps, stale import, partial first month, uncategorised share, unusual months that were limited, irregular or missing income, low volume). |
+| `assumptions` | What the method assumed, in plain language. |
+| `Estimate` | `{ point, lower, upper }`. `lower`/`upper` are the 10th and 90th percentile of the method's **own past forecast errors** on this history, added to `point`; both `null` when fewer than 8 past errors exist at that distance. **Not a calibrated probability.** |
+
+Parameter of the wrong type (`horizonMonths=abc`) is `400`, not `500`.
+
+### `GET /api/forecast/cash-flow?horizonMonths=3`
+
+Observed monthly income, spending and net, the month in progress (shown, never used to train), and projected months.
+```json
+{
+  "reliability": "RELIABLE", "method": "LEVEL_DAMPED_TREND", "algorithmVersion": "2.0.0", "asOf": "2026-07-15", "horizonMonths": 3,
+  "history": { "from": "2026-01", "to": "2026-06", "monthsUsed": 6, "minMonthsLimited": 3, "minMonthsReliable": 6,
+               "missingMonths": [], "transactionsUsed": 36, "firstMonthPossiblyPartial": false },
+  "warnings": [], "assumptions": ["…"], "intervalNote": "Bands (when shown) span the 10th to 90th percentile …",
+  "incomeAvailable": true,
+  "historical": [ { "month": "2026-06", "income": 50000.00, "expenses": 30000.00, "net": 20000.00 } ],
+  "currentMonth": { "month": "2026-07", "income": 50000.00, "expenses": 5000.00, "net": 45000.00, "note": "Recorded so far this month. Not used to train …" },
+  "projected": [ {
+    "month": "2026-08",
+    "income":   { "point": 50000.00, "lower": null, "upper": null },
+    "expenses": { "point": 30000.00, "lower": 28000.00, "upper": 32500.00 },
+    "net":      { "point": 20000.00, "lower": null, "upper": null },
+    "recurringFloorApplied": false, "factors": [] } ],
+  "summary": { "totalIncome": 150000.00, "totalExpenses": 90000.00, "totalNet": 60000.00, "averageMonthlyNet": 20000.00, "savingsRatePercent": 40.00 },
+  "recurring": [ { "id": "rec-1", "title": "Netflix subscription", "category": "SUBSCRIPTIONS", "monthlyAmount": 500.00,
+                   "cadence": "MONTHLY", "confidence": "HIGH", "userConfirmed": false, "includedInBaseline": true } ]
+}
+```
+- Fewer than 3 usable months: `reliability: "UNAVAILABLE"`, `projected: []`, `summary: null`; `historical` still lists what exists.
+- Income observed in fewer than 3 usable months: `incomeAvailable: false`; each projected `income` and `net` is `null` and `summary.totalIncome/totalNet/averageMonthlyNet/savingsRatePercent` are `null`. Spending is still projected. Zero is never substituted.
+- `recurring` are detected active recurring payments (monthly/weekly, confirmed or ≥ 3 sightings at HIGH/MEDIUM confidence, seen within 45 days). They are **already part of the observed history** (`includedInBaseline`), are not added again, and only raise a projection that would fall below their total (`recurringFloorApplied`). Annual and irregular payments are not detected.
+- Net bands come from the past errors of income minus spending at the same distance, not from combining the two bands.
+
+### `GET /api/forecast/categories?horizonMonths=3`
+
+Per-category projected monthly spending. A category needs spending in at least 3 usable months for its own forecast; others appear in `withoutForecast` with the reason.
+```json
+{ "reliability": "RELIABLE", "…": "common fields",
+  "categories": [ {
+    "category": "DINING", "label": "Dining", "activeMonths": 6, "recentMonthlyAverage": 5000.00,
+    "monthly": [ { "point": 6576.00, "lower": 6000.00, "upper": 7100.00 } ], "projectedTotal": 20576.00,
+    "trend": "UPWARD", "trendPercentPerMonth": 8.0, "reliability": "LIMITED", "recurringMonthly": 0.00,
+    "outlierMonths": [], "explanation": "…" } ],
+  "withoutForecast": [ { "category": "ENTERTAINMENT", "label": "Entertainment", "reason": "Spending in only 1 of 6 month(s); at least 3 are needed for a category forecast." } ],
+  "risingCategories": ["DINING"] }
+```
+`trend` is `UPWARD`/`DOWNWARD` only when a trend is statistically significant (≥ 6 months, |t| ≥ 2) and `STABLE` otherwise (`NOT_ESTABLISHED` with under 6 months). `risingCategories` additionally requires ≥ 3 % a month. Categories use the analytics definitions: transfers, card payments and investments are excluded; credits filed under the same expense category net against it; refunds filed under the generic *Refunds* category cannot be attributed to a category.
+
+### `GET /api/forecast/budget-overruns?yearMonth=2026-07`
+
+Month-end outlook against the v0.7.0 budgets (defaults to the current month; allowed range: 36 months back to 12 ahead, else `400`; a malformed value is `400`).
+```json
+{ "month": "2026-07", "asOf": "2026-07-15", "period": "CURRENT", "daysInMonth": 31, "daysWithRecordedData": 10, "daysRemaining": 21,
+  "warnings": [],
+  "overall": { "budgetId": "…", "category": null, "label": "Overall monthly spending", "budgetAmount": 28000.00, "actualToDate": 6000.00,
+    "remainingBudget": 22000.00, "recurringStillDue": 0.00, "expectedLow": 18600.00, "expectedCentral": 24300.00, "expectedHigh": 30000.00,
+    "estimatedOverrun": 0.00, "risk": "AT_RISK", "rule": "The estimates span ₹18600.00 to ₹30000.00 …", "basis": ["RUN_RATE", "HISTORY"],
+    "indeterminateReason": null, "factors": ["Recorded so far: …", "Run-rate: …", "History: …"] },
+  "categories": [ ] }
+```
+`actualToDate` equals `actualSpend` of `GET /api/budgets/overview` (same definition). Two independent month-end estimates are formed when their evidence exists:
+`RUN_RATE` (≥ 7 recorded days and ≥ 5 transactions in scope (≥ 3 for a category): recorded spending + recurring still due + the non-recurring daily rate × remaining days) and `HISTORY` (≥ 3 complete months: median of the last up to 6, never below recorded + recurring due). Paid recurring payments are removed from the daily rate and unpaid ones added once.
+
+| `risk` | Rule |
+|---|---|
+| `EXCEEDED` | `actualToDate` > budget (a fact). |
+| `LIKELY_OVER` | Recorded spending plus recurring still due already exceeds the budget, **or** at least two estimates are available and the lowest is above the budget. |
+| `AT_RISK` | Not the above, and the highest estimate is above 90 % of the budget. A single extrapolation can never raise more than this. |
+| `ON_TRACK` | The highest estimate is ≤ 90 % of the budget. |
+| `INDETERMINATE` | No estimate possible; `expected*` and `estimatedOverrun` are `null` and `indeterminateReason` says why. |
+| `COMPLETED_WITHIN` / `COMPLETED_OVER` | The month is over; final spend against the budget. |
+
+### `GET /api/forecast/savings?horizonMonths=6`
+
+Projected cumulative **cash-flow surplus**, kept apart from self-tracked goal contributions and (absent) bank balances.
+```json
+{ "reliability": "RELIABLE", "…": "common fields", "disclaimer": "Projected surplus … is not a bank balance …", "incomeAvailable": true,
+  "averageMonthlyNet": 20000.00, "projectedSavingsRatePercent": 40.00,
+  "points": [ { "month": "2026-08", "net": { "point": 20000.00, "lower": null, "upper": null }, "cumulativeNet": 20000.00 } ],
+  "goals": [ { "id": "…", "name": "Emergency fund", "targetAmount": 60000.00, "recordedAmount": 6000.00, "remaining": 54000.00, "targetDate": "2026-12-31",
+               "requiredMonthlyPace": 10800.00, "monthsIfAllSurplusUsed": 3, "completionMonthIfAllSurplusUsed": "2026-10", "onPaceIfAlone": true } ],
+  "accounting": { "projectedSurplusOverHorizon": 60000.00, "recordedGoalContributions": 6000.00, "verifiedBankBalance": null,
+                  "verifiedBankBalanceNote": "Not available. FinGuard does not hold or verify account balances.",
+                  "totalRequiredGoalPace": 10800.00, "goalsOvercommitted": false } }
+```
+`UNAVAILABLE` when there is too little history **or no observed income** (no surplus can be projected). `recordedAmount` and `recordedGoalContributions` are self-tracked planning figures, not deposits. Each goal's "if all surplus used" figures assume the whole surplus goes to that goal alone; `goalsOvercommitted` compares the required pace of **all** dated goals together with the projected monthly surplus. No band is given for the running total.
+
+### `POST /api/forecast/scenarios/simulate`
+
+Hypothetical what-if. Reads the ledger, **writes nothing** (verified by a test that compares transactions, budgets and goals before and after).
+```json
+{ "name": "optional, ≤ 80 chars", "horizonMonths": 6,
+  "incomeAdjustment": { "type": "PERCENTAGE", "value": 10 },
+  "categoryAdjustments": [ { "category": "GROCERIES", "type": "PERCENTAGE", "value": -20 } ],
+  "addedRecurringExpenses": [ { "title": "Gym", "category": null, "monthlyAmount": 1500 } ],
+  "removedRecurringExpenseIds": ["rec-1"] }
+```
+Validation (`400`): `horizonMonths` 1–12; percentages −100…500; fixed amounts ±10,000,000 a month; `monthlyAmount` > 0; ≤ 20 category changes and added expenses, ≤ 50 removals; a category must be a spending category (not income, transfers, card payments, investments or refunds) and appear once; removed ids must be currently detected recurring payments; an income change needs an observed income baseline.
+Response: `{ name, hypothetical: true, disclaimer, available, unavailableReason, baselineReliability, horizonMonths, incomeAvailable, warnings, baseline, scenario, delta, months[], categories[], explanations[] }` with `baseline`/`scenario` = `{ income, expenses, net, savingsRatePercent }` and `delta` = `{ income, expenses, net, savingsRatePoints }` over the horizon. With no baseline forecast `available` is `false`, all of `baseline/scenario/delta` are `null` and `unavailableReason` says why. Adjustments are flat monthly changes; a category cannot go below zero (a warning says so); removing a recurring payment reduces its category once. Scenario figures are point estimates: no band.
+
+### `GET /api/forecast/backtest`
+
+How the method would have done on the **caller's own** history, by chronological rolling origin: each forecast uses only months before its origin. For `EXPENSES`, `INCOME` and `NET`, horizons 1, 2, 3 and 6 (those that can be scored): `samples`, and for the method and two baselines (`naive` = last month repeats, `mean3` = mean of the last three) the `mae`, `wapePercent` (`null` when every actual is zero), `rmse`, `bias`; `verdict` is `INCONCLUSIVE` below 6 samples, otherwise `MODEL_BETTER`/`SIMILAR`/`BASELINE_BETTER` by MAE with a 10 % margin. `status: "INSUFFICIENT_DATA"` below 4 usable months. `evaluatedOn` is always `USER_HISTORY`; the synthetic evaluation is documented separately.
 
 ## Errors
 

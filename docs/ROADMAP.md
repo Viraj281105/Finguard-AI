@@ -19,7 +19,7 @@ reproducible; models only suggest (categories, forecasts) and never override ari
 | Transactions, investments, loans (CRUD, per-user isolation) | Implemented & tested |
 | Statement import (5 bank layouts, async, atomic) | Implemented & tested on **synthetic** fixtures; no dates, no dedupe, silent row loss |
 | Classification | Not working end to end — Java client exists, Python endpoint does not |
-| Analytics, risk score, forecast, scenarios, recommendations | **Not implemented** |
+| Risk score, loan/investment scenarios, recommendations | **Not implemented** (analytics, budgets, goals, forecasting exist) |
 | Tests / CI | 122 automated tests across three suites; **no CI** |
 | Docker / deployment | Compose file exists, **unverified**; no deployment design |
 
@@ -58,8 +58,8 @@ flowchart LR
 | **0.4.0** | Reliable import | Header-driven parsers, nothing lost silently, import report, recovery | L | 0.3.0 | D-06, D-09 |
 | **0.5.0** | Classification | Real `/v1/classify`, provenance, user review & override | XL | 0.3.0, 0.4.0 | D-06, D-14 |
 | **0.6.0** | Analytics | Server-side metrics, transfers/refunds handled, recurring detection, charts | L | 0.5.0 | D-08, D-10 |
-| **0.7.0** | Risk score | Specified, explainable, reproducible 0–100 index | L | 0.6.0 | D-09 |
-| **0.8.0** | Forecast | 3/6/12-month projection with honest intervals | L | 0.6.0 (+ AI service) | D-13 |
+| **0.7.0** | Budgeting & Goals | Monthly overall & category budgets, actual vs budget tracking, savings goals & pacing | L | 0.6.0 | — |
+| **0.8.0** | Forecast | Statistical cash-flow, category, budget-outlook and savings forecasts, scenarios, backtesting; honest about thin history (Java, no ML) | L | 0.6.0, 0.7.0 | D-13 (taken: A-16) |
 | **0.9.0** | Scenarios | Baseline vs scenario with explained deltas | XL | 0.7.0, 0.8.0 | — |
 | **0.10.0** | Recommendations | Evidence-backed, prioritised guidance | M | 0.7.0 (0.9.0 for links) | — |
 | **0.11.0** | Polish & delivery | Responsive, accessible, containerised, browser e2e | L | 0.10.0 | — |

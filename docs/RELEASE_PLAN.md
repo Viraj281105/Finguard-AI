@@ -232,46 +232,57 @@ category never replaced ✅ · import with AI down completes ✅ · KI-008 ✅ a
 - Frontend: charts render empty/partial data; dashboard shows server values only.
 
 **Acceptance criteria**
-- [ ] Dashboard figures equal the API's figures and match an independent hand calculation on the golden dataset.
-- [ ] A transfer between two own accounts changes neither income nor expense.
-- [ ] Insufficient history yields an explicit "insufficient data" response, not zeros presented as results.
-- [ ] No money arithmetic remains in the frontend (grep-able check in a test or lint rule).
-- [ ] KI-009, 010 closed.
+- [x] Dashboard figures equal the API's figures and match an independent hand calculation on the golden dataset.
+- [x] A transfer between two own accounts changes neither income nor expense.
+- [x] Insufficient history yields an explicit "insufficient data" response, not zeros presented as results.
+- [x] No money arithmetic remains in the frontend (grep-able check in a test or lint rule).
+- [x] KI-009, 010 closed.
 
 **Risks:** transfer/refund detection will be imperfect — hence suggestion + override; recurring detection needs enough history; chart library adds bundle weight (measure).
 **Done when:** criteria checked, definitions documented, tag `v0.6.0`.
 
 ---
 
-## v0.7.0 — Explainable risk score
+## v0.7.0 — Budgeting & Financial Goals
 
-**Goal:** a reproducible 0–100 risk index with five visible dimensions, every number traceable to inputs. **Deterministic Java; not AI.**
-**Effort:** L. **Depends on:** v0.6.0. Decision D-09. Original design: [FINANCIAL_RULES.md §4](FINANCIAL_RULES.md#4-draft-risk-score-specification--planned-not-implemented).
+**Goal:** a production-quality budgeting and financial goal-tracking experience on top of the ledger, categorisation system, and analytics engine.
+**Effort:** L. **Depends on:** v0.6.0.
 
 **Scope**
-- **First deliverable: `docs/RISK_MODEL.md` v1** — for each of the five dimensions: inputs, exact formula, piecewise-linear normalisation breakpoints with justification, handling of zero income, no expenses, no loans/investments, negative cash flow, fewer than the required months; the composite (weights 0.25/0.25/0.20/0.20/0.10 unless the owner changes them), bands, and the confidence/coverage level. Reviewed and accepted by the owner before code.
-- `intelligence.risk` implementing the spec; persistence in `risk_reports` (inputs snapshot, model version, result, timestamp) so a past score can be reproduced.
-- Endpoints: `POST /api/risk/compute`, `GET /api/risk/latest`, `GET /api/risk/history`.
-- Frontend: score gauge, five dimension cards each showing inputs, formula and "what moved this", history chart, data-quality banner explaining a reduced-confidence or unavailable score.
-
-**Modules affected:** `intelligence`, migration (`risk_reports`), `frontend/features/risk`.
-**Security:** owner-scoped; stored snapshots contain derived figures, not raw descriptions.
-**Financial correctness:** same data + same model version ⇒ identical result; missing data never silently becomes zero; weights re-normalised only per the documented rule and flagged; a score is withheld when coverage is below the documented minimum.
-
-**Tests & verification**
-- Golden vectors per dimension at, below and above each breakpoint; monotonicity properties (more savings never raises risk); boundary and zero-division cases; composite arithmetic; reproduction of a stored report from its snapshot.
-- API: owner isolation, history ordering. Frontend: every dimension displays its inputs; insufficient-data state.
+- **Monthly budgeting engine (`com.finguard.backend.budgeting`):**
+  - Overall monthly spending budget and per-category monthly spending budgets.
+  - CRUD operations (`POST`, `GET`, `PUT`, `DELETE /api/budgets`) with duplicate prevention (409 Conflict) and database unique partial indexes.
+  - Month boundaries: supports past, current, and future months (`yearMonth = YYYY-MM`).
+  - Performance tracking (`GET /api/budgets/overview`): compares actual expenditure with budgets, calculates percentage used and remaining amounts, separates unbudgeted spending, and returns warnings for approaching/exceeding limits.
+  - Thresholds: Under budget (< 80%), approaching limit (80%–100%), over budget (> 100%).
+  - Financial correctness: Debits in expense categories minus refunds; non-spending flows (`TRANSFERS`, `CARD_PAYMENTS`, `INVESTMENTS`) strictly excluded.
+- **Financial goals system:**
+  - Create, view, update, archive, and delete savings goals (`/api/goals`).
+  - Concurrency-safe contribution tracking (`POST /api/goals/{id}/contributions`) with pessimistic row locking (`@Lock(PESSIMISTIC_WRITE)`).
+  - Target date pacing: calculates required monthly contribution pace for future target dates and flags overdue uncompleted goals.
+  - Automatic status transitions: `ACTIVE` → `COMPLETED` when `currentAmount >= targetAmount`; reverts if contributions are deleted.
+  - **Banking disclaimer:** Goal contributions are explicitly designated as self-tracked allocations for planning purposes, not verified bank balances or automated bank transfers.
+- **Frontend experience:**
+  - Dedicated `BudgetsGoalsPage` with dual tabs ("Monthly Budgets" and "Financial Goals").
+  - Month selector with formatted labels and quick jump to current month.
+  - Overall budget summary card, category progress bars with status badges, and contextual warnings.
+  - Goal cards with progress rings/bars, remaining days, monthly pacing, and contribution modal with history inspector.
+  - Dashboard integration card `BudgetHealthPreviewCard` showing monthly budget utilization and top goal status.
+- **Database & Architecture:**
+  - Flyway migration `V6__budgeting_and_financial_goals.sql` (`budgets`, `financial_goals`, `goal_contributions`).
+  - 11 ArchUnit rules enforcing strict modular boundaries.
 
 **Acceptance criteria**
-- [ ] `RISK_MODEL.md` v1 accepted; code and tests match it line by line.
-- [ ] Recomputing from a stored snapshot reproduces the stored score exactly.
-- [ ] A user with < required months sees an explanation, not a number.
-- [ ] The UI explains each dimension's contribution using the same inputs the backend used.
-- [ ] No statement about the score's predictive validity is made anywhere (it is an index, not a validated predictor).
-- [ ] KI-011 (risk part) closed.
+- [x] Budgets and financial goals persist correctly with Flyway V6 migrations.
+- [x] Financial calculations follow documented, consistent rules (refund offsets, non-spending exclusions, scale-2 `BigDecimal`).
+- [x] User ownership and data isolation are enforced across all endpoints.
+- [x] The UI is polished, responsive, and connected to real backend data.
+- [x] Goal contributions are clearly distinguished from verified bank savings with explicit disclaimers.
+- [x] Existing analytics, imports, categorisation, and transaction management continue working without regressions.
+- [x] All 406 automated tests (197 backend, 88 frontend, 121 AI) pass cleanly.
+- [x] Component versions aligned to 0.7.0 across backend, frontend, and AI services.
 
-**Risks:** breakpoints are judgement calls (document as such); liquidity depends on balances (D-09); users may over-trust a single number (copy and layout must show coverage).
-**Done when:** criteria checked, tag `v0.7.0`.
+**Delivery status (2026-10-24, uncommitted, untagged).** Fully implemented, verified against backend, frontend, and AI test suites. Working tree uncommitted.
 
 ---
 
@@ -299,6 +310,16 @@ category never replaced ✅ · import with AI down completes ✅ · KI-008 ✅ a
 
 **Risks:** short, irregular personal histories give wide, weakly informative bands (state this in the UI); a heavier model (ETS/Prophet) is deliberately deferred.
 **Done when:** criteria checked, tag `v0.8.0`.
+
+**Delivery status (uncommitted, untagged) — and how it differs from the plan above.** Delivered as **statistical forecasting in the Java
+backend** (decision A-16), not a Python `POST /v1/forecast`: no AI-service dependency, so there is no "Python outage" state.
+Scope delivered beyond the plan: category-level forecasts, month-end budget outlook, savings projection with a
+projected-surplus / goal-contribution / bank-balance separation, and a what-if scenario simulator (all from the original v0.8 ask; the
+plan's v0.9.0 "simulation" is therefore partly advanced: cash-flow scenarios exist, loan/investment scenarios do not). Intervals are
+**empirical past-error bands shown only with ≥ 8 samples**, not 80 % probability bands. Backtesting: chronological rolling origin per user
+(`GET /api/forecast/backtest`) plus a reproducible synthetic evaluation (`SyntheticEvaluationTest`). Acceptance: same series ⇒ same forecast ✅ ·
+< 3 months ⇒ explicit refusal in the UI ✅ · reproducible backtest command, no accuracy claim beyond its output ✅ (and the claim is
+"synthetic only") · KI-011 forecast part ✅ · "Python outage" criterion: not applicable by design.
 
 ---
 

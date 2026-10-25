@@ -4,6 +4,123 @@ Format: [Keep a Changelog](https://keepachangelog.com); versioning: [VERSIONING.
 Only work that **exists in the repository** is listed. Planned releases are in [RELEASE_PLAN.md](RELEASE_PLAN.md).
 No version has been tagged yet; v0.1.0 is pending (see [PROGRESS.md](PROGRESS.md)).
 
+## [0.8.0] — Financial Forecasting & Predictive Insights
+
+Working-tree changes for Stage 7. **Nothing here is committed.** Statistical, deterministic forecasting in the Java backend (no machine
+learning, no new service, no migration), a backtesting framework and a forecasting UI. Details: [FINANCIAL_RULES.md §7](FINANCIAL_RULES.md#7-forecasting-rules-v080).
+
+### Added
+- **`forecasting` module** (`/api/forecast/*`): cash flow (`/cash-flow`), category spending (`/categories`), month-end budget outlook (`/budget-overruns`),
+  savings projection (`/savings`), scenario simulation (`POST /scenarios/simulate`) and per-user backtest (`/backtest`). All authenticated and owner-scoped.
+- **`ForecastMethod` `LEVEL_DAMPED_TREND` 2.0.0:** outlier-clipped level of the last ≤ 6 of 12 calendar months; an OLS trend applied only when significant (|t| ≥ 2, ≥ 6 months) and damped;
+  recurring payments as a floor, never added twice; seasonality explicitly not modelled.
+- **Evidence rules:** complete months only (the current month is shown, never learnt from); missing months are unknown, never zero; ≥ 3 months or `UNAVAILABLE`
+  (empty projection, `null` totals); income and net `null` when income was seen in < 3 months; per-category evidence rules; every response carries horizon, history used, method and version, assumptions, warnings and `RELIABLE/LIMITED/UNAVAILABLE`.
+- **Uncertainty:** empirical bands from the method's own past errors (10th–90th percentile), shown only with ≥ 8 past errors; no probability is claimed.
+- **Backtesting:** chronological rolling origin with leak-proof training windows, naive and mean-of-3 baselines, MAE/RMSE/bias/WAPE (WAPE `null` at zero actuals), per-horizon results with sample sizes, verdicts only from ≥ 6 samples; a reproducible synthetic evaluation (`SyntheticEvaluationTest`).
+- **Budget outlook** reusing v0.7.0 budgets: `EXCEEDED` (fact) / `LIKELY_OVER` / `AT_RISK` / `ON_TRACK` / `INDETERMINATE` / completed, from run-rate and history estimates with recurring paid vs due handled once; the rule and factors are returned.
+- **Savings projection** separating projected surplus, self-tracked goal contributions and (absent) verified bank balance; goals compared with one shared surplus.
+- **Scenarios:** income %/₹, category %/₹, assumed and removed recurring payments; validated; hypothetical and non-persistent (tested).
+- **Frontend (`/forecasting`):** light-theme page with horizon selector and sections: cash-flow chart (actual vs month-so-far vs projected, bands only where available, keyboard-focusable months, table for screen readers), spending by category, budget outlook, savings outlook, scenario simulator (debounced backend recalculation), and an evaluation panel; independent section loading/errors; dashboard preview card.
+- `ClockConfig` (injectable `Clock`), `AnalyticsService.monthlyFlowsOf` / `monthlyCategoryNetSpendOf` (shared definitions), `TransactionRepository` bounded-window query.
+
+### Changed
+- **Replaced** the first draft of the forecasting module found in the working tree (`TREND_ADJUSTED_WMA_RECURRING_V1`), whose problems were: the in-progress month was used as a full training month; gap months were silently compressed; an unjustified "80 %" band was always claimed; recurring payments were counted twice in budget run-rates and "HIGH" confidence was assigned from naive extrapolation; scenarios ran on empty baselines; savings goals each claimed the whole surplus; a zero-fallback WAPE; unvalidated scenario input. Old tests of that draft were replaced by the stronger suites listed in TESTING.md.
+- `GlobalExceptionHandler`: a parameter of the wrong type (`horizonMonths=abc`) now returns `400` instead of `500`.
+- Versions aligned to 0.8.0.
+
+### Evaluation (synthetic only — see TESTING.md §7)
+Method beats the baselines on growth and spiky patterns, not on a level shift; empirical band coverage 67–80 %. No result on real user data exists.
+
+### Resolved / opened issues
+KI-011 (forecast part). New: KI-040 – KI-045.
+
+## [0.7.0] — Budgeting & Financial Goals
+
+Working-tree changes for Stage 6. **Nothing here is committed.** Implements a production-quality monthly budgeting system and practical financial savings goal tracker on top of the financial ledger, categorisation system, and analytics engine.
+
+### Added
+- **Backend `budgeting` module:** Dedicated budgeting and goal-tracking domain (`com.finguard.backend.budgeting`):
+  - `BudgetService`: Monthly overall spending budget and category-level budget management, actual-versus-budget spending comparisons, duplicate prevention (409 Conflict), unbudgeted spending aggregation, contextual warnings (approaching limit at $\ge 80\%$, over budget at $> 100\%$).
+  - `GoalService`: Practical savings goals with target amount, target date pacing, automatic completion transitions (`currentAmount >= targetAmount`), and concurrency-safe contribution recording using PostgreSQL pessimistic row locking (`@Lock(LockModeType.PESSIMISTIC_WRITE)`).
+  - Explicit banking disclaimer on goal contributions: self-tracked allocations for personal planning, not verified bank balances or automated bank transfers.
+  - 12 typed DTO records in `com.finguard.backend.budgeting.dto`.
+- **Budgeting & Goals REST endpoints:**
+  - `GET /api/budgets` — List all budgets, with optional `yearMonth` filter.
+  - `GET /api/budgets/overview` — Monthly budget performance overview comparing actual spending with budget limits.
+  - `POST /api/budgets` — Create an overall or category budget for a specified month.
+  - `PUT /api/budgets/{id}` — Update budgeted amount.
+  - `DELETE /api/budgets/{id}` — Delete a budget.
+  - `GET /api/goals` — List all active and archived goals.
+  - `GET /api/goals/{id}` — Goal details with contribution history and monthly pacing.
+  - `POST /api/goals` — Create a savings goal.
+  - `PUT /api/goals/{id}` — Update goal details or archive status.
+  - `DELETE /api/goals/{id}` — Delete a goal and cascading contributions.
+  - `POST /api/goals/{id}/contributions` — Record a goal contribution under row lock.
+  - `DELETE /api/goals/{id}/contributions/{contributionId}` — Delete a contribution under row lock.
+- **Frontend budgeting & goals experience:**
+  - Dedicated `BudgetsGoalsPage` with dual tabs ("Monthly Budgets" and "Financial Goals").
+  - `MonthSelector` for navigation across past, current, and future months.
+  - `BudgetSummaryCard` showing overall monthly budget progress bar, remaining amounts, and metric pills.
+  - `CategoryBudgetCard` with individual progress bars, transaction counts, and status indicators.
+  - `AddBudgetModal` for overall or category budget creation.
+  - `GoalCard` displaying progress rings/bars, remaining days, required monthly pace, and contribute actions.
+  - `AddGoalModal`, `AddContributionModal`, and `GoalContributionsModal` for contribution management with prominent banking disclaimers.
+  - `BudgetHealthPreviewCard` integrated on `DashboardPage` displaying monthly budget utilization and top goal status.
+  - Added `/budgets` and `/goals` protected routes in `App.tsx` and "Budgets & Goals" in dashboard navigation.
+- **Database & Architecture:**
+  - Flyway migration `V6__budgeting_and_financial_goals.sql`: tables `budgets`, `financial_goals`, `goal_contributions` with check constraints and partial unique indexes (`uq_budgets_user_month_category`, `uq_budgets_user_month_overall`).
+  - 11 ArchUnit rules protecting `budgeting` module isolation.
+- **Automated tests:**
+  - 19 new backend tests in `BudgetServiceTest`, `GoalServiceTest`, `BudgetApiTest`, `GoalApiTest` (total 197 backend tests).
+  - 3 new frontend tests in `BudgetsGoalsPage.test.tsx` (total 88 frontend tests across 14 test files).
+
+### Changed
+- Aligned versions to `0.7.0` across `backend/pom.xml`, `frontend/package.json`, `ai/pyproject.toml`, and `ai/app/__init__.py`.
+- Augmented dashboard data loader to fetch budget overview and goals alongside existing analytics.
+
+## [0.6.0] — Financial Analytics & Insights
+
+Working-tree changes for Stage 5. **Nothing here is committed.** Transforms FinGuard-AI into a personal financial intelligence platform with grounded, server-calculated financial metrics and explainable observations.
+
+### Added
+- **Backend `intelligence` module:** Dedicated analytics engine (`com.finguard.backend.intelligence`) calculating deterministic, verified metrics using scale-2 `BigDecimal` arithmetic:
+  - `AnalyticsService`: Orchestrates cash flow, net calculations, refund offsets, MoM comparisons, category spending breakdowns, and data coverage metrics.
+  - `RecurringExpenseDetector`: Identifies recurring payments (monthly, weekly, annual) with title normalization, amount variance checks ($\le 15\%$), and confidence scoring.
+  - `UnusualTransactionDetector`: Statistical outlier detector flagging unusually large expenses exceeding $2.5\times$ category median or $\text{mean} + 2\sigma$ with a minimum ₹1,000 threshold.
+  - `InsightGenerator`: Generates explainable, deterministic observations (deficits, savings milestones, surging categories, recurring cost burdens) citing supporting data and caveats.
+  - 14 typed DTO records in `com.finguard.backend.intelligence.dto`.
+- **Analytics REST endpoints (`/api/analytics/*`):**
+  - `GET /api/analytics/summary` — KPIs, net expenses, net cash flow, savings rate, MoM comparisons, investment holdings, active loan EMI.
+  - `GET /api/analytics/monthly` — Calendar-month time series of inflows, gross expenses, refunds, net expenses, cash flow, and savings rate.
+  - `GET /api/analytics/categories` — Classified category breakdown with percentage share, average sizes, and rising trend alerts.
+  - `GET /api/analytics/recurring` — Detected recurring payment obligations with cadence and estimated monthly commitment.
+  - `GET /api/analytics/data-quality` — Timeline span, transaction volume, missing month gaps, uncategorized share, and coverage caveats.
+  - `GET /api/analytics/insights` — Rule-based explainable observations and statistical spending anomalies.
+- **Frontend analytics features & visual components:**
+  - Responsive, accessible SVG dual-bar `CashFlowChart` with hover tooltips and net indicators.
+  - Interactive SVG donut `CategoryBreakdownChart` with hover inspection and rising category flags.
+  - `KpiCard` with directional MoM percentage pills and caveats.
+  - `InsightsFeed` for explainable observations with filter tabs (All, Alerts, Trends, Milestones).
+  - `RecurringExpensesCard`, `UnusualSpendingCard`, `DataQualityCard`, and `DateRangeSelector` with presets (All Time, This Month, Last 3/6 Months, YTD).
+  - Polished empty state onboarding banner for users with zero transactions.
+- **Automated tests:**
+  - 16 new backend tests in `AnalyticsServiceTest`, `RecurringExpenseDetectorTest`, `UnusualTransactionDetectorTest`, `AnalyticsApiTest` (total 178 backend tests).
+  - 5 new frontend unit tests in `DashboardPage.test.tsx` (total 85 frontend tests).
+  - ArchUnit architecture rule enforcing module isolation of `intelligence` package.
+
+### Changed
+- **Client-side arithmetic removed:** Completely eliminated client-side money math (`computeSummary` in browser). Dashboard strictly renders server-verified `BigDecimal` calculations.
+- **Financial rules enforcement:**
+  - Explicit exclusion of non-spending categories (`TRANSFERS`, `CARD_PAYMENTS`, `INVESTMENTS`) from income and expenses to eliminate double-counting.
+  - `REFUNDS` offset gross expenses directly without counting as earned income.
+  - Savings rate calculated as $((\text{Income} - \text{Expenses}) / \text{Income}) \times 100$ only when recorded income $> 0$; returns `null` with explanation when income is 0.
+- Aligned versions to `0.6.0` across `backend/pom.xml`, `frontend/package.json`, `ai/pyproject.toml`, and `ai/app/__init__.py`.
+
+### Fixed
+- **KI-009:** Transfers, card payments, and refunds modeled in server-side analytics; non-spending excluded from consumption totals and refunds netted against expenses.
+- **KI-010:** Replaced client-side floating point dashboard arithmetic with server-side `BigDecimal` analytics.
+
 ## [0.5.0] — AI Transaction Categorisation
 
 Working-tree changes for Stage 4. **Nothing here is committed.** The classifier is a deterministic **rule baseline,

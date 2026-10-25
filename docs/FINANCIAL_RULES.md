@@ -24,21 +24,23 @@ rules every future calculation must follow. Status labels: see [README.md](READM
 | A category chosen by the user is never overwritten by automation, including during import, re-upload and re-classification. | Implemented & tested (`ImportClassificationTest`, `CategoryApiTest`) | `TransactionService.applyAutomaticCategories` (row lock + `category_source = NONE`) |
 | Classification never changes `amount`, `type` or `date`. | Implemented & tested (`ImportClassificationTest.transfersRefunds…`) | automatic categories are applied only to category columns |
 | Interrupted statement import jobs automatically transition to `FAILED` with safe re-upload instructions on startup. | Implemented & tested (resolving KI-007) | `ImportRecoveryListener`, `ImportRecoveryTest` |
+| **Server-side analytics layer (`com.finguard.backend.intelligence`)**: All metrics computed in `BigDecimal` scale 2 (`HALF_UP`) isolated by user. Browser arithmetic (`computeSummary`) removed (resolving KI-010). | Implemented & tested (`AnalyticsServiceTest`, `AnalyticsApiTest`) | `AnalyticsService`, `AnalyticsController` |
+| **Exclusion of non-spending flows**: `TRANSFERS`, `CARD_PAYMENTS`, and `INVESTMENTS` are strictly excluded from income and expenses to avoid double-counting across internal transfers and bill payoffs (resolving KI-009). | Implemented & tested (`AnalyticsServiceTest`) | `AnalyticsService`, `contracts/categories.json` |
+| **Refund netting**: Transactions categorized as `REFUNDS` offset gross expenses directly ($\text{netExpenses} = \max(0, \text{grossExpenses} - \text{refunds})$) and are never counted as earned income. | Implemented & tested (`AnalyticsServiceTest`) | `AnalyticsService` |
+| **Cash flow and savings rate arithmetic**: $\text{netCashFlow} = \text{totalIncome} - \text{netExpenses}$. $\text{savingsRate} = ((\text{totalIncome} - \text{netExpenses}) / \text{totalIncome}) \times 100$, evaluated only when $\text{totalIncome} > 0$; otherwise returns `null` with explicit `savingsRateCaveat`. | Implemented & tested (`AnalyticsServiceTest`) | `AnalyticsService` |
+| **Recurring commitments detection**: Recurring payments (subscriptions, bills) identified via merchant normalization, cadence clustering (monthly $\approx 30$ days, weekly $\approx 7$ days), and amount consistency ($\le 15\%$ variance). | Implemented & tested (`RecurringExpenseDetectorTest`) | `RecurringExpenseDetector` |
+| **Explainable statistical outlier detection**: Unusually large expenses flagged if exceeding $2.5\times$ category median or $\text{mean} + 2\sigma$ with minimum ₹1,000 threshold. | Implemented & tested (`UnusualTransactionDetectorTest`) | `UnusualTransactionDetector` |
+| **Server-side budgeting calculations (`com.finguard.backend.budgeting`)**: Monthly overall and category spending limits evaluated on calendar-month `txn_date`. Only active expense categories count as budgeted spending; credit card payments, internal transfers, and investments are excluded. Category refunds directly offset gross category spending. | Implemented & tested (`BudgetServiceTest`, `BudgetApiTest`) | `BudgetService`, `BudgetController` |
+| **Concurrency-safe financial goals tracking**: Pessimistic row locking (`@Lock(PESSIMISTIC_WRITE)`) on the parent goal ensures concurrent contribution additions and deletions maintain consistent progress and status transitions. Contributions are explicitly designated as self-tracked allocations, not verified bank balances. | Implemented & tested (`GoalServiceTest`, `GoalApiTest`) | `GoalService`, `GoalController` |
 
 ## 2. Known gaps (do not build on these assumptions)
 
 These are real limitations of the current code. Each is tracked in [KNOWN_ISSUES.md](KNOWN_ISSUES.md).
 
-- **Transfers, refunds, reversals and credit-card bill payments are *labelled* (§5) but not yet *used*.** They are
-  stored as ordinary `INCOME`/`EXPENSE` rows with a non-spending or refund category; an own-account transfer is still
-  one `EXPENSE` plus one `INCOME` that are not linked to each other, and a refund is not netted against the expense it
-  reverses. v0.6.0 builds the analytics rules on these labels. (KI-009)
-- **No accounts and account-level balances.** The statement's closing balance is captured on the upload job, but individual account balances are not yet modeled. (KI-009)
+- **No accounts and account-level balances.** The statement's closing balance is captured on the upload job, but individual account balances are not yet modeled.
 - **Loans are snapshots.** No outstanding principal, remaining tenure or repayment history.
 - **Investments are snapshots.** No contribution history or valuation history.
-- **Dashboard totals are computed in the browser** with JavaScript floating point, over all time, with no month
-  boundaries. (KI-010) The backend returns correct decimals; only the dashboard arithmetic is affected. Since 0.5.0
-  those client-side totals leave out `NON_SPENDING` and `REFUND` categories (§5) — a stop-gap, not the analytics rules.
+- **Single-currency (INR) assumption.** Multi-currency statements are not handled; all monetary values are treated as rupees (₹).
 
 ## 3. Conventions for financial code
 
@@ -152,3 +154,117 @@ Legacy free-text categories were normalised by migration V5 (`Food` → `DINING`
   a weak `TRANSFERS` hint, and never counts as competing evidence for another category.
 - Measured quality: only on synthetic data written by the same author as the rules —
   [`ai/evaluation/report.md`](../ai/evaluation/report.md). No figure about real statements exists.
+
+## 6. Budgeting and Financial Goals Rules (v0.7.0)
+
+### 6.1 Budgeted Spending Definition
+- **What counts as budgeted spending:**
+  - Debits (`type = EXPENSE`) categorized into an active expense category from the taxonomy (e.g. `GROCERIES`, `DINING`, `HOUSING`, `UTILITIES`, etc.) are classified as budgeted spending.
+  - Transactions in `UNCATEGORIZED` are classified as unbudgeted spending and reported explicitly in monthly budget overviews.
+- **Refund treatment:**
+  - Incoming credits (`type = INCOME`) categorized with an expense category (e.g., a merchant refund for `DINING`) or `REFUNDS` directly reduce gross category spending: $\text{actualSpending} = \max(0, \text{grossExpenses} - \text{refunds})$.
+- **Excluded flows:**
+  - `TRANSFERS`, `CARD_PAYMENTS`, and `INVESTMENTS` are non-spending flows and are **never** counted as consumer spending or budget consumption.
+  - This prevents credit-card bill payoffs from double-counting against retail purchases already charged to cards.
+
+### 6.2 Category and Overall Budget Interaction
+- **Independent ceilings:**
+  - An overall budget sets a high-level spending limit for the entire calendar month.
+  - Category budgets set specific spending limits for individual categories.
+  - The overall budget is **not** a naive sum of category budgets. Users may intentionally leave unallocated headroom or have unbudgeted categories.
+  - Transactions are never double-counted: spending belongs to its individual category and simultaneously contributes to total monthly spending compared against the overall budget ceiling.
+- **Performance thresholds:**
+  - $\text{percentageUsed} < 80.0\%$: `UNDER_BUDGET` (normal healthy pace).
+  - $80.0\% \le \text{percentageUsed} \le 100.0\%$: `APPROACHING_LIMIT` (warning state).
+  - $\text{percentageUsed} > 100.0\%$: `OVER_BUDGET` (exceeded limit).
+- **Month boundaries:**
+  - Budgets are keyed by calendar month (`YYYY-MM`).
+  - Budgets can be created for past, present, or future months.
+  - Actual spending is calculated dynamically from transactions whose `txn_date` falls within `[YYYY-MM-01, end of month]`.
+
+### 6.3 Financial Goals and Banking Disclaimer
+- **Distinction from bank savings:**
+  - Recorded goal contributions are self-tracked manual savings allocations for personal financial planning and pacing.
+  - They do **not** represent verified bank account balances, automated fund reservations, or real bank transfers.
+  - All responses include the explicit disclaimer:
+    `"Recorded contributions are self-tracked allocations for planning purposes only, not verified bank deposits."`
+- **Progress calculation:**
+  - $\text{progressPercentage} = \min(100.0, (\text{currentAmount} / \text{targetAmount}) \times 100)$.
+  - When $\text{currentAmount} \ge \text{targetAmount}$, goal status transitions automatically from `ACTIVE` to `COMPLETED`.
+  - If a contribution is removed such that $\text{currentAmount} < \text{targetAmount}$, a `COMPLETED` goal automatically reverts to `ACTIVE`.
+- **Target date pacing:**
+  - If a goal has a `targetDate` in the future:
+    $$\text{requiredMonthlyContribution} = \frac{\max(0, \text{targetAmount} - \text{currentAmount})}{\max(1, \text{monthsRemaining})}$$
+  - If `targetDate` has passed and the goal is not completed, it is flagged with `isOverdue = true`.
+- **Concurrency safety:**
+  - Goal updates and contribution recordings employ pessimistic row-level locking (`SELECT ... FOR UPDATE`) in PostgreSQL, ensuring that concurrent contribution requests or deletes cannot result in race conditions, corrupted amounts, or inconsistent statuses.
+
+## 7. Forecasting rules (v0.8.0)
+
+Forecasts reuse the definitions above — nothing in this section redefines income, spending or savings.
+
+### 7.1 What is forecast, from what
+
+- **History** = the user's own transactions of the last 36 months, owner-scoped, read once per request and aggregated by
+  `AnalyticsService` (the same code as the analytics screens): income, net spending (refunds offset it), net cash flow; transfers,
+  card payments and investments excluded; uncategorised credits count as income, uncategorised debits as spending.
+  A test asserts the forecast history equals the analytics monthly figures to the paisa.
+- **Only complete calendar months train a forecast.** The month in progress is shown (month-to-date) and never used: a partial month
+  would understate everything.
+- **Missing is not zero.** A complete month between the first and the last with no income or spending is *unknown* (it may be an
+  incomplete import); it is excluded and reported. A month containing only transfers, card payments or investments is likewise excluded.
+  A month that *does* have income but no spending is real data and counts as zero spending. A late first month (first transaction
+  after day 10) is flagged as possibly partial.
+- **Projected months** are the months after the current one (`horizon` 1–12).
+
+### 7.2 The method (`LEVEL_DAMPED_TREND` 2.0.0)
+
+Deterministic and explainable; no machine learning, no randomness. For a forecast origin `o`, only observations at or before `o` are read.
+
+1. Use the last 12 calendar months; fewer than 3 observations ⇒ no forecast.
+2. With ≥ 5 observations, clip outliers to `median ± 3 × max(1.4826·MAD, 10 % of the median)`; clipped months are reported.
+3. **Level** = mean of the last ≤ 6 (clipped) observations.
+4. With ≥ 6 observations fit an ordinary-least-squares line on calendar months. The trend is applied **only if** its slope is
+   significant (`|t| ≥ 2`); then `forecast(h) = fitted value at the last month + slope × Σ 0.8^k (k = 1…h)` (damped). Otherwise the forecast is the level.
+5. Floor at zero.
+6. **Recurring payments are a floor, not an addition.** Active detected recurring payments are already inside the observed spending,
+   so they are not added again; if a projection would fall below their total it is raised to it (and says so).
+7. **Seasonality is not modelled** (it needs ≥ 2 years). Annual and irregular payments are not detected (the recurring detector only
+   emits monthly and weekly cadences), so a yearly bill can make its own month higher than projected.
+
+### 7.3 Minimum evidence
+
+| Forecast | Needs | Result otherwise |
+|---|---|---|
+| Cash flow / spending / savings | ≥ 3 usable complete months | `UNAVAILABLE`: empty projection, `null` totals |
+| `RELIABLE` | ≥ 6 usable months, ≤ 1 gap in the last 6, latest complete month present, ≥ 3 transactions per month on average, regular income | `LIMITED` |
+| Income and net | income in ≥ 3 usable months | income/net `null` (never 0); spending still projected |
+| Regular income | all usable months have income and CV ≤ 0.5 | `LIMITED` + warning |
+| A category | spending in ≥ 3 usable months; `RELIABLE` needs ≥ 6 and ≥ 75 % of months | listed in `withoutForecast` with the reason |
+| A trend | ≥ 6 months and \|t\| ≥ 2 | no trend (`STABLE` / `NOT_ESTABLISHED`) |
+| An uncertainty band | ≥ 8 past forecast errors of the same method at the same distance | no band, with a note |
+| Budget run-rate | ≥ 7 recorded days and ≥ 5 transactions in scope (≥ 3 for a category) | no run-rate estimate |
+| Budget history estimate | ≥ 3 complete months | no history estimate; with neither ⇒ `INDETERMINATE` |
+| Backtest verdict | ≥ 6 scored forecasts at a horizon | `INCONCLUSIVE` |
+
+`RELIABLE` describes the **evidence**, not the accuracy. Evaluation results are in [TESTING.md](TESTING.md#7-forecast-evaluation).
+
+### 7.4 Uncertainty
+
+There is no calibrated confidence. A band is `point + the 10th / 90th percentile of the method's own past errors` at that horizon on the
+user's history (nearest-rank), clamped at zero for spending and income, and shown only with ≥ 8 past errors. On synthetic data the
+share of next-month actuals falling inside such a band was 67–80 % (TESTING.md §7) — a description of past errors, not a guarantee.
+Net bands use the past errors of the net forecast itself; scenario results and cumulative savings carry no band.
+
+### 7.5 Budget outlook and scenarios
+
+- Actual spend is the v0.7.0 budget definition. Only spend that has happened is called certain (`EXCEEDED`). The month-end outlook is a
+  range from independent estimates (run-rate and history), never a single extrapolation; one estimate can raise at most `AT_RISK`.
+  Recurring payments already made are removed from the daily rate and those still due are added once (no double counting). Data is
+  considered recorded only through the latest transaction date; a stale import is flagged. Rules table: [API.md](API.md#get-apiforecastbudget-overruns).
+- **Savings.** The projected surplus is hypothetical income minus spending. It is not a bank balance (FinGuard holds none), and goal
+  contributions are self-tracked planning figures, never presented as deposits. Goals share one surplus, so the required pace of all
+  dated goals is compared with it together.
+- **Scenarios.** Flat monthly adjustments on top of the baseline: income % or ₹; category % or ₹; assumed recurring expenses;
+  removing a detected recurring payment. A category cannot fall below zero; removing a recurring payment lowers its category rather than the total
+  twice. No baseline ⇒ no scenario. Nothing is persisted.
