@@ -6,6 +6,9 @@ import type {
   CategoryForecastResponse,
   HistoryInfo,
   SavingsProjection,
+  SavedScenarioDetail,
+  SavedScenarioRerun,
+  SavedScenarioSummary,
   ScenarioResult,
 } from "./types";
 
@@ -196,7 +199,7 @@ export const SCENARIO: ScenarioResult = {
     { month: "2026-08", baselineIncome: 50000, scenarioIncome: 50000, baselineExpenses: 30000, scenarioExpenses: 30000, baselineNet: 20000, scenarioNet: 20000 },
   ],
   categories: [],
-  explanations: ["No adjustments chosen: the scenario equals the baseline."],
+  explanations: ["No adjustments chosen: the scenario equals the baseline."], loanEffects: [],
 };
 
 export const SCENARIO_CHANGED: ScenarioResult = {
@@ -205,4 +208,42 @@ export const SCENARIO_CHANGED: ScenarioResult = {
   delta: { income: 15000, expenses: -5700, net: 20700, savingsRatePoints: 8.9 },
   categories: [{ category: "GROCERIES", label: "Groceries", baselineMonthly: 9500, scenarioMonthly: 7600, deltaMonthly: -1900, note: "adjusted" }],
   explanations: ["Income changed by 10% in every projected month.", "Over 3 month(s) the projected surplus changes by +₹20700."],
+};
+
+/** SYNTHETIC loan and saved-scenario fixtures (v0.9.0). */
+export const LOAN = {
+  id: "loan-1", name: "Car loan", type: "CAR" as const, principal: 100000, emiAmount: 8884.88, interestRate: 12,
+  startDate: "2026-06-01", endDate: null, active: true, createdAt: "2026-06-01T00:00:00",
+};
+
+export const LOAN_SCENARIO: ScenarioResult = {
+  ...SCENARIO,
+  scenario: { income: 150000, expenses: 150000, net: 0, savingsRatePercent: 0 },
+  delta: { income: 0, expenses: 60000, net: -60000, savingsRatePoints: -40 },
+  explanations: ["Car loan: Prepay \u20b930000 in month 1 and keep the EMI of \u20b98884.88."],
+  loanEffects: [{
+    loanId: "loan-1", loanName: "Car loan", action: "PREPAY", estimatedOutstandingBalance: 93000, baselineMonthsToPayoff: 11,
+    scenarioMonthsToPayoff: 8, baselineRemainingInterest: 5900, scenarioRemainingInterest: 3800, interestSaved: 2100,
+    cashOutInHorizonChange: 30000, notes: [],
+  }],
+};
+
+export const SAVED_LIST: SavedScenarioSummary[] = [
+  { id: "s1", name: "Cut groceries", horizonMonths: 3, methodVersion: "LEVEL_DAMPED_TREND 2.0.0", createdAt: "2026-07-01T10:00:00", netChange: 5700, spendingChange: -5700 },
+  { id: "s2", name: "Prepay car loan", horizonMonths: 3, methodVersion: "LEVEL_DAMPED_TREND 2.0.0", createdAt: "2026-07-02T10:00:00", netChange: -60000, spendingChange: 60000 },
+  { id: "s3", name: "Half year plan", horizonMonths: 6, methodVersion: "LEVEL_DAMPED_TREND 2.0.0", createdAt: "2026-07-03T10:00:00", netChange: 1000, spendingChange: -1000 },
+];
+
+export const SAVED_DETAIL_1: SavedScenarioDetail = { summary: SAVED_LIST[0], request: { horizonMonths: 3 }, snapshot: SCENARIO_CHANGED };
+export const SAVED_DETAIL_2: SavedScenarioDetail = { summary: SAVED_LIST[1], request: { horizonMonths: 3 }, snapshot: LOAN_SCENARIO };
+
+export const RERUN_UNCHANGED: SavedScenarioRerun = {
+  summary: SAVED_LIST[0], request: { horizonMonths: 3 }, snapshot: SCENARIO_CHANGED, current: SCENARIO_CHANGED,
+  unchanged: true, methodVersionChanged: false, currentMethodVersion: "LEVEL_DAMPED_TREND 2.0.0",
+};
+
+export const RERUN_CHANGED: SavedScenarioRerun = {
+  ...RERUN_UNCHANGED,
+  current: { ...SCENARIO_CHANGED, baseline: { income: 150000, expenses: 96000, net: 54000, savingsRatePercent: 36 }, scenario: { income: 165000, expenses: 90000, net: 75000, savingsRatePercent: 45.5 } },
+  unchanged: false,
 };

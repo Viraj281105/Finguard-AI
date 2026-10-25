@@ -17,9 +17,15 @@ vi.mock("./api", () => ({
     getSavings: vi.fn(),
     simulateScenario: vi.fn(),
     getBacktest: vi.fn(),
+    listScenarios: vi.fn(),
+    saveScenario: vi.fn(),
+    getScenario: vi.fn(),
+    rerunScenario: vi.fn(),
+    deleteScenario: vi.fn(),
   },
 }));
 
+vi.mock("../loans/api", () => ({ loanAPI: { getAll: vi.fn().mockResolvedValue([]) } }));
 vi.mock("../auth/api", () => ({ authAPI: { logout: vi.fn().mockResolvedValue({}) } }));
 
 function renderPage() {
@@ -42,6 +48,7 @@ beforeEach(() => {
   vi.mocked(forecastAPI.getSavings).mockResolvedValue(SAVINGS);
   vi.mocked(forecastAPI.getBacktest).mockResolvedValue(BACKTEST);
   vi.mocked(forecastAPI.simulateScenario).mockResolvedValue(SCENARIO);
+  vi.mocked(forecastAPI.listScenarios).mockResolvedValue([]);
 });
 
 describe("cash-flow overview", () => {

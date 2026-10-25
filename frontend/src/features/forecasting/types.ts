@@ -233,6 +233,39 @@ export interface ScenarioRequest {
   categoryAdjustments?: CategoryAdjustment[];
   addedRecurringExpenses?: AddedRecurringExpense[];
   removedRecurringExpenseIds?: string[];
+  loanAdjustments?: LoanAdjustment[];
+  oneTimeItems?: OneTimeItem[];
+}
+
+export type LoanAction = "CLOSE" | "PREPAY" | "CHANGE_EMI";
+
+export interface LoanAdjustment {
+  loanId: string;
+  action: LoanAction;
+  /** Required for PREPAY and CHANGE_EMI. */
+  amount?: number;
+}
+
+export interface OneTimeItem {
+  title: string;
+  kind: "INCOME" | "EXPENSE";
+  /** 1 = the first projected month. */
+  month: number;
+  amount: number;
+}
+
+export interface LoanEffect {
+  loanId: string;
+  loanName: string;
+  action: LoanAction;
+  estimatedOutstandingBalance: number;
+  baselineMonthsToPayoff: number;
+  scenarioMonthsToPayoff: number;
+  baselineRemainingInterest: number;
+  scenarioRemainingInterest: number;
+  interestSaved: number;
+  cashOutInHorizonChange: number;
+  notes: string[];
 }
 
 export interface ScenarioTotals {
@@ -284,6 +317,33 @@ export interface ScenarioResult {
   months: ScenarioMonth[];
   categories: ScenarioCategoryEffect[];
   explanations: string[];
+  loanEffects: LoanEffect[];
+}
+
+export interface SavedScenarioSummary {
+  id: string;
+  name: string;
+  horizonMonths: number;
+  methodVersion: string;
+  createdAt: string;
+  netChange: number | null;
+  spendingChange: number | null;
+}
+
+export interface SavedScenarioDetail {
+  summary: SavedScenarioSummary;
+  request: ScenarioRequest;
+  snapshot: ScenarioResult;
+}
+
+export interface SavedScenarioRerun {
+  summary: SavedScenarioSummary;
+  request: ScenarioRequest;
+  snapshot: ScenarioResult;
+  current: ScenarioResult;
+  unchanged: boolean;
+  methodVersionChanged: boolean;
+  currentMethodVersion: string;
 }
 
 export type Verdict = "MODEL_BETTER" | "SIMILAR" | "BASELINE_BETTER" | "INCONCLUSIVE";

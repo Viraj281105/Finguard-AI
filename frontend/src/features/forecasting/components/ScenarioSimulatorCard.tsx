@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { apiErrorMessage } from "../../../shared/api/client";
 import { formatCurrency } from "../../../shared/utils/format";
+import { loanAPI } from "../../loans/api";
+import type { Loan } from "../../loans/types";
 import { forecastAPI } from "../api";
 import { monthLabel, shortMonth, signed, tidyMoney } from "../format";
 import type {
@@ -9,13 +11,25 @@ import type {
   CashFlowForecast,
   CategoryAdjustment,
   CategoryForecastResponse,
+  LoanAction,
+  LoanAdjustment,
+  OneTimeItem,
   ScenarioRequest,
   ScenarioResult,
 } from "../types";
+import SavedScenariosCard from "./SavedScenariosCard";
 
 type IncomeMode = "NONE" | AdjustmentType;
 interface CategoryRow { key: number; category: string; type: AdjustmentType; value: string }
 interface AddedRow { key: number; title: string; category: string; amount: string }
+interface LoanRow { key: number; loanId: string; action: LoanAction; amount: string }
+interface ItemRow { key: number; title: string; kind: "INCOME" | "EXPENSE"; month: string; amount: string }
+
+const LOAN_ACTIONS: { value: LoanAction; label: string }[] = [
+  { value: "CLOSE", label: "Close it (repay the whole balance in month 1)" },
+  { value: "PREPAY", label: "Prepay an amount in month 1" },
+  { value: "CHANGE_EMI", label: "Change the EMI" },
+];
 
 const DEBOUNCE_MS = 450;
 const inputCls = "w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-500 disabled:bg-slate-100 disabled:text-slate-400";
@@ -83,6 +97,14 @@ export default function ScenarioSimulatorCard({
   const [catRows, setCatRows] = useState<CategoryRow[]>([]);
   const [added, setAdded] = useState<AddedRow[]>([]);
   const [removed, setRemoved] = useState<string[]>([]);
+  const [loanRows, setLoanRows] = useState<LoanRow[]>([]);
+  const [itemRows, setItemRows] = useState<ItemRow[]>([]);
+  const [loans, setLoans] = useState<Loan[]>([]);
+  const [saveName, setSaveName] = useState("");
+  const [saveMessage, setSaveMessage] = useState("");
+  const [saveError, setSaveError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [savedVersion, setSavedVersion] = useState(0);
   const [result, setResult] = useState<ScenarioResult | null>(null);
   const [error, setError] = useState("");
   const [settledFor, setSettledFor] = useState<string | null>(null);
@@ -105,6 +127,21 @@ export default function ScenarioSimulatorCard({
   });
   if (adds.length) request.addedRecurringExpenses = adds;
   if (removed.length) request.removedRecurringExpenseIds = removed;
+  const loanAdj: LoanAdjustment[] = loanRows.flatMap((r): LoanAdjustment[] => {
+    if (!r.loanId) return [];
+    if (r.action === "CLOSE") return [{ loanId: r.loanId, action: r.action }];
+    const v = num(r.amount);
+    return v !== null && v > 0 ? [{ loanId: r.loanId, action: r.action, amount: v }] : [];
+  });
+  if (loanAdj.length) request.loanAdjustments = loanAdj;
+  const items: OneTimeItem[] = itemRows.flatMap((r) => {
+    const v = num(r.amount);
+    const m = num(r.month);
+    return r.title.trim() && v !== null && v > 0 && m !== null && Number.isInteger(m) && m >= 1 && m <= horizonMonths
+      ? [{ title: r.title.trim(), kind: r.kind, month: m, amount: v }]
+      : [];
+  });
+  if (items.length) request.oneTimeItems = items;
   const signature = JSON.stringify(request);
 
   useEffect(() => {
@@ -128,8 +165,26 @@ export default function ScenarioSimulatorCard({
   }, [signature]);
   const loading = settledFor !== signature;
 
+  useEffect(() => {
+    let live = true;
+    loanAPI.getAll().then((l) => { if (live) setLoans(l); }).catch(() => { if (live) setLoans([]); });
+    return () => { live = false; };
+  }, []);
+  const usableLoans = loans.filter((l) => l.active && l.startDate);
+
+  const save = () => {
+    const name = saveName.trim();
+    if (!name) { setSaveError("Give the scenario a name before saving it."); setSaveMessage(""); return; }
+    setSaving(true);
+    forecastAPI
+      .saveScenario({ ...(JSON.parse(signature) as ScenarioRequest), name })
+      .then(() => { setSaveMessage(`Saved “${name}”.`); setSaveError(""); setSaveName(""); setSavedVersion((v) => v + 1); })
+      .catch((e) => { setSaveError(apiErrorMessage(e, "Could not save this scenario.")); setSaveMessage(""); })
+      .finally(() => setSaving(false));
+  };
+
   const reset = () => {
-    setIncomeMode("NONE"); setIncomeValue(""); setCatRows([]); setAdded([]); setRemoved([]);
+    setIncomeMode("NONE"); setIncomeValue(""); setCatRows([]); setAdded([]); setRemoved([]); setLoanRows([]); setItemRows([]);
   };
   const toggleRemoved = (id: string) => setRemoved((r) => (r.includes(id) ? r.filter((x) => x !== id) : [...r, id]));
 
@@ -231,6 +286,64 @@ export default function ScenarioSimulatorCard({
                 ))
               )}
             </fieldset>
+
+            <fieldset className="space-y-2">
+              <legend className="text-xs font-semibold text-slate-800 mb-1">Change a loan</legend>
+              {loanRows.map((r) => (
+                <div key={r.key} className="flex flex-wrap gap-2 items-center">
+                  <select aria-label="Loan" className={inputCls} value={r.loanId}
+                    onChange={(e) => setLoanRows((rows) => rows.map((x) => (x.key === r.key ? { ...x, loanId: e.target.value } : x)))}>
+                    <option value="">Choose a loan…</option>
+                    {usableLoans.map((l) => <option key={l.id} value={l.id}>{l.name} · EMI {formatCurrency(l.emiAmount)}</option>)}
+                  </select>
+                  <select aria-label="Loan action" className={inputCls} value={r.action}
+                    onChange={(e) => setLoanRows((rows) => rows.map((x) => (x.key === r.key ? { ...x, action: e.target.value as LoanAction } : x)))}>
+                    {LOAN_ACTIONS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+                  </select>
+                  {r.action !== "CLOSE" && (
+                    <input aria-label={r.action === "PREPAY" ? "Prepayment amount" : "New EMI"} type="number" min="0" step="any" className={inputCls}
+                      placeholder={r.action === "PREPAY" ? "₹ extra, once" : "₹ new EMI"} value={r.amount}
+                      onChange={(e) => setLoanRows((rows) => rows.map((x) => (x.key === r.key ? { ...x, amount: e.target.value } : x)))} />
+                  )}
+                  <button type="button" aria-label="Remove loan change" className="text-slate-400 hover:text-rose-600 px-1"
+                    onClick={() => setLoanRows((rows) => rows.filter((x) => x.key !== r.key))}>✕</button>
+                </div>
+              ))}
+              <button type="button" disabled={usableLoans.length === 0} className="text-xs font-semibold text-sky-700 hover:text-sky-900 disabled:text-slate-400"
+                onClick={() => setLoanRows((rows) => [...rows, { key: nextKey.current++, loanId: "", action: "PREPAY", amount: "" }])}>
+                + Add a loan change
+              </button>
+              {usableLoans.length === 0 && (
+                <p className="text-[11px] text-slate-500">Add an active loan with a start date on the Loans page to try closing, prepaying or re-pricing it.</p>
+              )}
+            </fieldset>
+
+            <fieldset className="space-y-2">
+              <legend className="text-xs font-semibold text-slate-800 mb-1">One-time income or expense</legend>
+              {itemRows.map((r) => (
+                <div key={r.key} className="flex flex-wrap gap-2 items-center">
+                  <input aria-label="One-time name" className={inputCls} placeholder="e.g. New laptop" value={r.title}
+                    onChange={(e) => setItemRows((rows) => rows.map((x) => (x.key === r.key ? { ...x, title: e.target.value } : x)))} />
+                  <select aria-label="One-time kind" className={inputCls} value={r.kind}
+                    onChange={(e) => setItemRows((rows) => rows.map((x) => (x.key === r.key ? { ...x, kind: e.target.value as "INCOME" | "EXPENSE" } : x)))}>
+                    <option value="EXPENSE">Expense</option>
+                    <option value="INCOME" disabled={!cashFlow.incomeAvailable}>Income</option>
+                  </select>
+                  <select aria-label="One-time month" className={inputCls} value={r.month}
+                    onChange={(e) => setItemRows((rows) => rows.map((x) => (x.key === r.key ? { ...x, month: e.target.value } : x)))}>
+                    {Array.from({ length: horizonMonths }, (_, i) => <option key={i + 1} value={String(i + 1)}>Month {i + 1}</option>)}
+                  </select>
+                  <input aria-label="One-time amount" type="number" min="0" step="any" className={inputCls} placeholder="₹" value={r.amount}
+                    onChange={(e) => setItemRows((rows) => rows.map((x) => (x.key === r.key ? { ...x, amount: e.target.value } : x)))} />
+                  <button type="button" aria-label="Remove one-time item" className="text-slate-400 hover:text-rose-600 px-1"
+                    onClick={() => setItemRows((rows) => rows.filter((x) => x.key !== r.key))}>✕</button>
+                </div>
+              ))}
+              <button type="button" className="text-xs font-semibold text-sky-700 hover:text-sky-900"
+                onClick={() => setItemRows((rows) => [...rows, { key: nextKey.current++, title: "", kind: "EXPENSE", month: "1", amount: "" }])}>
+                + Add a one-time item
+              </button>
+            </fieldset>
           </div>
         )}
 
@@ -305,6 +418,37 @@ export default function ScenarioSimulatorCard({
               ))}
             </ul>
           )}
+          {result.loanEffects?.length > 0 && (
+            <div>
+              <h4 className="text-xs font-semibold text-slate-800 mb-1">Loan effects</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <caption className="sr-only">What each loan change does, before and after</caption>
+                  <thead>
+                    <tr className="text-slate-500 border-b border-slate-100">
+                      <th scope="col" className="py-2 pr-3 font-medium">Loan</th>
+                      <th scope="col" className="py-2 pr-3 font-medium text-right">Estimated balance</th>
+                      <th scope="col" className="py-2 pr-3 font-medium text-right">Months left</th>
+                      <th scope="col" className="py-2 pr-3 font-medium text-right">Cash out in horizon</th>
+                      <th scope="col" className="py-2 font-medium text-right">Interest saved (whole loan)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="tabular-nums">
+                    {result.loanEffects.map((e) => (
+                      <tr key={e.loanId} className="border-b border-slate-50">
+                        <th scope="row" className="py-2 pr-3 font-semibold text-slate-900">{e.loanName}</th>
+                        <td className="py-2 pr-3 text-right">{formatCurrency(e.estimatedOutstandingBalance)}</td>
+                        <td className="py-2 pr-3 text-right">{e.baselineMonthsToPayoff} → {e.scenarioMonthsToPayoff}</td>
+                        <td className="py-2 pr-3 text-right">{signed(e.cashOutInHorizonChange, formatCurrency)}</td>
+                        <td className={`py-2 text-right font-semibold ${e.interestSaved >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{signed(e.interestSaved, formatCurrency)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-1">Balances are estimated from the loan’s start date, EMI and rate; they are not a lender statement.</p>
+            </div>
+          )}
           {result.warnings.length > 0 && (
             <ul className="space-y-1" aria-label="Scenario warnings">
               {result.warnings.map((w) => <li key={w} className="text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">{tidyMoney(w)}</li>)}
@@ -314,6 +458,15 @@ export default function ScenarioSimulatorCard({
             {result.explanations.map((e) => <li key={e}>{tidyMoney(e)}</li>)}
           </ul>
           <p className="text-[11px] text-slate-500 border-t border-slate-100 pt-3">{result.disclaimer} No uncertainty band is given for scenario figures.</p>
+          <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+            <label htmlFor={`${uid}-save-name`} className="text-xs font-semibold text-slate-800">Keep this scenario</label>
+            <input id={`${uid}-save-name`} aria-label="Scenario name" maxLength={80} className={`${inputCls} max-w-xs`} placeholder="Name, e.g. Prepay car loan"
+              value={saveName} onChange={(e) => setSaveName(e.target.value)} />
+            <button type="button" disabled={saving || loading} onClick={save}
+              className="text-xs font-semibold text-white bg-sky-700 hover:bg-sky-800 disabled:bg-slate-300 rounded-lg px-3 py-1.5">Save scenario</button>
+            {saveMessage && <span role="status" className="text-xs text-emerald-700">{saveMessage}</span>}
+            {saveError && <span role="alert" className="text-xs text-rose-700">{saveError}</span>}
+          </div>
         </div>
       )}
 
@@ -323,6 +476,7 @@ export default function ScenarioSimulatorCard({
         </div>
       )}
       {unitHint(incomeMode)}
+      <SavedScenariosCard refreshKey={savedVersion} />
     </div>
   );
 }

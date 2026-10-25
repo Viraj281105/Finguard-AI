@@ -1,12 +1,16 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { AxiosError } from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { loanAPI } from "../loans/api";
 import { forecastAPI } from "./api";
 import ScenarioSimulatorCard from "./components/ScenarioSimulatorCard";
 import { CASH_FLOW, CATEGORIES, NO_INCOME_CASH_FLOW, SCENARIO, SCENARIO_CHANGED, UNAVAILABLE_CASH_FLOW } from "./testFixtures";
 import type { CashFlowForecast, ScenarioResult } from "./types";
 
-vi.mock("./api", () => ({ forecastAPI: { simulateScenario: vi.fn() } }));
+vi.mock("./api", () => ({
+  forecastAPI: { simulateScenario: vi.fn(), listScenarios: vi.fn(), saveScenario: vi.fn(), getScenario: vi.fn(), rerunScenario: vi.fn(), deleteScenario: vi.fn() },
+}));
+vi.mock("../loans/api", () => ({ loanAPI: { getAll: vi.fn() } }));
 
 const DEBOUNCE = 450;
 
@@ -27,6 +31,8 @@ beforeEach(() => {
   vi.useFakeTimers();
   vi.clearAllMocks();
   vi.mocked(forecastAPI.simulateScenario).mockResolvedValue(SCENARIO);
+  vi.mocked(forecastAPI.listScenarios).mockResolvedValue([]);
+  vi.mocked(loanAPI.getAll).mockResolvedValue([]);
 });
 
 afterEach(() => {
