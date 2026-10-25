@@ -13,7 +13,11 @@ import com.finguard.backend.forecasting.dto.ScenarioSimulationRequest.Adjustment
 import com.finguard.backend.forecasting.dto.ScenarioSimulationRequest.CategoryAdjustment;
 import com.finguard.backend.forecasting.dto.ScenarioSimulationResponse;
 import com.finguard.backend.forecasting.dto.ScenarioSimulationResponse.CategoryEffect;
+import com.finguard.backend.forecasting.dto.ScenarioSimulationRequest.LoanAdjustment;
+import com.finguard.backend.forecasting.dto.ScenarioSimulationRequest.OneTimeItem;
+import com.finguard.backend.forecasting.dto.ScenarioSimulationRequest.OneTimeKind;
 import com.finguard.backend.forecasting.dto.ScenarioSimulationResponse.Delta;
+import com.finguard.backend.forecasting.dto.ScenarioSimulationResponse.LoanEffect;
 import com.finguard.backend.forecasting.dto.ScenarioSimulationResponse.Month;
 import com.finguard.backend.forecasting.dto.ScenarioSimulationResponse.Totals;
 import com.finguard.backend.intelligence.dto.RecurringExpenseItemDto;
@@ -54,6 +58,10 @@ public class ScenarioSimulator {
     static final BigDecimal MAX_PERCENT = BigDecimal.valueOf(500);
     static final BigDecimal MIN_PERCENT = BigDecimal.valueOf(-100);
 
+    /** A loan as the simulator sees it: the estimated outstanding balance at the start of the first projected month. */
+    public record LoanInput(String id, String name, BigDecimal outstandingBalance, BigDecimal emi, BigDecimal annualRatePercent) {
+    }
+
     public ScenarioSimulationResponse simulate(
             ScenarioSimulationRequest request,
             int horizon,
@@ -61,13 +69,25 @@ public class ScenarioSimulator {
             CategorySpendingForecastResponse categories,
             List<RecurringExpenseItemDto> activeRecurring
     ) {
+        return simulate(request, horizon, baseline, categories, activeRecurring, Map.of());
+    }
+
+    public ScenarioSimulationResponse simulate(
+            ScenarioSimulationRequest request,
+            int horizon,
+            CashFlowForecastResponse baseline,
+            CategorySpendingForecastResponse categories,
+            List<RecurringExpenseItemDto> activeRecurring,
+            Map<String, LoanInput> loans
+    ) {
         String name = request.name() == null || request.name().isBlank() ? "Hypothetical scenario" : request.name().trim();
         validate(request, baseline, activeRecurring);
+        validateLoansAndItems(request, horizon, baseline, loans);
 
         if (ForecastCommon.UNAVAILABLE.equals(baseline.reliability())) {
             return new ScenarioSimulationResponse(name, true, DISCLAIMER, false,
                     baseline.warnings().isEmpty() ? "Not enough history for a baseline forecast." : baseline.warnings().get(0),
-                    baseline.reliability(), horizon, false, List.copyOf(baseline.warnings()), null, null, null, List.of(), List.of(), List.of());
+                    baseline.reliability(), horizon, false, List.copyOf(baseline.warnings()), null, null, null, List.of(), List.of(), List.of(), List.of());
         }
 
         List<String> warnings = new ArrayList<>();
@@ -154,15 +174,70 @@ public class ScenarioSimulator {
                     + (unattributed.signum() > 0 ? "added" : "removed") + " recurring payments could not be placed in a forecast category and is applied to total spending only.");
         }
 
+        // ---- loans & one-time items ------------------------------------------------------------
+        BigDecimal[] loanDelta = new BigDecimal[horizon];
+        BigDecimal[] oneTimeExpense = new BigDecimal[horizon];
+        BigDecimal[] oneTimeIncome = new BigDecimal[horizon];
+        java.util.Arrays.fill(loanDelta, BigDecimal.ZERO);
+        java.util.Arrays.fill(oneTimeExpense, BigDecimal.ZERO);
+        java.util.Arrays.fill(oneTimeIncome, BigDecimal.ZERO);
+        List<LoanEffect> loanEffects = new ArrayList<>();
+        for (LoanAdjustment a : nullSafe(request.loanAdjustments())) {
+            LoanInput loan = loans.get(a.loanId());
+            LoanAmortization.Run base = LoanAmortization.run(loan.outstandingBalance(), loan.annualRatePercent(), loan.emi(), BigDecimal.ZERO, horizon);
+            LoanAmortization.Run scn = switch (a.action()) {
+                case CLOSE -> LoanAmortization.run(loan.outstandingBalance(), loan.annualRatePercent(), loan.emi(), loan.outstandingBalance(), horizon);
+                case PREPAY -> LoanAmortization.run(loan.outstandingBalance(), loan.annualRatePercent(), loan.emi(), a.amount(), horizon);
+                case CHANGE_EMI -> LoanAmortization.run(loan.outstandingBalance(), loan.annualRatePercent(), a.amount(), BigDecimal.ZERO, horizon);
+            };
+            BigDecimal baseOut = BigDecimal.ZERO;
+            BigDecimal scnOut = BigDecimal.ZERO;
+            for (int i = 0; i < horizon; i++) {
+                loanDelta[i] = loanDelta[i].add(scn.payments().get(i)).subtract(base.payments().get(i));
+                baseOut = baseOut.add(base.payments().get(i));
+                scnOut = scnOut.add(scn.payments().get(i));
+            }
+            BigDecimal saved = base.totalInterest().subtract(scn.totalInterest());
+            List<String> n = new ArrayList<>();
+            String what = switch (a.action()) {
+                case CLOSE -> "Repay the whole estimated balance of ₹" + loan.outstandingBalance().toPlainString() + " in month 1 and stop the EMI";
+                case PREPAY -> "Prepay ₹" + a.amount().toPlainString() + " in month 1 and keep the EMI of ₹" + loan.emi().toPlainString();
+                case CHANGE_EMI -> "Change the EMI from ₹" + loan.emi().toPlainString() + " to ₹" + a.amount().toPlainString();
+            };
+            n.add("Within the " + horizon + "-month horizon cash out changes by " + (scnOut.compareTo(baseOut) >= 0 ? "+" : "-") + "₹"
+                    + scnOut.subtract(baseOut).abs().toPlainString() + "; over the remaining life of the loan interest changes by "
+                    + (saved.signum() >= 0 ? "-" : "+") + "₹" + saved.abs().toPlainString() + ".");
+            explanations.add(loan.name() + ": " + what + ". Payoff moves from " + base.monthsToPayoff() + " to " + scn.monthsToPayoff()
+                    + " month(s); estimated interest saved over the remaining life: ₹" + saved.toPlainString() + ".");
+            loanEffects.add(new LoanEffect(loan.id(), loan.name(), a.action().name(), loan.outstandingBalance(), base.monthsToPayoff(),
+                    scn.monthsToPayoff(), base.totalInterest(), scn.totalInterest(), saved, scnOut.subtract(baseOut), n));
+        }
+        if (!loanEffects.isEmpty()) {
+            warnings.add("Loan figures assume reducing-balance interest from the loan start date, an unchanged rate and no fees or prepayment charges; "
+                    + "the outstanding balance is an estimate, not a lender statement.");
+        }
+        for (OneTimeItem item : nullSafe(request.oneTimeItems())) {
+            int i = item.month() - 1;
+            BigDecimal amount = item.amount().setScale(2, RoundingMode.HALF_UP);
+            if (item.kind() == OneTimeKind.EXPENSE) {
+                oneTimeExpense[i] = oneTimeExpense[i].add(amount);
+            } else {
+                oneTimeIncome[i] = oneTimeIncome[i].add(amount);
+            }
+            explanations.add("One-time " + item.kind().name().toLowerCase() + " “" + item.title() + "” of ₹" + amount + " in projected month " + item.month() + ".");
+        }
+
         // ---- months & totals ------------------------------------------------------------------
         List<Month> out = new ArrayList<>();
         BigDecimal bi = BigDecimal.ZERO;
         BigDecimal si = BigDecimal.ZERO;
         BigDecimal be = BigDecimal.ZERO;
         BigDecimal se = BigDecimal.ZERO;
+        int monthIdx = 0;
         for (ProjectedMonth m : months) {
+            int mi = monthIdx++;
             BigDecimal baseExp = m.expenses().point();
-            BigDecimal scnExp = baseExp.add(expenseDelta).max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal scnExp = baseExp.add(expenseDelta).add(loanDelta[mi]).add(oneTimeExpense[mi]).max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
             BigDecimal baseInc = null;
             BigDecimal scnInc = null;
             if (incomeAvailable) {
@@ -171,7 +246,7 @@ public class ScenarioSimulator {
                         : incomeAdj.type() == AdjustmentType.PERCENTAGE
                         ? baseInc.multiply(incomeAdj.value()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
                         : incomeAdj.value();
-                scnInc = baseInc.add(incDelta).max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
+                scnInc = baseInc.add(incDelta).add(oneTimeIncome[mi]).max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
                 bi = bi.add(baseInc);
                 si = si.add(scnInc);
             }
@@ -201,7 +276,30 @@ public class ScenarioSimulator {
         }
         effects.sort((a, b) -> b.deltaMonthly().abs().compareTo(a.deltaMonthly().abs()));
         return new ScenarioSimulationResponse(name, true, DISCLAIMER, true, null, baseline.reliability(), horizon, incomeAvailable,
-                warnings, baseTotals, scnTotals, d, out, effects, explanations);
+                warnings, baseTotals, scnTotals, d, out, effects, explanations, loanEffects);
+    }
+
+    private void validateLoansAndItems(ScenarioSimulationRequest r, int horizon, CashFlowForecastResponse baseline, Map<String, LoanInput> loans) {
+        Set<String> seen = new HashSet<>();
+        for (LoanAdjustment a : nullSafe(r.loanAdjustments())) {
+            if (!loans.containsKey(a.loanId())) {
+                throw ApiException.badRequest("Unknown loan '" + a.loanId() + "'.");
+            }
+            if (!seen.add(a.loanId())) {
+                throw ApiException.badRequest("Loan '" + a.loanId() + "' appears more than once in loanAdjustments.");
+            }
+            if (a.action() != ScenarioSimulationRequest.LoanAction.CLOSE && a.amount() == null) {
+                throw ApiException.badRequest("Action " + a.action() + " needs an amount.");
+            }
+        }
+        for (OneTimeItem item : nullSafe(r.oneTimeItems())) {
+            if (item.month() > horizon) {
+                throw ApiException.badRequest("One-time item '" + item.title() + "' is in month " + item.month() + ", beyond the " + horizon + "-month horizon.");
+            }
+            if (item.kind() == OneTimeKind.INCOME && !ForecastCommon.UNAVAILABLE.equals(baseline.reliability()) && !baseline.incomeAvailable()) {
+                throw ApiException.badRequest("A one-time income needs an income baseline, and no regular income was found in your history.");
+            }
+        }
     }
 
     private void validate(ScenarioSimulationRequest r, CashFlowForecastResponse baseline, List<RecurringExpenseItemDto> activeRecurring) {

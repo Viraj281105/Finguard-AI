@@ -87,6 +87,7 @@ public class ForecastingService {
     private final GoalRepository goalRepository;
     private final BudgetOverrunPredictor budgetOverrunPredictor;
     private final ScenarioSimulator scenarioSimulator;
+    private final com.finguard.backend.ledger.loans.LoanRepository loanRepository;
 
     // ------------------------------------------------------------------------------------------------
     // Cash flow
@@ -373,7 +374,28 @@ public class ForecastingService {
         int horizon = request.horizonMonths() != null ? request.horizonMonths() : 6;
         validateHorizon(horizon);
         ForecastHistory history = historyLoader.load(user);
-        return scenarioSimulator.simulate(request, horizon, cashFlow(history, horizon), categories(history, horizon), history.activeRecurring());
+        java.util.Map<String, ScenarioSimulator.LoanInput> loans = new java.util.HashMap<>();
+        java.util.List<ScenarioSimulationRequest.LoanAdjustment> adjustments =
+                request.loanAdjustments() == null ? java.util.List.of() : request.loanAdjustments();
+        for (ScenarioSimulationRequest.LoanAdjustment adj : adjustments) {
+            if (loans.containsKey(adj.loanId())) {
+                continue;
+            }
+            var loan = loanRepository.findByIdAndUserId(adj.loanId(), user.getId())
+                    .orElseThrow(() -> com.finguard.backend.common.error.ApiException.badRequest("Unknown loan '" + adj.loanId() + "'."));
+            if (!Boolean.TRUE.equals(loan.getActive()) || loan.getStartDate() == null) {
+                throw com.finguard.backend.common.error.ApiException.badRequest("Loan '" + loan.getName()
+                        + "' needs to be active and have a start date to estimate its outstanding balance.");
+            }
+            int elapsed = (int) java.time.temporal.ChronoUnit.MONTHS.between(java.time.YearMonth.from(loan.getStartDate()), history.currentMonth());
+            java.math.BigDecimal balance = LoanAmortization.balanceAfter(loan.getPrincipal(), loan.getInterestRate(), loan.getEmiAmount(), Math.max(elapsed, 0));
+            if (balance.signum() == 0) {
+                throw com.finguard.backend.common.error.ApiException.badRequest("Loan '" + loan.getName()
+                        + "' is already repaid under standard amortisation, so there is nothing to simulate.");
+            }
+            loans.put(loan.getId(), new ScenarioSimulator.LoanInput(loan.getId(), loan.getName(), balance, loan.getEmiAmount(), loan.getInterestRate()));
+        }
+        return scenarioSimulator.simulate(request, horizon, cashFlow(history, horizon), categories(history, horizon), history.activeRecurring(), loans);
     }
 
     @Transactional(readOnly = true)

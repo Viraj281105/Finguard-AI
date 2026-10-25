@@ -24,8 +24,25 @@ public record ScenarioSimulationResponse(
         Delta delta,
         List<Month> months,
         List<CategoryEffect> categories,
-        List<String> explanations
+        List<String> explanations,
+        List<LoanEffect> loanEffects
 ) {
+
+    /** What a loan adjustment does, from two deterministic runs of the same loan (before and after). */
+    public record LoanEffect(
+            String loanId,
+            String loanName,
+            String action,
+            BigDecimal estimatedOutstandingBalance,
+            int baselineMonthsToPayoff,
+            int scenarioMonthsToPayoff,
+            BigDecimal baselineRemainingInterest,
+            BigDecimal scenarioRemainingInterest,
+            BigDecimal interestSaved,
+            BigDecimal cashOutInHorizonChange,
+            List<String> notes
+    ) {
+    }
 
     /** Totals over the horizon; income, net and the savings rate are null when no income was observed. */
     public record Totals(BigDecimal income, BigDecimal expenses, BigDecimal net, BigDecimal savingsRatePercent) {

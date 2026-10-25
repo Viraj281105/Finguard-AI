@@ -31,7 +31,7 @@ final class LedgerFixtures {
     }
 
     static ForecastingService service() {
-        return new ForecastingService(loader(), null, null, new ScenarioSimulator());
+        return new ForecastingService(loader(), null, null, new ScenarioSimulator(), null);
     }
 
     static ForecastHistory history(List<Transaction> tx, LocalDate asOf) {

@@ -331,6 +331,39 @@ class ForecastApiTest extends IntegrationTest {
     }
 
     @Test
+    void loanScenariosUseOnlyTheCallersOwnLoansAndChangeNothing() throws Exception {
+        TestUser owner = registerUser();
+        TestUser other = registerUser();
+        sixSteadyMonths(owner);
+        Map<String, Object> loan = new LinkedHashMap<>();
+        loan.put("name", "Car loan");
+        loan.put("type", "CAR");
+        loan.put("principal", 100000);
+        loan.put("emiAmount", 8884.88);
+        loan.put("interestRate", 12);
+        loan.put("startDate", "2026-06-01");
+        String created = mvc.perform(as(owner, post("/api/loans")).contentType(MediaType.APPLICATION_JSON).content(json(loan)))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        String loanId = json.readTree(created).get("id").asText();
+        String loansBefore = getJson(owner, "/api/loans").toString();
+
+        JsonNode body = simulate(owner, Map.of("horizonMonths", 3,
+                "loanAdjustments", List.of(Map.of("loanId", loanId, "action", "CLOSE"))), 200);
+        assertThat(body.get("available").asBoolean()).isTrue();
+        JsonNode effect = body.get("loanEffects").get(0);
+        assertThat(effect.get("loanName").asText()).isEqualTo("Car loan");
+        assertThat(effect.get("scenarioMonthsToPayoff").asInt()).isZero();
+        assertThat(effect.get("interestSaved").decimalValue().signum()).isPositive();
+        assertThat(body.get("explanations").toString()).contains("Car loan");
+
+        // another user cannot see or simulate it; an unknown id is the same 400
+        assertThat(simulate(other, Map.of("loanAdjustments", List.of(Map.of("loanId", loanId, "action", "CLOSE"))), 400)
+                .get("message").asText()).contains("Unknown loan");
+        // a scenario writes nothing
+        assertThat(getJson(owner, "/api/loans").toString()).isEqualTo(loansBefore);
+    }
+
+    @Test
     void scenarioValidationReturnsClearBadRequests() throws Exception {
         TestUser user = registerUser();
         sixSteadyMonths(user);
