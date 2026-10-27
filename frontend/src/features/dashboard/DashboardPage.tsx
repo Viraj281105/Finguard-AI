@@ -17,6 +17,7 @@ import RecurringExpensesCard from "../analytics/components/RecurringExpensesCard
 import UnusualSpendingCard from "../analytics/components/UnusualSpendingCard";
 import BudgetHealthPreviewCard from "../budgeting/components/BudgetHealthPreviewCard";
 import ForecastPreviewCard from "../forecasting/components/ForecastPreviewCard";
+import RecommendationsPanel from "../recommendations/RecommendationsPanel";
 import { loadDashboardData } from "./api";
 import RecentTransactionRow from "./RecentTransactionRow";
 
@@ -262,6 +263,9 @@ export default function DashboardPage() {
 
             {/* Predictive Forecasting Integration */}
             <ForecastPreviewCard />
+
+            {/* Data-grounded general guidance */}
+            <RecommendationsPanel />
 
             {/* Visualizations Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">

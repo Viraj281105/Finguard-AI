@@ -1,9 +1,10 @@
 import { useCallback, useState, type ReactNode } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { clearToken } from "../../shared/auth/tokenStorage";
 import { useResource } from "../../shared/hooks/useResource";
 import { formatCurrency } from "../../shared/utils/format";
 import { authAPI } from "../auth/api";
+import type { ScenarioPreset } from "../recommendations/types";
 import { forecastAPI } from "./api";
 import BacktestCard from "./components/BacktestCard";
 import BudgetOutlookCard from "./components/BudgetOutlookCard";
@@ -65,8 +66,11 @@ function Section<T>({
 
 export default function ForecastingPage() {
   const navigate = useNavigate();
-  const [horizon, setHorizon] = useState(3);
-  const [tab, setTab] = useState<TabId>("overview");
+  // "Try this scenario" on a recommendation arrives here with a preset in the router state.
+  const preset = (useLocation().state as { preset?: ScenarioPreset } | null)?.preset;
+  const presetHorizon = preset?.request.horizonMonths;
+  const [horizon, setHorizon] = useState(presetHorizon !== undefined && HORIZONS.includes(presetHorizon) ? presetHorizon : 3);
+  const [tab, setTab] = useState<TabId>(preset ? "scenarios" : "overview");
 
   const fetchCash = useCallback(() => forecastAPI.getCashFlow(horizon), [horizon]);
   const fetchCategories = useCallback(() => forecastAPI.getCategories(horizon), [horizon]);
@@ -232,7 +236,7 @@ export default function ForecastingPage() {
             <Section state={cash} what="the baseline forecast">
               {(c) =>
                 categories.data ? (
-                  <ScenarioSimulatorCard cashFlow={c} categories={categories.data} horizonMonths={horizon} />
+                  <ScenarioSimulatorCard cashFlow={c} categories={categories.data} horizonMonths={horizon} preset={preset} />
                 ) : (
                   <Section state={categories} what="the category forecast">{() => null}</Section>
                 )

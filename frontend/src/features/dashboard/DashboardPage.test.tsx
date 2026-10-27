@@ -9,6 +9,8 @@ vi.mock("./api", () => ({
   loadDashboardData: vi.fn(),
 }));
 
+vi.mock("../recommendations/api", () => ({ recommendationsAPI: { get: vi.fn().mockResolvedValue({ period: { from: "2026-01-01", to: "2026-03-31", months: 3, monthsWithData: 3 }, disclaimer: "General guidance.", healthy: true, recommendations: [], notEvaluated: [], thresholds: {} }) } }));
+
 vi.mock("../auth/api", () => ({
   authAPI: { logout: vi.fn().mockResolvedValue({}) },
 }));

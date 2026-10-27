@@ -17,6 +17,7 @@ import type {
   ScenarioRequest,
   ScenarioResult,
 } from "../types";
+import type { ScenarioPreset } from "../../recommendations/types";
 import SavedScenariosCard from "./SavedScenariosCard";
 
 type IncomeMode = "NONE" | AdjustmentType;
@@ -86,15 +87,22 @@ export default function ScenarioSimulatorCard({
   cashFlow,
   categories,
   horizonMonths,
+  preset,
 }: {
   cashFlow: CashFlowForecast;
   categories: CategoryForecastResponse;
   horizonMonths: number;
+  /** Optional starting point from a recommendation: category cuts the user can then adjust or remove. */
+  preset?: ScenarioPreset;
 }) {
   const uid = useId();
   const [incomeMode, setIncomeMode] = useState<IncomeMode>("NONE");
   const [incomeValue, setIncomeValue] = useState("");
-  const [catRows, setCatRows] = useState<CategoryRow[]>([]);
+  const [catRows, setCatRows] = useState<CategoryRow[]>(() =>
+    (preset?.request.categoryAdjustments ?? [])
+      .filter((a) => categories.categories.some((c) => c.category === a.category))
+      .map((a, i) => ({ key: -(i + 1), category: a.category, type: a.type, value: String(a.value) })),
+  );
   const [added, setAdded] = useState<AddedRow[]>([]);
   const [removed, setRemoved] = useState<string[]>([]);
   const [loanRows, setLoanRows] = useState<LoanRow[]>([]);

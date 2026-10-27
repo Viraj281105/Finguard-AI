@@ -187,3 +187,32 @@ describe("saved scenarios", () => {
     expect(forecastAPI.deleteScenario).toHaveBeenCalledWith("s1");
   });
 });
+
+describe("scenario preset from a recommendation", () => {
+  it("starts with the suggested category cut, which the user can change, and sends it to the backend", async () => {
+    vi.useFakeTimers();
+    try {
+      render(<ScenarioSimulatorCard cashFlow={CASH_FLOW} categories={CATEGORIES} horizonMonths={6}
+        preset={{ label: "Cut Dining by 10%", request: { horizonMonths: 6, categoryAdjustments: [{ category: "DINING", type: "PERCENTAGE", value: -10 }] } }} />);
+      await act(async () => { await vi.advanceTimersByTimeAsync(500); });
+      expect(screen.getByLabelText("Category")).toHaveValue("DINING");
+      expect(screen.getByLabelText("Category change value")).toHaveValue(-10);
+      expect(lastRequest()).toEqual({ horizonMonths: 6, categoryAdjustments: [{ category: "DINING", type: "PERCENTAGE", value: -10 }] });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("ignores a preset for a category that has no forecast", async () => {
+    vi.useFakeTimers();
+    try {
+      render(<ScenarioSimulatorCard cashFlow={CASH_FLOW} categories={CATEGORIES} horizonMonths={3}
+        preset={{ label: "x", request: { categoryAdjustments: [{ category: "NO_SUCH_CATEGORY", type: "PERCENTAGE", value: -10 }] } }} />);
+      await act(async () => { await vi.advanceTimersByTimeAsync(500); });
+      expect(screen.queryByLabelText("Category")).not.toBeInTheDocument();
+      expect(lastRequest()).toEqual({ horizonMonths: 3 });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
