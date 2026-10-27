@@ -4,6 +4,26 @@ Format: [Keep a Changelog](https://keepachangelog.com); versioning: [VERSIONING.
 Only work that **exists in the repository** is listed. Planned releases are in [RELEASE_PLAN.md](RELEASE_PLAN.md).
 No version has been tagged yet; v0.1.0 is pending (see [PROGRESS.md](PROGRESS.md)).
 
+## [0.10.0] — Data-grounded recommendations
+
+Stage 9. General-guidance recommendations from the user's own computed figures (rules only: no LLM, no external call). Rules and defaults: [FINANCIAL_RULES.md §9](FINANCIAL_RULES.md#9-recommendation-rules-v0100).
+
+### Added
+- `GET /api/recommendations` (authenticated, owner-scoped, read-only, nothing stored) for the last 3 complete months: `LOW_SAVINGS_RATE`, `HIGH_EMI_BURDEN`, `INVESTMENT_CONCENTRATION`, `RISING_SPEND`,
+  `UNCATEGORISED_SHARE`, `SUBSCRIPTION_REVIEW`. Each item has severity, explanation, suggested action, **evidence with a reproducible analytics source (same period)**, an estimated monthly impact for ordering and an
+  optional scenario preset. Ordered by severity, then impact, then id.
+- Rules with missing input are listed under `notEvaluated` with the reason, never guessed; the emergency-fund check is never evaluated (FinGuard holds no balances). `healthy` is never true on a thin history.
+- Thresholds are configuration (`recommendations.*`), documented, and echoed in the response.
+- Frontend: a dashboard Recommendations panel (expandable cards, evidence, 'general guidance, not financial advice' notice, healthy / not-enough-data / error states, what could not be checked) and
+  'Try this scenario' links that open the forecasting simulator pre-filled with the suggested category cut.
+- Tests: `RecommendationEngineTest` (15), `RecommendationApiTest` (7), `RecommendationsPanel.test` (7), 2 preset tests. Versions aligned to 0.10.0.
+
+### Changed (CI)
+- The Frontend CI job now runs on Node 24: it had failed on every push since at least 2026-10-22 because vitest 5 and jsdom 30 need Node >= 22 / 24.15 and the job pinned Node 20 (fixed in commit `ci: run the frontend job on Node 24`; all three CI jobs passed afterwards).
+
+### Not done
+Emergency-fund and risk-based recommendations (no balances, no risk model), dismissal of items (KI-049), validation of the thresholds on real users (KI-050).
+
 ## [0.9.0] — Scenario simulator
 
 Working-tree changes for Stage 8. **Nothing here is committed or tagged.** Builds on the v0.8.0 scenario endpoint: loan and one-time what-ifs, saved scenarios (migration V7)

@@ -907,6 +907,25 @@ owner-scoped (another user's id is `404`).
 | `POST` | `/api/scenarios/{id}/rerun` | Recalculates on the **current** ledger: `{ summary, request, snapshot, current, unchanged, methodVersionChanged, currentMethodVersion }`. `unchanged` is `true` only when the fresh result is byte-identical to the snapshot and the method version is the same. Never overwrites the snapshot. |
 | `DELETE` | `/api/scenarios/{id}` | `204`. |
 
+## Recommendations — `/api/recommendations` (v0.10.0)
+
+### `GET /api/recommendations`
+
+General guidance computed on demand from the caller's own records for the **last 3 complete calendar months** (the current month is never used). Authenticated, owner-scoped, read-only, nothing stored.
+No parameters.
+
+Response: `{ period: { from, to, months, monthsWithData }, disclaimer, healthy, recommendations[], notEvaluated[], thresholds }`.
+
+- `recommendations[]` is ordered by severity (`CRITICAL`, `HIGH`, `MEDIUM`, `INFO`), then by `estimatedMonthlyImpact` (largest first; items without an estimate last), then by id. Each item:
+  `{ id, severity, title, explanation, suggestedAction, evidence[], estimatedMonthlyImpact, scenarioPreset }`.
+- `evidence[]` = `{ metric, value, unit, source }`; `source` is the analytics endpoint **with the same `from`/`to`** the number can be reproduced from
+  (`/api/analytics/summary`, `/monthly`, `/recurring`, `/data-quality`, or `/api/investments`, `/api/loans`).
+- `scenarioPreset` = `{ label, request }` where `request` is a ready body for `POST /api/forecast/scenarios/simulate` (a 10 % cut of the largest discretionary category), or `null`.
+- `notEvaluated[]` = `{ id, title, reason }`: rules that could not run because their input is missing (too few months, no income, too few transactions, no consecutive months) and the
+  emergency-fund check, which can never run because FinGuard holds no balances. A rule is never guessed.
+- `healthy` is `true` only when at least the minimum months of records exist and no item above `INFO` was produced; with too little data it is `false` and nothing is recommended.
+- `thresholds` echoes the active values. Rules and defaults: [FINANCIAL_RULES.md section 9](FINANCIAL_RULES.md#9-recommendation-rules-v0100).
+
 ## Errors
 
 Every error body has the same shape (`ApiError`):

@@ -379,6 +379,11 @@ contribution adjustments and risk-model re-run (nothing exists to build them on;
 **Risks:** heuristics may not suit all users (label as general guidance; allow dismissing); keep scope to the rules above.
 **Done when:** criteria checked, tag `v0.10.0`.
 
+**Delivery status.** Delivered as `intelligence.recommendations` with six rules (savings rate, EMI burden, investment concentration, rising spend, uncategorised share, subscription review), evidence that
+reproduces from the analytics API for the same period (tested), strict boundary tests per rule, ordering, owner isolation, configuration properties and a dashboard panel with scenario presets. Acceptance:
+evidence reproduces ✅ · no recommendation when inputs are unavailable ✅ (`notEvaluated`) · thresholds in configuration and listed in the docs ✅ · KI-011 recommendation part ✅. **Differences from the plan:**
+the *emergency fund below 3 months* rule is never evaluated (FinGuard holds no balances), and there is no dismissal (KI-049). The "try this scenario" link uses a category preset only.
+
 ---
 
 ## v0.11.0 — Product polish & delivery pipeline

@@ -7,9 +7,9 @@ Labels: see [README.md](README.md#status-vocabulary-used-in-every-document).
 
 | | |
 |---|---|
-| Latest commit | `a689d59` — v0.5.0 work pushed to `main` (10 commits). Everything for v0.6.0, v0.7.0 and v0.8.0 is **uncommitted** in the working tree. No tags. |
+| Latest commit | v0.5.0 to v0.9.0 and the CI fix are pushed to `main` (no tags). The v0.10.0 work is in the commit(s) listed by `git log`. |
 | Working tree | **Stage 7 (Version 0.8.0) — Financial Forecasting & Predictive Insights complete.** Statistical, deterministic forecasting in the Java backend (`LEVEL_DAMPED_TREND` 2.0.0; **no machine learning**): cash flow, category spending, budget month-end outlook, savings projection, scenarios, per-user backtest; honest evidence rules (`RELIABLE/LIMITED/UNAVAILABLE`, missing ≠ zero, current month never trains, bands only from ≥ 8 past errors); chronological backtesting without future leakage; forecasting UI; no migration. |
-| Version | **0.9.0** aligned across backend, frontend, and AI service |
+| Version | **0.10.0** aligned across backend, frontend, and AI service |
 | Stages 0 – 6 | Done (see §4) |
 | Stage 7 — Version 0.8.0 | **Done** (311 backend, 123 frontend, 121 AI = **555 automated tests**; builds, lint and type checks clean) |
 
@@ -138,6 +138,13 @@ Created under `docs/`: `README`, `ROADMAP`, `RELEASE_PLAN`, `PROGRESS`, `KNOWN_I
 - **Deliberately not done:** investment-contribution scenarios and risk re-run (nothing to build them on; KI-047), editing saved scenarios (KI-048). Loan balances are estimates (KI-046).
 - Not committed, not tagged.
 
+### Stage 9 (v0.10.0) — Data-grounded recommendations
+- **CI first:** the Frontend job had failed since at least 2026-10-22 (Node 20 vs vitest 5 / jsdom 30 needing Node >= 22 / 24.15); switched to Node 24 and confirmed all three jobs green on GitHub.
+- **Backend:** `intelligence.recommendations` (`RecommendationEngine` pure rules, `RecommendationService`, configuration properties, controller); `GET /api/recommendations`; no migration.
+- **Frontend:** dashboard Recommendations panel and 'Try this scenario' presets into the simulator.
+- **Verification:** 354 backend, 146 frontend, 121 AI = **621** tests; builds, lint and type check clean. UI verified in jsdom only.
+- **Deliberately not done:** emergency-fund rule (no balances), dismissal (KI-049); rules tested with synthetic data only (KI-050).
+
 ## 5. Outstanding issues (highest priority first)
 
 Full list with evidence and target versions: [KNOWN_ISSUES.md](KNOWN_ISSUES.md).
@@ -159,8 +166,8 @@ Full list with evidence and target versions: [KNOWN_ISSUES.md](KNOWN_ISSUES.md).
 
 ## 7. Next steps
 
-**Stage 8 (v0.9.0) is complete (with the documented deviations).** In accordance with execution rules:
-- **STOP and wait for the owner's explicit approval before starting Stage 9 (v0.10.0).**
+**Stage 9 (v0.10.0) is complete.** In accordance with execution rules:
+- **STOP and wait for the owner's explicit approval before starting Stage 10 (v0.11.0, polish and delivery).**
 - Do NOT commit, push, reset, or discard changes.
 
 ## 8. Update log

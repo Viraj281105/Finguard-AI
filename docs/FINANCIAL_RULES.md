@@ -293,3 +293,29 @@ Loan arithmetic lives in `LoanAmortization` (BigDecimal, scale 2, HALF_UP) and i
 - **Comparison** (UI) is subtraction of figures the backend calculated, over one horizon only; scenarios saved on different data show a warning that their baselines differ.
 - **Not modelled:** prepayment charges, fees, floating-rate resets, day-count conventions, investment contributions (there is no investment cash-flow data to build a baseline from), and re-running a risk model (no risk model exists).
   Results are hypothetical estimates, never a lender statement, and are not stored.
+
+---
+
+## 9. Recommendation rules (v0.10.0)
+
+Recommendations are **general guidance**, not financial, tax or investment advice. They are produced by `RecommendationEngine` (pure rules; no LLM, no external call) from figures the
+analytics module already computes, for the last **3 complete months** (`from` = first day of the month three months back, `to` = last day of the previous month, using the injectable clock).
+Every figure in an item's evidence can be reproduced from the named analytics endpoint with the same `from`/`to`. A rule whose input is missing is reported under `notEvaluated`, never guessed.
+Comparisons are strict (a value exactly at a threshold does not fire), except RISING_SPEND, which fires **at or above** its minimum rise.
+
+| Rule (`id`) | Fires when | Severity | Needs | Estimated monthly impact |
+|---|---|---|---|---|
+| `LOW_SAVINGS_RATE` | savings rate < **20 %** (net cash flow / income of the period) | `< 0` CRITICAL; `< 10` HIGH; otherwise MEDIUM | >= 3 months with records and income | (20 − rate) % of average monthly income |
+| `HIGH_EMI_BURDEN` | sum of active-loan EMIs > **40 %** of average monthly income | > 60 % CRITICAL, otherwise HIGH | >= 3 months, income > 0, at least one active loan (silent without loans) | EMI − 40 % of income |
+| `INVESTMENT_CONCENTRATION` | one investment type > **70 %** of portfolio value (current value, else amount invested) | MEDIUM | at least one investment (silent without) | none |
+| `RISING_SPEND` | spending strictly rose in each of the last 3 consecutive months and by >= **10 %** first to last | MEDIUM | 3 consecutive months with records | last − first month |
+| `UNCATEGORISED_SHARE` | uncategorised transactions > **20 %** of all transactions | INFO | >= 10 transactions | none |
+| `SUBSCRIPTION_REVIEW` | >= **3** detected recurring payments in SUBSCRIPTIONS, or the same merchant twice | INFO | recurring detection | none |
+| `EMERGENCY_FUND` | **never evaluated** | — | a verified savings balance, which FinGuard does not hold (goal contributions are self-tracked) | — |
+
+- **Months with records** are months of the period that have at least one transaction; fewer than 3 means the period-based rules are listed as not evaluated and `healthy` is `false`.
+- **Thresholds are configuration**: `recommendations.*` properties (environment variables such as `RECOMMENDATIONS_MIN_SAVINGS_RATE_PERCENT`); defaults are those above, plus `period-months = 3`,
+  `min-months = 3`, `uncategorised-min-transactions = 10`, `high-savings-risk-below-percent = 10`, `critical-emi-share-percent = 60`, `preset-cut-percent = 10`.
+- **Scenario preset**: for LOW_SAVINGS_RATE and RISING_SPEND, a 6-month scenario cutting the largest of DINING / SHOPPING / ENTERTAINMENT / SUBSCRIPTIONS by 10 % (if any had spending). It is only a starting
+  point the user can change in the simulator.
+- The heuristics are generic and do not know the user's circumstances; the UI says so and every item can be ignored. There is no dismissal state yet (KI-049).
