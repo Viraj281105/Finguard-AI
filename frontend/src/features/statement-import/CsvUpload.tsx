@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { apiErrorMessage } from "../../shared/api/client";
 import { uploadAPI } from "./api";
 import type { UploadStatus } from "./types";
-import { MAX_FILE_BYTES, POLL_INTERVAL_MS, REFRESH_DELAY_MS } from "./uploadConfig";
+import { MAX_FILE_BYTES, MAX_POLL_ATTEMPTS, POLL_INTERVAL_MS, REFRESH_DELAY_MS } from "./uploadConfig";
 import UploadProgress from "./UploadProgress";
 
 type UploadState =
@@ -24,6 +24,7 @@ export default function CsvUpload({ onUploadComplete }: { onUploadComplete: () =
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const attemptsRef = useRef(0);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onCompleteRef = useRef(onUploadComplete);
 
@@ -36,6 +37,7 @@ export default function CsvUpload({ onUploadComplete }: { onUploadComplete: () =
     if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     pollRef.current = null;
     refreshTimerRef.current = null;
+    attemptsRef.current = 0;
   }, []);
 
   // Never leave a timer running after the component unmounts.
@@ -43,7 +45,18 @@ export default function CsvUpload({ onUploadComplete }: { onUploadComplete: () =
 
   const startPolling = useCallback(
     (jobId: string) => {
+      attemptsRef.current = 0;
       pollRef.current = setInterval(async () => {
+        attemptsRef.current += 1;
+        if (attemptsRef.current > MAX_POLL_ATTEMPTS) {
+          stopTimers();
+          setState({
+            phase: "error",
+            message: "Statement processing timed out. Please refresh the page or check transaction history.",
+          });
+          return;
+        }
+
         try {
           const job = await uploadAPI.getStatus(jobId);
 

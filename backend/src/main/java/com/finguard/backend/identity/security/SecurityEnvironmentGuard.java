@@ -4,22 +4,38 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+import org.springframework.lang.NonNull;
+
+import java.util.Arrays;
 
 /**
- * Startup guard that prevents deploying with development defaults outside localhost (KI-028).
- * If the development-only signing key is configured alongside a remote database, startup fails fast
- * before Flyway or any database connections are attempted.
+ * Startup guard that prevents deploying with development defaults in production or outside localhost (KI-028, R-7).
+ * Fails closed fast before Flyway or any database connections are attempted:
+ * 1. In prod/production profiles: rejects default/short JWT secret, insecure cookies, or default database passwords,
+ *    even when the database is hosted locally.
+ * 2. In any profile: running against a remote database with the default development JWT key is prohibited.
  */
 @Slf4j
 public class SecurityEnvironmentGuard implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
     public static final String DEV_JWT_SECRET = "finguard-dev-only-signing-key-change-me-0123456789abcdef";
+    public static final String DEV_DB_PASSWORD = "finguard_pass";
 
     @Override
-    public void initialize(ConfigurableApplicationContext applicationContext) {
-        Environment environment = applicationContext.getEnvironment();
+    public void initialize(@NonNull ConfigurableApplicationContext applicationContext) {
+        validateEnvironment(applicationContext.getEnvironment());
+    }
+
+    public void validateEnvironment(@NonNull Environment environment) {
         String secret = environment.getProperty("jwt.secret", "");
         String datasourceUrl = environment.getProperty("spring.datasource.url", "");
+        String datasourcePassword = environment.getProperty("spring.datasource.password", "");
+        boolean cookieSecure = Boolean.parseBoolean(environment.getProperty("jwt.cookie-secure", "false"));
+
+        boolean isProd = environment.acceptsProfiles(Profiles.of("prod", "production"))
+                || Arrays.asList(environment.getActiveProfiles()).contains("prod")
+                || Arrays.asList(environment.getActiveProfiles()).contains("production");
 
         boolean isDevSecret = DEV_JWT_SECRET.equals(secret);
         boolean isLocalDatabase = datasourceUrl.isEmpty()
@@ -28,6 +44,27 @@ public class SecurityEnvironmentGuard implements ApplicationContextInitializer<C
                 || datasourceUrl.contains("embedded")
                 || datasourceUrl.startsWith("jdbc:tc:");
 
+        // Production profile guards (fail-closed)
+        if (isProd) {
+            if (isDevSecret) {
+                throw new IllegalStateException(
+                        "Production safety violation: Default development JWT secret cannot be used in production. Set a strong JWT_SECRET.");
+            }
+            if (secret.length() < 32) {
+                throw new IllegalStateException(
+                        "Production safety violation: JWT secret in production must be at least 32 characters long.");
+            }
+            if (!cookieSecure) {
+                throw new IllegalStateException(
+                        "Production safety violation: jwt.cookie-secure must be true in production to protect refresh token cookies.");
+            }
+            if (DEV_DB_PASSWORD.equals(datasourcePassword)) {
+                throw new IllegalStateException(
+                        "Production safety violation: Default development database password cannot be used in production. Set a secure DB password.");
+            }
+        }
+
+        // General guard: remote DB with dev key is always rejected regardless of active profile
         if (isDevSecret && !isLocalDatabase) {
             throw new IllegalStateException(
                     "Production safety violation: Running against a remote database with the default development JWT key is prohibited. Set JWT_SECRET in production.");

@@ -182,14 +182,14 @@ export default function TransactionsPage() {
               className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20"
               title="This page. Excludes transfers, card payments, investments and refunds."
             >
-              <p className="text-xs text-emerald-400/60 uppercase tracking-widest">Income</p>
+              <p className="text-xs text-emerald-400/60 uppercase tracking-widest">Income · this page</p>
               <p className="text-sm font-semibold text-emerald-400">{formatCurrency(totalIncome)}</p>
             </div>
             <div
               className="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20"
               title="This page. Excludes transfers, card payments, investments and refunds."
             >
-              <p className="text-xs text-rose-400/60 uppercase tracking-widest">Expenses</p>
+              <p className="text-xs text-rose-400/60 uppercase tracking-widest">Expenses · this page</p>
               <p className="text-sm font-semibold text-rose-400">{formatCurrency(totalExpense)}</p>
             </div>
           </div>

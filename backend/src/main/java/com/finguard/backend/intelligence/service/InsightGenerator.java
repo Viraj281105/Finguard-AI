@@ -44,7 +44,7 @@ public class InsightGenerator {
         }
 
         // 2. High savings rate
-        if (savingsRate != null && savingsRate.compareTo(BigDecimal.valueOf(20)) >= 0) {
+        if (savingsRate != null && netCashFlow != null && savingsRate.compareTo(BigDecimal.valueOf(20)) >= 0) {
             list.add(new FinancialInsightDto(
                     "ins-savings-rate",
                     "Strong Savings Rate",

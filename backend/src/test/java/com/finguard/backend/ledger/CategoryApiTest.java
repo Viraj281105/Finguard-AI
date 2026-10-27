@@ -42,7 +42,7 @@ class CategoryApiTest extends IntegrationTest {
         }
         return json.readTree(mvc.perform(as(user, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON)
                         .content(json(body)))
-                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).get("id").asText();
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString()).get("id").asText();
     }
 
     private JsonNode setCategory(TestUser user, String id, String category) throws Exception {

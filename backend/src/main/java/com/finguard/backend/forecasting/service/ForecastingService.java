@@ -122,6 +122,17 @@ public class ForecastingService {
         }
 
         int origin = ForecastMethod.indexOf(history.lastCompleteMonth());
+        // The method only reads the last LOOKBACK_MONTHS months. Records older than that cannot support a forecast, so
+        // gate on what the method will actually see (found by the end-to-end audit: a ledger that ended more than
+        // 12 months ago passed the 3-month gate on the 36-month history and then failed with HTTP 500).
+        List<MonthFigures> recent = recentMonths(origin, months);
+        if (recent.size() < MIN_MONTHS_LIMITED) {
+            warnings.add(0, noRecentDataWarning(recent.size(), months));
+            return new CashFlowForecastResponse(UNAVAILABLE, ForecastMethod.NAME, ForecastMethod.VERSION, history.asOf().toString(),
+                    horizon, info, warnings, assumptions, intervalNote(), false, observed, current, List.of(), null, List.of());
+        }
+        // The series keep every usable month: the method reads only the last 12, but the backtest that sizes the
+        // uncertainty band needs the whole history.
         List<Obs> expenseObs = months.stream().map(m -> obs(m.month(), m.expenses())).toList();
         List<Obs> incomeObs = months.stream().map(m -> obs(m.month(), m.income())).toList();
 
@@ -160,7 +171,7 @@ public class ForecastingService {
         for (int k = 1; k <= horizon; k++) {
             Estimate exp = expenses.estimates().get(k - 1);
             Estimate inc = income == null ? null : income.estimates().get(k - 1);
-            Estimate net = inc == null ? null : netEstimate(inc, exp, income.runs().get(k - 1), expenses.runs().get(k - 1));
+            Estimate net = (income != null && inc != null) ? netEstimate(inc, exp, income.runs().get(k - 1), expenses.runs().get(k - 1)) : null;
             List<String> factors = new ArrayList<>(expenses.factors().get(k - 1));
             projected.add(new ProjectedMonth(history.currentMonth().plusMonths(k).toString(), inc, exp, net,
                     expenses.floorApplied().get(k - 1), factors));
@@ -219,6 +230,12 @@ public class ForecastingService {
         }
 
         int origin = ForecastMethod.indexOf(history.lastCompleteMonth());
+        List<MonthFigures> windowMonths = recentMonths(origin, months);
+        if (windowMonths.size() < MIN_MONTHS_LIMITED) {
+            warnings.add(0, noRecentDataWarning(windowMonths.size(), months));
+            return new CategorySpendingForecastResponse(UNAVAILABLE, ForecastMethod.NAME, ForecastMethod.VERSION, history.asOf().toString(),
+                    horizon, info, warnings, assumptions, List.of(), List.of(), List.of());
+        }
         Set<String> categoryIds = new TreeSet<>();
         history.categoryNetByMonth().values().forEach(m -> categoryIds.addAll(m.keySet()));
 
@@ -441,6 +458,20 @@ public class ForecastingService {
         }
         return new BacktestSummaryResponse(any ? "COMPLETED" : "INSUFFICIENT_DATA", "USER_HISTORY", ForecastMethod.NAME, ForecastMethod.VERSION,
                 "CHRONOLOGICAL_ROLLING_ORIGIN", history.asOf().toString(), months.size(), results, limitations);
+    }
+
+    /** Usable months inside the window the forecasting method reads (the last LOOKBACK_MONTHS up to the origin). */
+    private static List<MonthFigures> recentMonths(int origin, List<MonthFigures> months) {
+        return months.stream().filter(m -> {
+            int i = ForecastMethod.indexOf(m.month());
+            return i <= origin && i > origin - ForecastMethod.LOOKBACK_MONTHS;
+        }).toList();
+    }
+
+    private static String noRecentDataWarning(int recentCount, List<MonthFigures> months) {
+        return "Only " + recentCount + " of your " + months.size() + " usable months fall within the last " + ForecastMethod.LOOKBACK_MONTHS
+                + " months (your latest complete month with records is " + months.get(months.size() - 1).month() + "); at least "
+                + MIN_MONTHS_LIMITED + " recent months are needed. Import recent statements. Nothing is projected rather than guessing.";
     }
 
     // ------------------------------------------------------------------------------------------------

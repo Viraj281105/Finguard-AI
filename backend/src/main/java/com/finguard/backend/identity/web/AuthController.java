@@ -29,13 +29,16 @@ public class AuthController {
     @org.springframework.beans.factory.annotation.Value("${jwt.cookie-secure:false}")
     private boolean cookieSecure;
 
+    @org.springframework.beans.factory.annotation.Value("${app.trusted-proxies:127.0.0.1,::1,0:0:0:0:0:0:0:1}")
+    private String trustedProxiesConfig;
+
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request,
                                                  HttpServletRequest httpRequest,
                                                  HttpServletResponse httpResponse) {
         AuthResponse auth = authService.register(request, resolveClientIp(httpRequest));
         setRefreshTokenCookie(httpResponse, auth.refreshToken(), isSecure(httpRequest));
-        return ResponseEntity.ok(auth);
+        return ResponseEntity.ok(AuthResponse.of(auth.accessToken(), auth.email(), auth.name()));
     }
 
     @PostMapping("/login")
@@ -44,7 +47,7 @@ public class AuthController {
                                               HttpServletResponse httpResponse) {
         AuthResponse auth = authService.login(request, resolveClientIp(httpRequest));
         setRefreshTokenCookie(httpResponse, auth.refreshToken(), isSecure(httpRequest));
-        return ResponseEntity.ok(auth);
+        return ResponseEntity.ok(AuthResponse.of(auth.accessToken(), auth.email(), auth.name()));
     }
 
     @PostMapping("/refresh")
@@ -57,7 +60,7 @@ public class AuthController {
                 : cookieToken;
         AuthResponse auth = authService.refresh(token, resolveClientIp(httpRequest));
         setRefreshTokenCookie(httpResponse, auth.refreshToken(), isSecure(httpRequest));
-        return ResponseEntity.ok(auth);
+        return ResponseEntity.ok(AuthResponse.of(auth.accessToken(), auth.email(), auth.name()));
     }
 
     @PostMapping("/logout")
@@ -69,9 +72,10 @@ public class AuthController {
         String token = (request != null && request.refreshToken() != null && !request.refreshToken().isBlank())
                 ? request.refreshToken()
                 : cookieToken;
-        authService.logout(token, user);
+        boolean allDevices = request != null && Boolean.TRUE.equals(request.allDevices());
+        authService.logout(token, user, allDevices);
         clearRefreshTokenCookie(httpResponse, isSecure(httpRequest));
-        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+        return ResponseEntity.ok(Map.of("message", allDevices ? "Logged out from all devices" : "Logged out successfully"));
     }
 
     private boolean isSecure(HttpServletRequest request) {
@@ -100,11 +104,35 @@ public class AuthController {
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
-    private String resolveClientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
+    private java.util.Set<String> getTrustedProxies() {
+        if (trustedProxiesConfig == null || trustedProxiesConfig.isBlank()) {
+            return java.util.Set.of("127.0.0.1", "::1", "0:0:0:0:0:0:0:1");
         }
-        return request.getRemoteAddr();
+        return java.util.Arrays.stream(trustedProxiesConfig.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(java.util.stream.Collectors.toSet());
+    }
+
+    public String resolveClientIp(HttpServletRequest request) {
+        String remoteAddr = request.getRemoteAddr();
+        if (remoteAddr == null || remoteAddr.isBlank()) {
+            return "unknown";
+        }
+        java.util.Set<String> trusted = getTrustedProxies();
+        if (trusted.contains(remoteAddr.trim())) {
+            String forwarded = request.getHeader("X-Forwarded-For");
+            if (forwarded != null && !forwarded.isBlank()) {
+                String[] hops = forwarded.split(",");
+                for (String hop : hops) {
+                    String cleanHop = hop.trim();
+                    if (!cleanHop.isEmpty() && !trusted.contains(cleanHop)) {
+                        return cleanHop;
+                    }
+                }
+                return hops[0].trim();
+            }
+        }
+        return remoteAddr.trim();
     }
 }

@@ -103,7 +103,8 @@ public class ImportService {
         for (int i = 0; i < text.length(); i++) {
             if (text.charAt(i) == '\n') {
                 lineCount++;
-                if (lineCount > MAX_STATEMENT_ROWS) {
+                // The limit is on data rows: the header line is not one (a 10,000-row statement used to be refused).
+                if (lineCount > MAX_STATEMENT_ROWS + 1) {
                     throw ApiException.badRequest("The statement exceeds the maximum limit of " + MAX_STATEMENT_ROWS + " rows.");
                 }
             }

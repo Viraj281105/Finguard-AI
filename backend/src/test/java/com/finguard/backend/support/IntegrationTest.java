@@ -50,12 +50,15 @@ public abstract class IntegrationTest {
 
     protected TestUser registerUser() throws Exception {
         String email = "user-" + UUID.randomUUID() + "@example.com";
-        String body = mvc.perform(post("/api/auth/register")
+        var mvcResult = mvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("name", "Test User", "email", email, "password", PASSWORD))))
-                .andReturn().getResponse().getContentAsString();
+                .andReturn();
+        String body = mvcResult.getResponse().getContentAsString();
         JsonNode node = json.readTree(body);
-        return new TestUser(email, node.get("accessToken").asText(), node.get("refreshToken").asText());
+        jakarta.servlet.http.Cookie cookie = mvcResult.getResponse().getCookie("refreshToken");
+        String refreshToken = cookie != null ? cookie.getValue() : (node.has("refreshToken") ? node.get("refreshToken").asText() : null);
+        return new TestUser(email, node.get("accessToken").asText(), refreshToken);
     }
 
     protected String json(Object value) throws Exception {

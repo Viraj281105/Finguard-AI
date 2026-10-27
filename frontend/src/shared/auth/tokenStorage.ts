@@ -6,15 +6,20 @@ export const getToken = (): string | null => localStorage.getItem(TOKEN_KEY);
 
 export const setToken = (token: string): void => localStorage.setItem(TOKEN_KEY, token);
 
-export const getRefreshToken = (): string | null => localStorage.getItem(REFRESH_TOKEN_KEY);
+/** Refresh tokens are stored strictly in HttpOnly cookies, not in JavaScript-accessible storage (O-01). */
+export const getRefreshToken = (): string | null => null;
 
-export const setRefreshToken = (token: string): void => localStorage.setItem(REFRESH_TOKEN_KEY, token);
+export const setRefreshToken = (_token?: string): void => {
+  void _token;
+  // Deliberately no-op: refresh token is managed exclusively via HttpOnly cookie
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+};
 
-export const setTokens = (accessToken: string, refreshToken?: string): void => {
+export const setTokens = (accessToken: string, _refreshToken?: string): void => {
+  void _refreshToken;
   setToken(accessToken);
-  if (refreshToken) {
-    setRefreshToken(refreshToken);
-  }
+  // Clean up any legacy refresh token from localStorage to eliminate XSS exposure
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
 };
 
 export const clearToken = (): void => {

@@ -1,6 +1,8 @@
 package com.finguard.backend.identity;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.finguard.backend.identity.domain.RefreshToken;
+import com.finguard.backend.identity.domain.RefreshTokenRepository;
 import com.finguard.backend.identity.domain.User;
 import com.finguard.backend.identity.security.AuthRateLimiter;
 import com.finguard.backend.identity.security.JwtProperties;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
@@ -30,6 +33,10 @@ class AuthApiTest extends IntegrationTest {
 
     @Autowired
     private AuthRateLimiter rateLimiter;
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
+    @Autowired
+    private JwtService jwtService;
 
     @BeforeEach
     void setUp() {
@@ -51,7 +58,7 @@ class AuthApiTest extends IntegrationTest {
                         .content(json(Map.of("name", "Asha", "email", email, "password", PASSWORD))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken", notNullValue()))
-                .andExpect(jsonPath("$.refreshToken", notNullValue()))
+                .andExpect(jsonPath("$.refreshToken").doesNotExist())
                 .andExpect(jsonPath("$.email").value(email))
                 .andExpect(jsonPath("$.name").value("Asha"))
                 .andExpect(header().exists(HttpHeaders.SET_COOKIE))
@@ -207,23 +214,39 @@ class AuthApiTest extends IntegrationTest {
     void refreshRotatesRefreshTokenAndInvalidatesOldOne() throws Exception {
         TestUser user = registerUser();
 
-        // 1st refresh: succeeds, yields new refresh token
-        String body = mvc.perform(post("/api/auth/refresh").contentType(MediaType.APPLICATION_JSON)
+        // 1st refresh: succeeds, yields new refresh token in cookie
+        var refreshResult = mvc.perform(post("/api/auth/refresh").contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("refreshToken", user.refreshToken()))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken", notNullValue()))
-                .andExpect(jsonPath("$.refreshToken", notNullValue()))
-                .andReturn().getResponse().getContentAsString();
+                .andExpect(jsonPath("$.refreshToken").doesNotExist())
+                .andExpect(header().exists(HttpHeaders.SET_COOKIE))
+                .andReturn();
 
-        JsonNode node = json.readTree(body);
-        String newRefreshToken = node.get("refreshToken").asText();
+        jakarta.servlet.http.Cookie refreshCookie = refreshResult.getResponse().getCookie("refreshToken");
+        org.assertj.core.api.Assertions.assertThat(refreshCookie).isNotNull();
+        String newRefreshToken = refreshCookie.getValue();
 
-        // 2nd refresh with the old token: reuse detection triggers! Old token rejected
+        // 2nd refresh with the old token: old token is rejected
         mvc.perform(post("/api/auth/refresh").contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("refreshToken", user.refreshToken()))))
                 .andExpect(status().isUnauthorized());
 
-        // Because reuse was detected, the entire session family was revoked, so even newRefreshToken is revoked
+        // Within grace window (30s, O-03), concurrent tab races do not revoke the replacement token
+        mvc.perform(post("/api/auth/refresh").contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("refreshToken", newRefreshToken))))
+                .andExpect(status().isOk());
+
+        // Outside grace window: replaying the old token revokes the entire family
+        RefreshToken rep = refreshTokenRepository.findByTokenHash(jwtService.hashToken(newRefreshToken)).orElseThrow();
+        rep.setCreatedAt(Instant.now().minusSeconds(31));
+        refreshTokenRepository.save(rep);
+
+        mvc.perform(post("/api/auth/refresh").contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("refreshToken", user.refreshToken()))))
+                .andExpect(status().isUnauthorized());
+
+        // Now the entire session family is revoked
         mvc.perform(post("/api/auth/refresh").contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("refreshToken", newRefreshToken))))
                 .andExpect(status().isUnauthorized());

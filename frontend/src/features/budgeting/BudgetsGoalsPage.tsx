@@ -196,7 +196,7 @@ export default function BudgetsGoalsPage() {
               onClick={handleLogout}
               className="ml-2 sm:ml-4 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors border border-slate-200/60"
             >
-              Logout
+              Sign out
             </button>
           </div>
         </div>

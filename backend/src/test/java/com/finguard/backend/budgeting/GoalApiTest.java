@@ -61,7 +61,7 @@ class GoalApiTest extends IntegrationTest {
                 .andExpect(status().isNotFound());
 
         // 5. Alice records first contribution
-        var resContrib1 = mvc.perform(as(alice, post("/api/goals/" + goalId + "/contributions")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(as(alice, post("/api/goals/" + goalId + "/contributions")).contentType(MediaType.APPLICATION_JSON)
                 .content(json(Map.of(
                         "amount", 20000,
                         "note", "First bonus deposit",
@@ -69,9 +69,7 @@ class GoalApiTest extends IntegrationTest {
                 ))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").isNotEmpty())
-                .andExpect(jsonPath("$.amount").value(20000.00))
-                .andReturn();
-        String contrib1Id = json.readTree(resContrib1.getResponse().getContentAsString()).get("id").asText();
+                .andExpect(jsonPath("$.amount").value(20000.00));
 
         // 6. Alice checks goal detail: progress = 40%, remaining = 30000, disclaimer present
         mvc.perform(as(alice, get("/api/goals/" + goalId)))

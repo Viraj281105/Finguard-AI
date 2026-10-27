@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.lang.NonNull;
 import org.springframework.test.context.DynamicPropertyRegistry;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,7 +73,7 @@ class ProfilesTest {
         var args = new java.util.ArrayList<String>();
         TestPostgres.register(new DynamicPropertyRegistry() {
             @Override
-            public void add(String name, java.util.function.Supplier<Object> valueSupplier) {
+            public void add(@NonNull String name, @NonNull java.util.function.Supplier<Object> valueSupplier) {
                 args.add("--" + name + "=" + valueSupplier.get());
             }
         });

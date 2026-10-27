@@ -15,13 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class GoalService {
 
     public static final String GOAL_DISCLAIMER =
@@ -29,6 +29,18 @@ public class GoalService {
 
     private final GoalRepository goalRepository;
     private final GoalContributionRepository goalContributionRepository;
+    private final Clock clock;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public GoalService(GoalRepository goalRepository, GoalContributionRepository goalContributionRepository, Clock clock) {
+        this.goalRepository = goalRepository;
+        this.goalContributionRepository = goalContributionRepository;
+        this.clock = clock;
+    }
+
+    public GoalService(GoalRepository goalRepository, GoalContributionRepository goalContributionRepository) {
+        this(goalRepository, goalContributionRepository, Clock.system(java.time.ZoneId.of("Asia/Kolkata")));
+    }
 
     @Transactional
     public GoalResponseDto createGoal(User user, CreateGoalRequest request) {
@@ -37,6 +49,10 @@ public class GoalService {
         }
         if (request.name() == null || request.name().isBlank()) {
             throw ApiException.badRequest("Goal name is required");
+        }
+
+        if (request.targetDate() != null && request.targetDate().isBefore(LocalDate.now(clock))) {
+            throw ApiException.badRequest("Target date cannot be in the past");
         }
 
         Goal goal = new Goal();
@@ -76,6 +92,9 @@ public class GoalService {
             }
         }
         if (request.targetDate() != null) {
+            if (!request.targetDate().equals(goal.getTargetDate()) && request.targetDate().isBefore(LocalDate.now(clock))) {
+                throw ApiException.badRequest("Target date cannot be in the past");
+            }
             goal.setTargetDate(request.targetDate());
         }
         if (request.status() != null) {
@@ -139,7 +158,7 @@ public class GoalService {
             throw ApiException.badRequest("Cannot add contributions to an archived goal.");
         }
 
-        LocalDate contribDate = request.contributionDate() != null ? request.contributionDate() : LocalDate.now();
+        LocalDate contribDate = request.contributionDate() != null ? request.contributionDate() : LocalDate.now(clock);
 
         GoalContribution contribution = new GoalContribution();
         contribution.setGoal(goal);
@@ -204,7 +223,7 @@ public class GoalService {
                 ? current.multiply(BigDecimal.valueOf(100)).divide(target, 2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(clock);
         Long daysRemaining = null;
         boolean isOverdue = false;
         BigDecimal requiredMonthlyPace = null;

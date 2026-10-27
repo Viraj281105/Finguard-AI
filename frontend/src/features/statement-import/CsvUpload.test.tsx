@@ -143,4 +143,19 @@ describe('CsvUpload', () => {
     expect(screen.getByText(/Line 8:/)).toBeInTheDocument()
     expect(screen.getByText(/Cannot parse date: notadate/)).toBeInTheDocument()
   })
+
+  it('stops polling and shows an error message when polling exceeds maximum attempts', async () => {
+    vi.mocked(uploadAPI.uploadCsv).mockResolvedValue(job())
+    vi.mocked(uploadAPI.getStatus).mockResolvedValue(job({ status: 'PROCESSING' }))
+
+    render(<CsvUpload onUploadComplete={vi.fn()} />)
+    selectFile(csvFile())
+
+    // Advance through MAX_POLL_ATTEMPTS + 1 intervals
+    for (let i = 0; i <= 60; i++) {
+      await act(async () => { await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS) })
+    }
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Statement processing timed out')
+  })
 })

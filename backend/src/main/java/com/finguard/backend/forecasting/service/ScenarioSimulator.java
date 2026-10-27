@@ -354,7 +354,7 @@ public class ScenarioSimulator {
 
     private static Totals totals(BigDecimal income, BigDecimal expenses) {
         BigDecimal net = income == null ? null : income.subtract(expenses);
-        BigDecimal rate = income != null && income.signum() > 0
+        BigDecimal rate = income != null && net != null && income.signum() > 0
                 ? net.multiply(BigDecimal.valueOf(100)).divide(income, 2, RoundingMode.HALF_UP) : null;
         return new Totals(income, expenses, net, rate);
     }

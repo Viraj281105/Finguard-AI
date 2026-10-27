@@ -22,7 +22,7 @@ class LedgerApiTest extends IntegrationTest {
         TestUser user = registerUser();
         mvc.perform(as(user, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Rent\",\"amount\":12345.67,\"type\":\"EXPENSE\",\"category\":\"Rent\",\"note\":\"March\"}"))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").isString())
                 .andExpect(jsonPath("$.amount").value(12345.67))
                 .andExpect(jsonPath("$.type").value("EXPENSE"))
@@ -53,7 +53,7 @@ class LedgerApiTest extends IntegrationTest {
                 "principal", 30000, "emiAmount", 2500, "interestRate", 0));
         body.put("active", null);
         mvc.perform(as(user, post("/api/loans")).contentType(MediaType.APPLICATION_JSON).content(json(body)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.active").value(true))
                 .andExpect(jsonPath("$.interestRate").value(0));
     }
@@ -64,7 +64,7 @@ class LedgerApiTest extends IntegrationTest {
         mvc.perform(as(user, post("/api/loans")).contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("name", "Home", "type", "HOME", "principal", 4000000, "emiAmount", 35000,
                                 "interestRate", 8.75, "startDate", "2024-04-01", "endDate", "2044-04-01", "active", false))))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.startDate").value("2024-04-01"))
                 .andExpect(jsonPath("$.endDate").value("2044-04-01"))
                 .andExpect(jsonPath("$.active").value(false));
@@ -75,7 +75,7 @@ class LedgerApiTest extends IntegrationTest {
         TestUser user = registerUser();
         mvc.perform(as(user, post("/api/investments")).contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("name", "FD", "type", "FD", "amountInvested", 100000))))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.currentValue").doesNotExist());
         mvc.perform(as(user, get("/api/investments"))).andExpect(status().isOk());
     }
@@ -94,7 +94,7 @@ class LedgerApiTest extends IntegrationTest {
         mvc.perform(as(user, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("title", "Groceries", "amount", 1450.00, "type", "EXPENSE",
                                 "date", "2026-03-15", "category", "Food", "note", "Weekly shopping"))))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.date").value("2026-03-15"))
                 .andExpect(jsonPath("$.source").value("MANUAL"))
                 .andExpect(jsonPath("$.categorySource").value("USER"));
@@ -105,7 +105,7 @@ class LedgerApiTest extends IntegrationTest {
         TestUser user = registerUser();
         mvc.perform(as(user, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("title", "Coffee", "amount", 120.00, "type", "EXPENSE"))))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.date").value(java.time.LocalDate.now().toString()))
                 .andExpect(jsonPath("$.source").value("MANUAL"))
                 .andExpect(jsonPath("$.categorySource").value("NONE"));
@@ -116,7 +116,7 @@ class LedgerApiTest extends IntegrationTest {
         TestUser user = registerUser();
         String created = mvc.perform(as(user, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("title", "Fuel", "amount", 2000, "type", "EXPENSE", "date", "2026-03-01"))))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         String id = new org.json.JSONObject(created).getString("id");
 
@@ -230,7 +230,7 @@ class LedgerApiTest extends IntegrationTest {
         mvc.perform(as(user, post("/api/loans")).contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("name", "Auto Loan", "type", "CAR", "principal", 800000,
                                 "emiAmount", 18000, "interestRate", 8.755))))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.interestRate").value(8.755));
     }
 }

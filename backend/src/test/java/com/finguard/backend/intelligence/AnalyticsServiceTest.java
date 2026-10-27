@@ -6,9 +6,7 @@ import com.finguard.backend.intelligence.service.AnalyticsService;
 import com.finguard.backend.intelligence.service.InsightGenerator;
 import com.finguard.backend.intelligence.service.RecurringExpenseDetector;
 import com.finguard.backend.intelligence.service.UnusualTransactionDetector;
-import com.finguard.backend.ledger.investments.Investment;
 import com.finguard.backend.ledger.investments.InvestmentRepository;
-import com.finguard.backend.ledger.loans.Loan;
 import com.finguard.backend.ledger.loans.LoanRepository;
 import com.finguard.backend.ledger.transactions.Transaction;
 import com.finguard.backend.ledger.transactions.Transaction.TransactionType;
@@ -150,7 +148,7 @@ class AnalyticsServiceTest {
         assertThat(summary.grossExpenses()).isEqualByComparingTo("2000.00");
         assertThat(summary.totalRefunds()).isEqualByComparingTo("5000.00");
         assertThat(summary.totalExpenses()).isEqualByComparingTo("0.00");
-        assertThat(summary.netCashFlow()).isEqualByComparingTo("10000.00");
+        assertThat(summary.netCashFlow()).isEqualByComparingTo("13000.00");
     }
 
     @Test

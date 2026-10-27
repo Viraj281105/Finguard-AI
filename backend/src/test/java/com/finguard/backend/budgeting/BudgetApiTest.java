@@ -123,7 +123,7 @@ class BudgetApiTest extends IntegrationTest {
                         "type", "EXPENSE",
                         "category", "DINING",
                         "date", "2026-10-10"
-                )))).andExpect(status().isOk());
+                )))).andExpect(status().isCreated());
 
         // DINING refund credit 500 (net DINING = 3500)
         mvc.perform(as(user, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON)
@@ -133,7 +133,7 @@ class BudgetApiTest extends IntegrationTest {
                         "type", "INCOME",
                         "category", "REFUNDS",
                         "date", "2026-10-12"
-                )))).andExpect(status().isOk());
+                )))).andExpect(status().isCreated());
 
         // Unbudgeted SHOPPING expense 2000
         mvc.perform(as(user, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON)
@@ -143,7 +143,7 @@ class BudgetApiTest extends IntegrationTest {
                         "type", "EXPENSE",
                         "category", "SHOPPING",
                         "date", "2026-10-14"
-                )))).andExpect(status().isOk());
+                )))).andExpect(status().isCreated());
 
         // 3. Fetch overview
         mvc.perform(as(user, get("/api/budgets/overview?month=2026-10")))

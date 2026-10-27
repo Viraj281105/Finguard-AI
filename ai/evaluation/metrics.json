@@ -19,7 +19,7 @@
         "FEES": 3
       },
       "GROCERIES": {
-        "GROCERIES": 3
+        "GROCERIES": 4
       },
       "HEALTHCARE": {
         "HEALTHCARE": 3
@@ -43,19 +43,19 @@
         "REFUNDS": 3
       },
       "SHOPPING": {
-        "SHOPPING": 3
+        "SHOPPING": 4
       },
       "SUBSCRIPTIONS": {
         "SUBSCRIPTIONS": 3
       },
       "TRANSFERS": {
-        "TRANSFERS": 3
+        "TRANSFERS": 2
       },
       "TRANSPORT": {
         "TRANSPORT": 3
       },
       "UNCATEGORIZED": {
-        "UNCATEGORIZED": 9
+        "UNCATEGORIZED": 12
       },
       "UTILITIES": {
         "UTILITIES": 3
@@ -120,7 +120,7 @@
         "f1": 1.0,
         "precision": 1.0,
         "recall": 1.0,
-        "support": 3
+        "support": 4
       },
       "HEALTHCARE": {
         "f1": 1.0,
@@ -168,7 +168,7 @@
         "f1": 1.0,
         "precision": 1.0,
         "recall": 1.0,
-        "support": 3
+        "support": 4
       },
       "SUBSCRIPTIONS": {
         "f1": 1.0,
@@ -180,7 +180,7 @@
         "f1": 1.0,
         "precision": 1.0,
         "recall": 1.0,
-        "support": 3
+        "support": 2
       },
       "TRANSPORT": {
         "f1": 1.0,
@@ -198,12 +198,12 @@
     "precision_when_classified": 1.0,
     "recall_on_assignable": 1.0,
     "review_flag": {
-      "flagged": 6,
+      "flagged": 5,
       "precision_when_flagged": 1.0,
       "precision_when_unflagged": 1.0,
-      "unflagged": 44
+      "unflagged": 46
     },
-    "rows": 59,
+    "rows": 63,
     "wrong_category_asserted": 0
   },
   "holdout": {
@@ -256,13 +256,13 @@
         "SUBSCRIPTIONS": 7
       },
       "TRANSFERS": {
-        "TRANSFERS": 6
+        "TRANSFERS": 3
       },
       "TRANSPORT": {
         "TRANSPORT": 10
       },
       "UNCATEGORIZED": {
-        "UNCATEGORIZED": 13
+        "UNCATEGORIZED": 17
       },
       "UTILITIES": {
         "UTILITIES": 8
@@ -387,7 +387,7 @@
         "f1": 1.0,
         "precision": 1.0,
         "recall": 1.0,
-        "support": 6
+        "support": 3
       },
       "TRANSPORT": {
         "f1": 1.0,
@@ -405,12 +405,12 @@
     "precision_when_classified": 1.0,
     "recall_on_assignable": 1.0,
     "review_flag": {
-      "flagged": 13,
+      "flagged": 8,
       "precision_when_flagged": 1.0,
       "precision_when_unflagged": 1.0,
-      "unflagged": 107
+      "unflagged": 109
     },
-    "rows": 133,
+    "rows": 134,
     "wrong_category_asserted": 0
   }
 }

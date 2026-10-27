@@ -11,10 +11,12 @@ describe('tokenStorage', () => {
     expect(getToken()).toBeNull()
   })
 
-  it('stores and clears both access and refresh tokens with setTokens and clearToken', () => {
+  it('stores access token and ensures refresh token is never kept in localStorage (O-01)', () => {
+    localStorage.setItem('refreshToken', 'legacy-stale-refresh')
     setTokens('access-val', 'refresh-val')
     expect(getToken()).toBe('access-val')
-    expect(getRefreshToken()).toBe('refresh-val')
+    expect(getRefreshToken()).toBeNull()
+    expect(localStorage.getItem('refreshToken')).toBeNull()
     clearToken()
     expect(getToken()).toBeNull()
     expect(getRefreshToken()).toBeNull()

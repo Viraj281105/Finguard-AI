@@ -1,6 +1,7 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getRefreshToken, getToken, setToken, setTokens } from '../auth/tokenStorage'
+import { fakeJwt } from '../../test/jwt'
 import { apiClient, apiErrorMessage, setSessionExpiredHandler } from './client'
 
 const originalAdapter = apiClient.defaults.adapter
@@ -87,7 +88,8 @@ describe('401 handling and silent refresh', () => {
     expect(attempts).toBe(2)
     expect(lastHeader).toBe('Bearer fresh-access')
     expect(getToken()).toBe('fresh-access')
-    expect(getRefreshToken()).toBe('fresh-refresh')
+    expect(getRefreshToken()).toBeNull()
+    expect(localStorage.getItem('refreshToken')).toBeNull()
     expect(expired).not.toHaveBeenCalled()
   })
 
@@ -144,6 +146,42 @@ describe('401 handling and silent refresh', () => {
     await expect(apiClient.post('/auth/login', {})).rejects.toBeDefined()
     expect(getToken()).toBe('keep')
     expect(expired).not.toHaveBeenCalled()
+  })
+
+  it('skips network refresh if another tab refreshed the token while acquiring lock (O-03)', async () => {
+    const unexpiredToken = fakeJwt(3600)
+    setTokens('stale-access')
+
+    const originalLocks = (navigator as unknown as { locks?: unknown }).locks
+    ;(navigator as unknown as { locks: unknown }).locks = {
+      request: vi.fn(async (_name: string, callback: () => Promise<string | null>) => {
+        // Simulate another tab having completed refresh and written new valid token to localStorage
+        setToken(unexpiredToken)
+        return callback()
+      }),
+    }
+
+    const postSpy = vi.spyOn(axios, 'post')
+
+    let attempts = 0
+    apiClient.defaults.adapter = async (config: InternalAxiosRequestConfig) => {
+      attempts++
+      if (attempts === 1) {
+        throw new AxiosError('unauthorized', 'ERR_BAD_REQUEST', config, null, {
+          data: {}, status: 401, statusText: '', headers: {}, config,
+        })
+      }
+      return { data: { success: true }, status: 200, statusText: '', headers: {}, config }
+    }
+
+    try {
+      const res = await apiClient.get<{ success: boolean }>('/transactions')
+      expect(res.data.success).toBe(true)
+      expect(postSpy).not.toHaveBeenCalled()
+      expect(getToken()).toBe(unexpiredToken)
+    } finally {
+      ;(navigator as unknown as { locks: unknown }).locks = originalLocks
+    }
   })
 
   it('does not treat other errors as an expired session', async () => {

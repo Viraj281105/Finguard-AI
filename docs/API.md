@@ -17,8 +17,9 @@ There is no API version prefix. See [DECISIONS.md](DECISIONS.md) D-07.
 - A refresh token is rejected as a bearer token; an access token is rejected by `/auth/refresh`.
 - The user is always identified from the token. No endpoint accepts a user id.
 - **Refresh Token Rotation & Revocation**: Refresh tokens are single-use. When `/api/auth/refresh` is called, a new refresh token is issued and the previous token is marked revoked and replaced. If an already-replaced refresh token is re-submitted (token reuse attack), all active sessions for that user account are revoked immediately (D-03b).
-- **Cookies**: Auth endpoints set an `HttpOnly`, `SameSite=Strict` cookie for `refreshToken` scoped to `Path=/api/auth`. The refresh endpoint accepts the token from either the JSON request body or the cookie.
-- **Brute-Force Rate Limiting**: An in-memory sliding window tracks failed authentication attempts by IP address and normalized email. 5 failed login attempts in 60 seconds throttles subsequent attempts with HTTP `429 Too Many Requests` and a `Retry-After: 60` response header (D-04). A successful login clears the failed attempt count.
+- **Cookies**: Auth endpoints set an `HttpOnly`, `SameSite=Strict` cookie for `refreshToken` scoped to `Path=/api/auth`. In alignment with secure cookie architecture (R-4), refresh tokens are omitted from JSON response bodies and managed exclusively via the `HttpOnly` cookie.
+- **Brute-Force Rate Limiting & Denial of Service Protection**: An in-memory bounded LRU map (5,000 max entries) tracks failed authentication attempts. Limits: 5 failed attempts per (IP, normalized email) pair in 60s, 20 failed attempts per IP, and 15 failed attempts per account (preventing lock-out DoS attacks from rotated IPs). Excess requests return HTTP `429 Too Many Requests` with a `Retry-After: 60` header.
+- **Trusted Proxy Resolution**: Client IP addresses are resolved from `X-Forwarded-For` only when requests originate from configured trusted proxies (`app.trusted-proxies`); untrusted client-supplied forwarding headers are discarded (R-3).
 - **Email Normalization**: Emails are trimmed and converted to lowercase on registration, login, and token generation (D-05).
 
 ### `POST /api/auth/register`
@@ -30,7 +31,7 @@ There is no API version prefix. See [DECISIONS.md](DECISIONS.md) D-07.
 
 `200` →
 ```json
-{ "accessToken": "eyJ…", "refreshToken": "eyJ…", "email": "asha@example.com", "name": "Asha" }
+{ "accessToken": "eyJ…", "email": "asha@example.com", "name": "Asha" }
 ```
 Sets `Set-Cookie: refreshToken=...; HttpOnly; SameSite=Strict; Path=/api/auth; Max-Age=604800`.
 `409` `Email already registered` · `400` validation (see Errors).
@@ -40,30 +41,30 @@ Sets `Set-Cookie: refreshToken=...; HttpOnly; SameSite=Strict; Path=/api/auth; M
 ```json
 { "email": "asha@example.com", "password": "securepassword123" }
 ```
-`200` same body as register and sets the `refreshToken` cookie · `401` `Invalid email or password` (identical for unknown email and wrong password) · `429` `Too many login attempts. Please try again later.` with `Retry-After: 60`.
+`200` same body as register (`accessToken`, `email`, `name`) and sets the `refreshToken` cookie · `401` `Invalid email or password` · `429` `Too many login attempts. Please try again later.` with `Retry-After: 60`.
 
 ### `POST /api/auth/refresh`
 
 ```json
-{ "refreshToken": "eyJ…" }
+{}
 ```
-*(Body is optional if `refreshToken` cookie is present in request)*
+*(Refresh token read from `refreshToken` HttpOnly cookie)*
 
-`200` new `accessToken` and `refreshToken` (same body shape and updated `Set-Cookie`) · `401` `Invalid refresh token` or `Refresh token expired or revoked`.
-Replay of an already-rotated token triggers token reuse detection and revokes all refresh tokens for that user account.
+`200` new `accessToken` (omits refreshToken from body) and updated `Set-Cookie` · `401` `Invalid refresh token` or `Refresh token expired or revoked`.
+Replay of an already-rotated token within the 30s grace window returns 401 without terminating concurrent tab sessions; replay after 30s triggers token reuse detection and revokes all refresh tokens for that user account.
 
 ### `POST /api/auth/logout`
 
 ```json
-{ "refreshToken": "eyJ…" }
+{ "allDevices": false }
 ```
-*(Body is optional if `refreshToken` cookie is present in request)*
+*(Optional body: `allDevices` defaults to `false`)*
 
 `200` →
 ```json
 { "status": 200, "message": "Logged out successfully" }
 ```
-Clears the `refreshToken` cookie with `Max-Age=0` and invalidates the session in the database.
+Clears the `refreshToken` cookie with `Max-Age=0`. When `allDevices: true`, revokes all active session refresh tokens for the authenticated user; otherwise revokes only the current session's token.
 
 ## Transactions — `/api/transactions`
 
@@ -131,7 +132,7 @@ the same way the V5 migration mapped stored data: `Salary`/`Freelance`/`Business
 
 | Method & path | Result |
 |---|---|
-| `POST /api/transactions` | `200` created object |
+| `POST /api/transactions` | `201` created object |
 | `GET /api/transactions` | `200` JSON array of the caller's transactions, sorted deterministically by `date DESC, createdAt DESC`. Supports query parameters and pagination headers. |
 | `GET /api/transactions/{id}` | `200` object · `404` if missing **or owned by someone else** |
 | `PUT /api/transactions/{id}` | `200` updated object (full replacement of the fields, preserves existing `date` if omitted; see `category` rules above — **0.5.0 change:** an absent `category` now keeps the current one instead of clearing it) · `400` unknown category · `404` |
@@ -143,8 +144,9 @@ the same way the V5 migration mapped stored data: `Salary`/`Freelance`/`Business
 
 | Parameter | Type | Description |
 |---|---|---|
-| `page` | integer | Page index (0-based, default 0 when paged). Must be `>= 0`. |
-| `size` | integer | Page size (1 to 100). When omitted, returns all matching rows (backward-compatible). |
+| `page` | integer | Page index (0-based, default 0). Must be `>= 0`. |
+| `size` | integer | Page size (1 to 100, default 20). |
+| `unpaged` | boolean | Set to `true` to return all matching rows unpaged (default `false`). |
 | `from` | `yyyy-MM-dd` | Inclusive start date for `date`. |
 | `to` | `yyyy-MM-dd` | Inclusive end date for `date`. |
 | `type` | string | Filter by `"INCOME"` or `"EXPENSE"`. |
@@ -194,7 +196,7 @@ Response: the same fields plus `id` and `createdAt`. Same five operations and st
 ### `POST /api/upload/csv`
 
 `multipart/form-data` with one part named `file`. Accepted: file name ending in `.csv` (case-insensitive),
-non-empty, at most **5 MB** (`spring.servlet.multipart.max-file-size`), and at most **10,000 rows**.
+non-empty, at most **5 MB** (`spring.servlet.multipart.max-file-size`), and at most **10,000 data rows** (the header line is not counted).
 Content is read as UTF-8 (a leading byte-order mark `\uFEFF` is stripped) with automated fallback to `Windows-1252`
 if strict UTF-8 decoding encounters malformed characters. Binary files (containing null bytes) are rejected with `400 Bad Request`.
 
@@ -269,6 +271,8 @@ Errors: `400` `The uploaded file is empty` / `Only .csv files are supported` / `
 }
 ```
 `404` if the job does not exist or belongs to another user.
+
+**Row rules (end-to-end audit):** dates are parsed strictly (a date that does not exist, such as `31/02/26`, is a rejected row, never moved) and must lie between 1990-01-01 and tomorrow; a negative or parenthesised amount in a *credit* column, or next to a Cr/Dr indicator, is a rejected row (the direction would be a guess), while a negative or parenthesised *debit* is an expense (KI-006); narrations longer than 255 characters are truncated; amounts above ₹10 trillion are rejected for that row only; two statements imported at the same time are safe (rows already stored by the other import count as duplicates).
 
 `classificationStatus` / `classifiedRows` describe automatic categorisation of the imported rows and are
 **independent of `status`**: transactions are saved first, then categorised, and an import is `COMPLETED` even

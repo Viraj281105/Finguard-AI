@@ -1,7 +1,9 @@
 package com.finguard.backend.common.error;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.TransientDataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +17,13 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -99,9 +104,32 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleIntegrity(DataIntegrityViolationException e) {
-        log.warn("Data integrity violation: {}", e.getMostSpecificCause().getMessage());
+        Throwable cause = e.getMostSpecificCause();
+        log.warn("Data integrity violation: {}", cause.getMessage());
+        String sqlState = cause instanceof SQLException sql ? sql.getSQLState() : null;
+        // 22001 = string too long, 22003 = numeric out of range, 23502 = null in a required column:
+        // the caller sent a value the system cannot store. Only a real constraint clash (23505, 23503 ...) is a conflict.
+        if ("22001".equals(sqlState) || "22003".equals(sqlState) || "23502".equals(sqlState)) {
+            return ResponseEntity.badRequest()
+                    .body(ApiError.of(HttpStatus.BAD_REQUEST, "A value is too long or out of the allowed range"));
+        }
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ApiError.of(HttpStatus.CONFLICT, "The request conflicts with existing data"));
+    }
+
+    /** A request that is not multipart at all (or has no body) is the caller's mistake, not a server failure. */
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ApiError> handleNotMultipart(MultipartException e) {
+        return ResponseEntity.badRequest()
+                .body(ApiError.of(HttpStatus.BAD_REQUEST, "Expected a multipart/form-data upload with a 'file' part"));
+    }
+
+    /** The database cannot be reached: tell the caller to retry instead of reporting a bug. */
+    @ExceptionHandler({DataAccessResourceFailureException.class, CannotCreateTransactionException.class, TransientDataAccessException.class})
+    public ResponseEntity<ApiError> handleDatabaseUnavailable(Exception e) {
+        log.error("Database unavailable: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiError.of(HttpStatus.SERVICE_UNAVAILABLE, "The service is temporarily unavailable. Please try again shortly."));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)

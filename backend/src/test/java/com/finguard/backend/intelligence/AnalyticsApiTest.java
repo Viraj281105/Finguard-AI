@@ -48,10 +48,10 @@ class AnalyticsApiTest extends IntegrationTest {
         // Alice adds income and expense
         mvc.perform(as(alice, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON)
                 .content(json(Map.of("title", "Alice Salary", "amount", 80000, "type", "INCOME", "category", "INCOME", "date", "2026-03-01"))))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
         mvc.perform(as(alice, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON)
                 .content(json(Map.of("title", "Alice Rent", "amount", 20000, "type", "EXPENSE", "category", "HOUSING", "date", "2026-03-05"))))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
 
         // Bob has no transactions
         mvc.perform(as(bob, get("/api/analytics/summary")))
@@ -77,16 +77,16 @@ class AnalyticsApiTest extends IntegrationTest {
         // Populate transactions with categories, transfers and refunds
         mvc.perform(as(user, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON)
                 .content(json(Map.of("title", "Salary", "amount", 50000, "type", "INCOME", "category", "INCOME", "date", "2026-03-01"))))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
         mvc.perform(as(user, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON)
                 .content(json(Map.of("title", "Groceries", "amount", 5000, "type", "EXPENSE", "category", "GROCERIES", "date", "2026-03-04"))))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
         mvc.perform(as(user, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON)
                 .content(json(Map.of("title", "Transfer Out", "amount", 10000, "type", "EXPENSE", "category", "TRANSFERS", "date", "2026-03-05"))))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
         mvc.perform(as(user, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON)
                 .content(json(Map.of("title", "Store Refund", "amount", 500, "type", "INCOME", "category", "REFUNDS", "date", "2026-03-10"))))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
 
         // 1. Summary
         mvc.perform(as(user, get("/api/analytics/summary?from=2026-03-01&to=2026-03-31")))

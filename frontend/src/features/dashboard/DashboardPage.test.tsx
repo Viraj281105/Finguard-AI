@@ -1,7 +1,9 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { forecastAPI } from "../forecasting/api";
+import { recommendationsAPI } from "../recommendations/api";
 import { loadDashboardData, type DashboardData } from "./api";
 import DashboardPage from "./DashboardPage";
 
@@ -9,7 +11,16 @@ vi.mock("./api", () => ({
   loadDashboardData: vi.fn(),
 }));
 
+vi.mock("../forecasting/api", () => ({ forecastAPI: { getCashFlow: vi.fn().mockResolvedValue({ reliability: "UNAVAILABLE", projected: [], history: { monthsUsed: 0 } }) } }));
+
 vi.mock("../recommendations/api", () => ({ recommendationsAPI: { get: vi.fn().mockResolvedValue({ period: { from: "2026-01-01", to: "2026-03-31", months: 3, monthsWithData: 3 }, disclaimer: "General guidance.", healthy: true, recommendations: [], notEvaluated: [], thresholds: {} }) } }));
+
+// The real uploader polls the backend; a stand-in with a button is enough to signal "an import just finished".
+vi.mock("../statement-import/CsvUpload", () => ({
+  default: ({ onUploadComplete }: { onUploadComplete: () => void }) => (
+    <button type="button" onClick={onUploadComplete}>finish import</button>
+  ),
+}));
 
 vi.mock("../auth/api", () => ({
   authAPI: { logout: vi.fn().mockResolvedValue({}) },
@@ -360,5 +371,21 @@ describe("DashboardPage (v0.6.0 Financial Intelligence)", () => {
     await waitFor(() => {
       expect(loadDashboardData).toHaveBeenCalledTimes(2);
     });
+  });
+
+  it("refreshes the recommendations panel and forecast preview after an import (they used to keep the pre-import answer)", async () => {
+    vi.mocked(loadDashboardData).mockResolvedValue(POPULATED_DASHBOARD);
+    vi.mocked(recommendationsAPI.get).mockClear();
+    vi.mocked(forecastAPI.getCashFlow).mockClear();
+    renderPage();
+    await screen.findByText("finish import");
+    await waitFor(() => expect(recommendationsAPI.get).toHaveBeenCalledTimes(1));
+    expect(forecastAPI.getCashFlow).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByText("finish import"));
+
+    await waitFor(() => expect(recommendationsAPI.get).toHaveBeenCalledTimes(2));
+    expect(forecastAPI.getCashFlow).toHaveBeenCalledTimes(2);
+    expect(loadDashboardData).toHaveBeenCalledTimes(2);
   });
 });

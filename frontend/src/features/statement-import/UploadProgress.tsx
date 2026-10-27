@@ -72,12 +72,11 @@ export default function UploadProgress({ job, isDone }: { job: UploadStatus; isD
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{
-              width:
-                job.totalRows > 0
-                  ? `${(job.rowsProcessed / job.totalRows) * 100}%`
-                  : isDone
-                    ? "100%"
-                    : "30%",
+              width: isDone
+                ? "100%"
+                : job.totalRows > 0
+                  ? `${Math.min(100, Math.max(5, Math.round(((job.rowsProcessed + (job.duplicateRows ?? 0) + (job.rejectedRows ?? 0) + (job.skippedRows ?? 0)) / job.totalRows) * 100)))}%`
+                  : "30%",
               background: color,
             }}
           />
@@ -87,9 +86,13 @@ export default function UploadProgress({ job, isDone }: { job: UploadStatus; isD
       {isDone && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-            <span>✅</span>
+            <span>{job.rowsProcessed > 0 ? "✅" : "ℹ️"}</span>
             <p className="text-emerald-400 text-sm font-medium">
-              {job.rowsProcessed} transactions imported successfully! Your dashboard will update now.
+              {job.rowsProcessed > 0
+                ? `${job.rowsProcessed} transactions imported successfully! Your dashboard will update now.`
+                : (job.duplicateRows ?? 0) > 0
+                  ? "All transactions in this statement were already imported."
+                  : "No transactions found in this statement (header-only or metadata only)."}
             </p>
           </div>
 

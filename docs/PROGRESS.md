@@ -145,6 +145,16 @@ Created under `docs/`: `README`, `ROADMAP`, `RELEASE_PLAN`, `PROGRESS`, `KNOWN_I
 - **Verification:** 354 backend, 146 frontend, 121 AI = **621** tests; builds, lint and type check clean. UI verified in jsdom only.
 - **Deliberately not done:** emergency-fund rule (no balances), dismissal (KI-049); rules tested with synthetic data only (KI-050).
 
+### End-to-end audit & Remediation (2026-10-27)
+- The whole application was run for real (Docker PostgreSQL and AI service, Spring Boot, Vite, a real browser) and audited against realistic and adversarial Indian bank data: [AUDIT_E2E_2026-10-27.md](AUDIT_E2E_2026-10-27.md).
+- Independent release-readiness review findings (R-1 through R-7, and P3 defects) addressed in full:
+  - **R-1 & R-2**: Provisional automatic categories preserved as unreviewed; weak NEFT/IMPS/TRF channel rules replaced with explicit review-required abstentions; transaction direction change validated against existing category.
+  - **R-3 & R-4**: `X-Forwarded-For` rejected unless from trusted proxy; bounded LRU rate limiter (5,000 entries) preventing DoS; refresh tokens removed from JSON bodies and managed exclusively via `HttpOnly; SameSite=Strict` cookies.
+  - **R-5**: Cash flow identity $netCashFlow = income + refunds - grossExpenses$ established; cross-month refund consistency reconciled.
+  - **R-6 & R-7**: Compose ports bound to `127.0.0.1`; `SecurityEnvironmentGuard` fails closed in production on default/short secrets, insecure cookies, or default DB password.
+  - **P3 defects**: Periodic `@Scheduled` refresh token purge; 60-attempt/120s CSV upload polling timeout; statement summary/footer skip before date parsing; 201 Created resource creation status codes; uniform `ApiError` with timestamp on 503; overdue goal updates permitted with unchanged past target dates.
+- Verification: **665 automated tests** (387 backend, 150 frontend, 128 AI), all passing. Builds, typecheck, lint, and classifier evaluation gate verified clean (re-run 2026-10-28, exit 0).
+
 ## 5. Outstanding issues (highest priority first)
 
 Full list with evidence and target versions: [KNOWN_ISSUES.md](KNOWN_ISSUES.md).

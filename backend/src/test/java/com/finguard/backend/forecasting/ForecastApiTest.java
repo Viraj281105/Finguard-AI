@@ -20,7 +20,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -51,7 +50,7 @@ class ForecastApiTest extends IntegrationTest {
             body.put("category", category);
         }
         mvc.perform(as(user, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON).content(json(body)))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     /** Jan..Jun 2026: income 50,000, rent 20,000, groceries 10,000 every month (synthetic). */
@@ -343,7 +342,7 @@ class ForecastApiTest extends IntegrationTest {
         loan.put("interestRate", 12);
         loan.put("startDate", "2026-06-01");
         String created = mvc.perform(as(owner, post("/api/loans")).contentType(MediaType.APPLICATION_JSON).content(json(loan)))
-                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
         String loanId = json.readTree(created).get("id").asText();
         String loansBefore = getJson(owner, "/api/loans").toString();
 
