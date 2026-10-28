@@ -3,6 +3,10 @@
 These documents describe the repository **as it is**, plus clearly labelled plans. Code and tests are the
 source of truth; if a document disagrees with them, the document is wrong — fix it in the same change.
 
+`python scripts/check-docs.py` (also run by CI, workflow `Docs`) keeps known-issue ids unique and cross-references valid,
+rejects statements that were found to contradict the code, and checks relative links. When a document is found to be wrong,
+add the wrong phrase to `STALE_PHRASES` in that script so it cannot return.
+
 ## Status vocabulary (used in every document)
 
 | Label | Meaning |

@@ -71,7 +71,7 @@ Spring Boot reads **environment variables**; it does not read `.env`. Docker Com
 | `SPRING_PROFILES_ACTIVE` | backend | `dev` | Set `prod` anywhere that is not a developer's machine |
 | `SPRING_DATASOURCE_URL` / `_USERNAME` / `_PASSWORD` | backend | `jdbc:postgresql://localhost:5433/finguard`, `finguard_user`, `finguard_pass` | Required with `prod` |
 | `JWT_SECRET` | backend | a built-in dev-only key (dev profile) | **Required with `prod`**, at least 32 bytes, otherwise startup fails |
-| `JWT_EXPIRATION_MS` / `JWT_REFRESH_EXPIRATION_MS` | backend | 86400000 (24 h) / 604800000 (7 d) | |
+| `JWT_EXPIRATION_MS` / `JWT_REFRESH_EXPIRATION_MS` | backend | 900000 (15 min) / 604800000 (7 d) | |
 | `CORS_ALLOWED_ORIGINS` | backend | `http://localhost:5173` | comma-separated |
 | `AI_SERVICE_URL` | backend | `http://localhost:8000` | Compose network name would be `http://ai:8000` |
 | `POSTGRES_DB` / `_USER` / `_PASSWORD` / `_HOST_PORT` | Compose | `finguard` / `finguard_user` / `finguard_pass` / `5433` | |
