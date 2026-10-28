@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loanAPI } from "../loans/api";
 import { forecastAPI } from "./api";
@@ -175,6 +176,22 @@ describe("saved scenarios", () => {
     await screen.findByText("Cut groceries");
     fireEvent.click(screen.getByRole("button", { name: "Re-run Cut groceries" }));
     expect(await screen.findByText(/forecasting method changed since this was saved \(now LEVEL_DAMPED_TREND 3.0.0\)/)).toBeInTheDocument();
+  });
+
+  it("shows actionable advice when re-running a scenario with a deleted loan (O-06)", async () => {
+    vi.mocked(forecastAPI.listScenarios).mockResolvedValue(SAVED_LIST);
+    const error = new AxiosError("Bad Request", "ERR_BAD_REQUEST", undefined, null, {
+      data: { message: "Unknown loan 'loan-123'." },
+      status: 400,
+      statusText: "",
+      headers: {},
+      config: {} as InternalAxiosRequestConfig,
+    });
+    vi.mocked(forecastAPI.rerunScenario).mockRejectedValue(error);
+    render(<SavedScenariosCard refreshKey={0} />);
+    await screen.findByText("Cut groceries");
+    fireEvent.click(screen.getByRole("button", { name: "Re-run Cut groceries" }));
+    expect(await screen.findByText(/This scenario references a loan that no longer exists in your account/)).toBeInTheDocument();
   });
 
   it("deletes a scenario and reloads the list", async () => {

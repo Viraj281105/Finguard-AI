@@ -157,7 +157,6 @@ public class AnalyticsService {
                 .collect(Collectors.groupingBy(t -> YearMonth.from(t.getDate()), TreeMap::new, Collectors.toList()));
 
         List<MonthlyFlowDto> result = new ArrayList<>();
-        YearMonth prevMonth = null;
         BigDecimal prevExpenses = null;
         BigDecimal prevIncome = null;
 
@@ -193,7 +192,6 @@ public class AnalyticsService {
                     momIncomeChangePct
             ));
 
-            prevMonth = ym;
             prevExpenses = figs.netExpenses;
             prevIncome = figs.income;
         }
@@ -226,10 +224,15 @@ public class AnalyticsService {
         List<Transaction> filtered = filterByRange(allUserTx, from, to);
         FinancialFigures figs = calculateFigures(filtered);
 
+        // totalMonthly is a MONTHLY cost, so compare it with spending per month. Dividing it by the whole period's spending
+        // (6 months at a time) made the share look six times smaller than it is (found by the end-to-end audit:
+        // 44,948 a month shown as "9.63% of spend" when it was about 58% of a typical month).
         BigDecimal percentageOfExpenses = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
-        if (figs.netExpenses.compareTo(BigDecimal.ZERO) > 0) {
+        long monthsInPeriod = filtered.stream().map(t -> YearMonth.from(t.getDate())).distinct().count();
+        if (figs.netExpenses.compareTo(BigDecimal.ZERO) > 0 && monthsInPeriod > 0) {
+            BigDecimal averageMonthlyExpenses = figs.netExpenses.divide(BigDecimal.valueOf(monthsInPeriod), 2, RoundingMode.HALF_UP);
             percentageOfExpenses = totalMonthly.multiply(BigDecimal.valueOf(100))
-                    .divide(figs.netExpenses, 2, RoundingMode.HALF_UP);
+                    .divide(averageMonthlyExpenses, 2, RoundingMode.HALF_UP);
         }
 
         PeriodDto period = resolvePeriod(filtered, from, to);
@@ -241,7 +244,6 @@ public class AnalyticsService {
         validateDateRange(from, to);
 
         List<Transaction> allUserTx = transactionRepository.findByUserIdOrderByDateDescCreatedAtDesc(user.getId());
-        List<Transaction> filtered = filterByRange(allUserTx, from, to);
 
         if (allUserTx.isEmpty()) {
             return new DataQualityResponse(
@@ -296,6 +298,14 @@ public class AnalyticsService {
             caveats.add("Gaps detected in transaction timeline for month(s): " + String.join(", ", missingMonths));
         }
 
+        boolean hasCardPayments = allUserTx.stream().anyMatch(t -> {
+            TransactionCategory cat = parseCategory(t.getCategory());
+            return cat == TransactionCategory.CARD_PAYMENTS;
+        });
+        if (hasCardPayments) {
+            caveats.add("Credit card bill payments detected: credit-card statement imports are not yet supported, so individual card purchases are not captured in spending breakdowns.");
+        }
+
         return new DataQualityResponse(
                 minDate, maxDate, daysCovered, totalMonthsCovered,
                 allUserTx.size(), uncategorizedCount, uncategorizedPct,
@@ -329,6 +339,14 @@ public class AnalyticsService {
         for (Transaction t : txs) {
             TransactionCategory cat = parseCategory(t.getCategory());
             Flow flow = cat != null ? cat.flow() : Flow.UNKNOWN;
+            if (t.isCategoryNeedsReview()) {
+                if (flow == Flow.NON_SPENDING || flow == Flow.REFUND) {
+                    flow = Flow.UNKNOWN;
+                }
+            }
+            if (flow == Flow.NON_SPENDING) {
+                continue;
+            }
             String key = cat != null ? cat.name() : "UNCATEGORIZED";
             YearMonth ym = YearMonth.from(t.getDate());
             if (t.getType() == TransactionType.EXPENSE && (flow == Flow.EXPENSE || flow == Flow.UNKNOWN)) {
@@ -369,21 +387,8 @@ public class AnalyticsService {
                         Collectors.toList()
                 ));
 
-        // Group all-time expenses by YearMonth and category to detect consecutive increases
-        Map<YearMonth, Map<String, BigDecimal>> monthCatSpend = allUserTx.stream()
-                .filter(t -> t.getType() == TransactionType.EXPENSE)
-                .filter(t -> {
-                    TransactionCategory cat = parseCategory(t.getCategory());
-                    return cat == null || cat.flow() == Flow.EXPENSE || cat.flow() == Flow.UNKNOWN;
-                })
-                .collect(Collectors.groupingBy(
-                        t -> YearMonth.from(t.getDate()),
-                        TreeMap::new,
-                        Collectors.groupingBy(
-                                t -> t.getCategory() != null ? t.getCategory() : "UNCATEGORIZED",
-                                Collectors.reducing(BigDecimal.ZERO, Transaction::getAmount, BigDecimal::add)
-                        )
-                ));
+        // Group all-time expenses by YearMonth and category using consistent net spending
+        Map<YearMonth, Map<String, BigDecimal>> monthCatSpend = monthlyCategoryNetSpendOf(allUserTx);
 
         List<YearMonth> sortedMonths = new ArrayList<>(monthCatSpend.keySet());
 
@@ -451,9 +456,18 @@ public class AnalyticsService {
     private boolean checkCategoryConsistentlyRising(String catKey, List<YearMonth> sortedMonths, Map<YearMonth, Map<String, BigDecimal>> monthCatSpend) {
         if (sortedMonths.size() < 3) return false;
         int n = sortedMonths.size();
-        BigDecimal m1 = monthCatSpend.get(sortedMonths.get(n - 3)).getOrDefault(catKey, BigDecimal.ZERO);
-        BigDecimal m2 = monthCatSpend.get(sortedMonths.get(n - 2)).getOrDefault(catKey, BigDecimal.ZERO);
-        BigDecimal m3 = monthCatSpend.get(sortedMonths.get(n - 1)).getOrDefault(catKey, BigDecimal.ZERO);
+        YearMonth ym3 = sortedMonths.get(n - 1);
+        YearMonth ym2 = sortedMonths.get(n - 2);
+        YearMonth ym1 = sortedMonths.get(n - 3);
+
+        // Consecutive calendar months required
+        if (!ym3.equals(ym2.plusMonths(1)) || !ym2.equals(ym1.plusMonths(1))) {
+            return false;
+        }
+
+        BigDecimal m1 = monthCatSpend.getOrDefault(ym1, Map.of()).getOrDefault(catKey, BigDecimal.ZERO);
+        BigDecimal m2 = monthCatSpend.getOrDefault(ym2, Map.of()).getOrDefault(catKey, BigDecimal.ZERO);
+        BigDecimal m3 = monthCatSpend.getOrDefault(ym3, Map.of()).getOrDefault(catKey, BigDecimal.ZERO);
 
         return m3.compareTo(m2) > 0 && m2.compareTo(m1) > 0 && m3.compareTo(BigDecimal.valueOf(500)) >= 0;
     }
@@ -461,8 +475,14 @@ public class AnalyticsService {
     private BigDecimal calculateCategoryMom(String catKey, List<YearMonth> sortedMonths, Map<YearMonth, Map<String, BigDecimal>> monthCatSpend) {
         if (sortedMonths.size() < 2) return null;
         int n = sortedMonths.size();
-        BigDecimal prev = monthCatSpend.get(sortedMonths.get(n - 2)).getOrDefault(catKey, BigDecimal.ZERO);
-        BigDecimal curr = monthCatSpend.get(sortedMonths.get(n - 1)).getOrDefault(catKey, BigDecimal.ZERO);
+        YearMonth currYm = sortedMonths.get(n - 1);
+        YearMonth prevYm = sortedMonths.get(n - 2);
+        if (!currYm.equals(prevYm.plusMonths(1))) {
+            return null;
+        }
+
+        BigDecimal prev = monthCatSpend.getOrDefault(prevYm, Map.of()).getOrDefault(catKey, BigDecimal.ZERO);
+        BigDecimal curr = monthCatSpend.getOrDefault(currYm, Map.of()).getOrDefault(catKey, BigDecimal.ZERO);
 
         if (prev.compareTo(BigDecimal.ZERO) <= 0) return null;
         return curr.subtract(prev).multiply(BigDecimal.valueOf(100)).divide(prev, 2, RoundingMode.HALF_UP);
@@ -514,10 +534,23 @@ public class AnalyticsService {
         BigDecimal income = BigDecimal.ZERO;
         BigDecimal grossExpenses = BigDecimal.ZERO;
         BigDecimal refunds = BigDecimal.ZERO;
+        boolean hasCardPayments = false;
 
         for (Transaction t : txs) {
             TransactionCategory cat = parseCategory(t.getCategory());
             Flow flow = cat != null ? cat.flow() : Flow.UNKNOWN;
+
+            // An unreviewed automatic category (categoryNeedsReview=true) must NEVER be treated as NON_SPENDING or REFUND,
+            // which would silently drop financially relevant activity or distort spending before user confirmation.
+            if (t.isCategoryNeedsReview()) {
+                if (flow == Flow.NON_SPENDING || flow == Flow.REFUND) {
+                    flow = Flow.UNKNOWN;
+                }
+            }
+
+            if (cat == TransactionCategory.CARD_PAYMENTS && !t.isCategoryNeedsReview()) {
+                hasCardPayments = true;
+            }
 
             // Strict exclusion of transfers, card payments and investment movements
             if (flow == Flow.NON_SPENDING) {
@@ -541,7 +574,7 @@ public class AnalyticsService {
         grossExpenses = grossExpenses.setScale(2, RoundingMode.HALF_UP);
         refunds = refunds.setScale(2, RoundingMode.HALF_UP);
 
-        // Net expenses offset by refunds (bounded at zero)
+        // Net expenses offset by refunds (bounded at zero for display)
         BigDecimal netExpenses = grossExpenses.subtract(refunds);
         if (netExpenses.compareTo(BigDecimal.ZERO) < 0) {
             netExpenses = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
@@ -549,7 +582,10 @@ public class AnalyticsService {
             netExpenses = netExpenses.setScale(2, RoundingMode.HALF_UP);
         }
 
-        BigDecimal netCashFlow = income.subtract(netExpenses).setScale(2, RoundingMode.HALF_UP);
+        // True net cash flow identity: Cash Inflows (income + refunds) - Cash Outflows (grossExpenses)
+        // When grossExpenses >= refunds, this is identical to income - netExpenses.
+        // When refunds > grossExpenses (e.g. cross-month refunds), excess refunds preserve positive cash flow.
+        BigDecimal netCashFlow = income.add(refunds).subtract(grossExpenses).setScale(2, RoundingMode.HALF_UP);
 
         BigDecimal savingsRate = null;
         boolean savingsRateApplicable = false;
@@ -563,6 +599,15 @@ public class AnalyticsService {
             }
         } else {
             savingsRateCaveat = "Savings rate cannot be computed because no income was recorded for this period.";
+        }
+
+        if (hasCardPayments) {
+            String cardNotice = "Credit card payments were excluded to prevent double-counting, but card statement imports are not yet supported. Card purchases are not captured in spending totals or savings rate.";
+            if (savingsRateCaveat == null) {
+                savingsRateCaveat = cardNotice;
+            } else {
+                savingsRateCaveat = savingsRateCaveat + " " + cardNotice;
+            }
         }
 
         return new FinancialFigures(income, grossExpenses, refunds, netExpenses, netCashFlow, savingsRate, savingsRateApplicable, savingsRateCaveat);

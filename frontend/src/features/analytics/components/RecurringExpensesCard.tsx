@@ -38,7 +38,7 @@ export default function RecurringExpensesCard({ data }: RecurringExpensesCardPro
             </span>
             {recurringPercentageOfExpenses > 0 && (
               <span className="text-xs text-slate-500 font-medium">
-                ({recurringPercentageOfExpenses}% of spend)
+                ({recurringPercentageOfExpenses}% of a typical month’s spending)
               </span>
             )}
           </div>

@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Clock;
 import java.time.YearMonth;
 import java.util.List;
 
@@ -19,6 +20,7 @@ import java.util.List;
 public class BudgetController {
 
     private final BudgetService budgetService;
+    private final Clock clock;
 
     @PostMapping
     public ResponseEntity<BudgetDto> createBudget(
@@ -40,9 +42,13 @@ public class BudgetController {
     @GetMapping("/overview")
     public ResponseEntity<MonthlyBudgetOverviewResponse> getMonthlyOverview(
             @AuthenticationPrincipal User user,
+            @RequestParam(required = false) String yearMonth,
             @RequestParam(required = false) String month
     ) {
-        String targetMonth = (month != null && !month.isBlank()) ? month : YearMonth.now().toString();
+        // docs/API.md documents `yearMonth` (as the forecasting endpoint does); `month` is the older name the frontend
+        // sends, kept as an alias. Before, `yearMonth` was silently ignored and the current month came back.
+        String requested = (yearMonth != null && !yearMonth.isBlank()) ? yearMonth : month;
+        String targetMonth = (requested != null && !requested.isBlank()) ? requested : YearMonth.now(clock).toString();
         return ResponseEntity.ok(budgetService.getMonthlyOverview(user, targetMonth));
     }
 

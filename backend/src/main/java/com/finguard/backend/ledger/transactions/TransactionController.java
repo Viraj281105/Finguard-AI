@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,7 +38,7 @@ public class TransactionController {
     @PostMapping
     public ResponseEntity<TransactionResponse> create(@Valid @RequestBody TransactionRequest request,
                                                       @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(TransactionResponse.from(transactionService.create(request, user)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(TransactionResponse.from(transactionService.create(request, user)));
     }
 
     @GetMapping
@@ -45,6 +46,7 @@ public class TransactionController {
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
+            @RequestParam(required = false, defaultValue = "false") boolean unpaged,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(required = false) TransactionType type,
@@ -63,13 +65,12 @@ public class TransactionController {
 
         Pageable pageable;
         Sort sort = Sort.by(Sort.Order.desc("date"), Sort.Order.desc("createdAt"));
-        if (page != null) {
-            int pageSize = (size != null) ? size : 20;
-            pageable = PageRequest.of(page, pageSize, sort);
-        } else if (size != null) {
-            pageable = PageRequest.of(0, size, sort);
-        } else {
+        if (unpaged) {
             pageable = Pageable.unpaged(sort);
+        } else {
+            int pageIndex = (page != null) ? page : 0;
+            int pageSize = (size != null) ? size : 20;
+            pageable = PageRequest.of(pageIndex, pageSize, sort);
         }
 
         Page<Transaction> result = transactionService.list(user, from, to, type, category, needsReview, pageable);
@@ -80,6 +81,10 @@ public class TransactionController {
             headers.add("X-Page", String.valueOf(result.getNumber()));
             headers.add("X-Page-Size", String.valueOf(result.getSize()));
             headers.add("X-Total-Pages", String.valueOf(result.getTotalPages()));
+        } else {
+            headers.add("X-Page", "0");
+            headers.add("X-Page-Size", String.valueOf(result.getTotalElements()));
+            headers.add("X-Total-Pages", "1");
         }
 
         List<TransactionResponse> body = result.getContent().stream()

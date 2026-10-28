@@ -29,6 +29,7 @@ SUPPORTED = [
     ("UPI-BIGBASKET-bigbasket@hdfcbank-HDFC0000001-412345678901", DEBIT, Category.GROCERIES),
     ("POS 4567XXXXXX1234 DMART AVENUE SUPERMARTS", DEBIT, Category.GROCERIES),
     ("UPI-SWIGGY INSTAMART-swiggy@icici", DEBIT, Category.GROCERIES),
+    ("POS 4567XXXXXX1234 BIG BAZAAR GROCERIES", DEBIT, Category.GROCERIES),
     ("UPI-ZOMATO-zomato@hdfcbank-order", DEBIT, Category.DINING),
     ("POS MCDONALD'S BENGALURU", DEBIT, Category.DINING),
     ("UPI-STARBUCKS COFFEE-starbucks@okaxis", DEBIT, Category.DINING),
@@ -48,6 +49,7 @@ SUPPORTED = [
     ("AMAZON SELLER SERVICES AMAZON", DEBIT, Category.SHOPPING),
     ("UPI-MYNTRA-myntra@axisbank", DEBIT, Category.SHOPPING),
     ("POS FLIPKART INTERNET", DEBIT, Category.SHOPPING),
+    ("UPI-AMAZON PAY-412345678901-SHOPPING", DEBIT, Category.SHOPPING),
     ("UPI-NETFLIX-netflix@icici-subscription", DEBIT, Category.SUBSCRIPTIONS),
     ("SPOTIFY INDIA", DEBIT, Category.SUBSCRIPTIONS),
     ("AMAZON PRIME MEMBERSHIP", DEBIT, Category.SUBSCRIPTIONS),
@@ -65,8 +67,8 @@ SUPPORTED = [
     ("REDEMPTION MUTUAL FUND CREDIT", CREDIT, Category.INVESTMENTS),
     ("FD BOOKING 0123456", DEBIT, Category.INVESTMENTS),
     ("SELF TRANSFER TO SAVINGS ACCOUNT", DEBIT, Category.TRANSFERS),
-    ("NEFT-RAMESH KUMAR-NEFT TRANSFER", DEBIT, Category.TRANSFERS),
-    ("IMPS-412345678901-PRIYA SHARMA", CREDIT, Category.TRANSFERS),
+    ("FUND TRANSFER TO SAVINGS", DEBIT, Category.TRANSFERS),
+    ("SWEEP IN FROM FD", CREDIT, Category.TRANSFERS),
     ("HDFC CREDIT CARD BILL PAYMENT", DEBIT, Category.CARD_PAYMENTS),
     ("CRED CLUB CARD PAYMENT", DEBIT, Category.CARD_PAYMENTS),
     ("BILLDESK ICICI BANK CREDIT CARD", DEBIT, Category.CARD_PAYMENTS),
@@ -102,6 +104,7 @@ UNCERTAIN = [
     ("XYZ TRADERS PVT LTD", DEBIT, "No rule"),
     ("POS 4567XXXXXX1234 JOES SHOP", DEBIT, "No rule"),
     ("ATM WDL, MG ROAD BENGALURU", DEBIT, "Cash"),
+    ("NFS ATM WDL KORAMANGALA", DEBIT, "Cash"),
     ("CASH DEPOSIT BRANCH", CREDIT, "Cash"),
     ("BILLDESK PAYMENT", DEBIT, "gateway"),
     ("PAYTM", DEBIT, "gateway"),
@@ -109,6 +112,9 @@ UNCERTAIN = [
     ("", DEBIT, "no usable text"),
     ("   ", CREDIT, "no usable text"),
     ("0012345678901", DEBIT, "no usable text"),
+    ("NEFT-RAMESH KUMAR-NEFT TRANSFER", DEBIT, "rail"),
+    ("IMPS-412345678901-PRIYA SHARMA", CREDIT, "rail"),
+    ("RTGS-ROHAN MEHTA-PERSONAL", DEBIT, "rail"),
 ]
 
 
@@ -142,10 +148,10 @@ def test_a_more_specific_rule_wins_but_the_competing_category_is_reported():
 
 
 def test_weak_evidence_is_flagged_for_review_with_the_weaker_confidence():
-    weak = run("NEFT-SOME PERSON-NEFT", DEBIT)
+    weak = run("FREELANCE CONSULTING WORK", CREDIT)
     strong = run("UPI-ZEPTO-zepto@icici", DEBIT)
 
-    assert weak.category is Category.TRANSFERS and weak.needs_review
+    assert weak.category is Category.INCOME and weak.needs_review
     assert strong.category is Category.GROCERIES and not strong.needs_review
     assert weak.confidence < strong.confidence
 
@@ -251,3 +257,39 @@ def test_chain_returns_the_first_abstention_when_everyone_abstains():
 def test_empty_chain_is_rejected():
     with pytest.raises(ValueError):
         ClassifierChain([])
+
+
+def test_adversarial_reproductions_and_edge_cases():
+    # 1. Freelancer consulting income via NEFT is recognized as INCOME
+    res = run("NEFT CR-ACME CORP-CONSULTING FEES", CREDIT)
+    assert res.category is Category.INCOME
+
+    # 2. NEFT client payment without keyword abstains as UNCATEGORIZED (never drops money as TRANSFERS)
+    res_client = run("NEFT CR-00123-CLIENT PAYMENT", CREDIT)
+    assert res_client.category is Category.UNCATEGORIZED
+    assert res_client.needs_review is True
+    assert "rail" in res_client.reason.lower()
+
+    # 3. Vendor payment via IMPS without explicit merchant abstains as UNCATEGORIZED
+    res_vendor = run("IMPS-P2A-VENDOR PAYMENT", DEBIT)
+    assert res_vendor.category is Category.UNCATEGORIZED
+    assert res_vendor.needs_review is True
+
+    # 4. Person-to-person UPI transfer abstains as UNCATEGORIZED
+    res_p2p = run("UPI-PAYMENT TO FRIEND-friend@okhdfcbank", DEBIT)
+    assert res_p2p.category is Category.UNCATEGORIZED
+
+    # 5. ATM cash withdrawal abstains as UNCATEGORIZED with Cash reason
+    res_atm = run("ATM CASH WITHDRAWAL SBI ATM", DEBIT)
+    assert res_atm.category is Category.UNCATEGORIZED
+    assert "cash" in res_atm.reason.lower()
+
+    # 6. Refund from merchant credit is recognized as REFUND
+    res_refund = run("REFUND FROM FLIPKART INTERNET", CREDIT)
+    assert res_refund.category is Category.REFUNDS
+
+    # 7. Own-account sweep-in or self-transfer is correctly classified as TRANSFERS
+    res_self = run("TRANSFER TO OWN SAVINGS ACCOUNT", DEBIT)
+    assert res_self.category is Category.TRANSFERS
+    assert not res_self.needs_review
+

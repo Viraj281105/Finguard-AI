@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeParseException;
@@ -26,13 +27,24 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class BudgetService {
 
     private static final Pattern YEAR_MONTH_PATTERN = Pattern.compile("^[0-9]{4}-(0[1-9]|1[0-2])$");
 
     private final BudgetRepository budgetRepository;
     private final TransactionRepository transactionRepository;
+    private final Clock clock;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public BudgetService(BudgetRepository budgetRepository, TransactionRepository transactionRepository, Clock clock) {
+        this.budgetRepository = budgetRepository;
+        this.transactionRepository = transactionRepository;
+        this.clock = clock;
+    }
+
+    public BudgetService(BudgetRepository budgetRepository, TransactionRepository transactionRepository) {
+        this(budgetRepository, transactionRepository, Clock.system(java.time.ZoneId.of("Asia/Kolkata")));
+    }
 
     @Transactional
     public BudgetDto createBudget(User user, CreateBudgetRequest request) {
@@ -115,6 +127,13 @@ public class BudgetService {
             TransactionCategory cat = parseCategory(t.getCategory());
             Flow flow = cat != null ? cat.flow() : Flow.UNKNOWN;
 
+            // An unreviewed automatic category must not be treated as NON_SPENDING or REFUND
+            if (t.isCategoryNeedsReview()) {
+                if (flow == Flow.NON_SPENDING || flow == Flow.REFUND) {
+                    flow = Flow.UNKNOWN;
+                }
+            }
+
             // Exclude non-spending (TRANSFERS, CARD_PAYMENTS, INVESTMENTS)
             if (flow == Flow.NON_SPENDING) {
                 continue;
@@ -131,8 +150,10 @@ public class BudgetService {
             } else if (t.getType() == TransactionType.INCOME) {
                 if (flow == Flow.REFUND || flow == Flow.EXPENSE) {
                     totalRefunds = totalRefunds.add(t.getAmount());
-                    categorySpends.computeIfAbsent(catKey, k -> new CategorySpendAccumulator())
-                            .addCredit(t.getAmount());
+                    if (cat != TransactionCategory.REFUNDS) {
+                        categorySpends.computeIfAbsent(catKey, k -> new CategorySpendAccumulator())
+                                .addCredit(t.getAmount());
+                    }
                 }
             }
         }
@@ -232,7 +253,7 @@ public class BudgetService {
 
         // 7. Contextual warnings
         List<String> warnings = new ArrayList<>();
-        YearMonth currentYm = YearMonth.now();
+        YearMonth currentYm = YearMonth.now(clock);
         if (ym.isAfter(currentYm)) {
             warnings.add("Future budget period. Spending will be tracked as transactions are recorded for this month.");
         }

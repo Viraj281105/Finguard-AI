@@ -2,7 +2,6 @@ package com.finguard.backend.common;
 
 import com.finguard.backend.support.IntegrationTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 

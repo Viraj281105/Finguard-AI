@@ -13,6 +13,7 @@ import com.finguard.backend.identity.web.RegisterRequest;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.Instant;
 
 @Slf4j
@@ -91,14 +93,31 @@ public class AuthService {
             String email = jwtService.extractUsername(refreshToken, JwtService.REFRESH);
             String tokenHash = jwtService.hashToken(refreshToken);
 
-            RefreshToken stored = refreshTokenRepository.findByTokenHash(tokenHash)
+            // Row lock: two concurrent refreshes of the same token must not both succeed (found by the end-to-end audit).
+            RefreshToken stored = refreshTokenRepository.findByTokenHashForUpdate(tokenHash)
                     .orElseThrow(() -> ApiException.unauthorized("Invalid refresh token"));
 
             if (stored.isRevoked()) {
-                // Reuse detection: an already rotated or revoked token was replayed.
-                // Revoke the entire family of sessions for this user.
-                refreshTokenRepository.revokeAllForUserId(stored.getUser().getId());
-                log.warn("Revoked refresh token replayed for user id={}; revoked all active sessions", stored.getUser().getId());
+                // Check if this token was rotated recently within a grace window (30 seconds).
+                // A concurrent browser tab or in-flight request race may present the just-rotated token;
+                // do NOT revoke the user's active session family in this benign race case (O-03).
+                boolean withinGracePeriod = false;
+                if (stored.getReplacedByTokenHash() != null) {
+                    var replacement = refreshTokenRepository.findByTokenHash(stored.getReplacedByTokenHash());
+                    if (replacement.isPresent() && !replacement.get().isRevoked()
+                            && replacement.get().getCreatedAt().isAfter(Instant.now().minusSeconds(30))) {
+                        withinGracePeriod = true;
+                    }
+                }
+
+                if (!withinGracePeriod) {
+                    // Reuse detection: an already rotated or revoked token was replayed outside the grace window.
+                    // Revoke the entire family of sessions for this user.
+                    refreshTokenRepository.revokeAllForUserId(stored.getUser().getId());
+                    log.warn("Revoked refresh token replayed for user id={}; revoked all active sessions", stored.getUser().getId());
+                } else {
+                    log.info("Refresh token replayed within grace window (30s) for user id={}; session family preserved", stored.getUser().getId());
+                }
                 throw ApiException.unauthorized("Invalid refresh token");
             }
 
@@ -134,21 +153,30 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(String refreshToken, User user) {
+    public void logout(String refreshToken, User user, boolean allDevices) {
+        if (allDevices && user != null) {
+            refreshTokenRepository.revokeAllForUserId(user.getId());
+            log.info("Revoked all active sessions for user id={}", user.getId());
+            return;
+        }
+
         if (refreshToken != null && !refreshToken.isBlank()) {
             try {
                 String tokenHash = jwtService.hashToken(refreshToken);
                 refreshTokenRepository.findByTokenHash(tokenHash).ifPresent(rt -> {
                     rt.setRevoked(true);
                     refreshTokenRepository.save(rt);
+                    log.info("Revoked refresh token for session user id={}", rt.getUser().getId());
                 });
             } catch (Exception e) {
                 log.debug("Could not hash refresh token on logout: {}", e.getMessage());
             }
         }
-        if (user != null) {
-            refreshTokenRepository.revokeAllForUserId(user.getId());
-        }
+    }
+
+    @Transactional
+    public void logout(String refreshToken, User user) {
+        logout(refreshToken, user, false);
     }
 
     private AuthResponse issueTokens(User user) {
@@ -160,5 +188,26 @@ public class AuthService {
         refreshTokenRepository.save(new RefreshToken(user, tokenHash, expiresAt));
 
         return new AuthResponse(accessToken, refreshToken, user.getEmail(), user.getName());
+    }
+
+    @Transactional
+    public int purgeExpiredTokens(Instant now) {
+        Instant expiredCutoff = now != null ? now : Instant.now();
+        // Retain revoked tokens for 7 days for replay-attack detection history, then delete
+        Instant revokedCutoff = expiredCutoff.minus(Duration.ofDays(7));
+        int deleted = refreshTokenRepository.deleteExpiredOrRevokedBefore(expiredCutoff, revokedCutoff);
+        if (deleted > 0) {
+            log.info("Purged {} expired or revoked refresh tokens from database", deleted);
+        }
+        return deleted;
+    }
+
+    @Scheduled(cron = "${app.security.token-purge-cron:0 0 3 * * ?}")
+    public void scheduledTokenPurge() {
+        try {
+            purgeExpiredTokens(Instant.now());
+        } catch (Exception e) {
+            log.error("Scheduled refresh token purge failed: {}", e.getMessage());
+        }
     }
 }

@@ -52,7 +52,14 @@ export default function SavedScenariosCard({ refreshKey }: { refreshKey: number 
     forecastAPI
       .rerunScenario(id)
       .then((r) => { setRerun(r); setError(""); })
-      .catch((e) => setError(apiErrorMessage(e, "Could not re-run that scenario.")))
+      .catch((e) => {
+        const msg = apiErrorMessage(e, "Could not re-run that scenario.");
+        if (/unknown loan/i.test(msg)) {
+          setError("This scenario references a loan that no longer exists in your account and cannot be re-run.");
+        } else {
+          setError(msg);
+        }
+      })
       .finally(() => setBusy(null));
   };
 

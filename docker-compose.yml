@@ -9,8 +9,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-finguard_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-finguard_pass}
     ports:
-      # Host port 5433 (not 5432) so it never collides with a PostgreSQL installed on the machine.
-      - "${POSTGRES_HOST_PORT:-5433}:5432"
+      # Host port 5433 (not 5432) bound to 127.0.0.1 so it is not exposed to the local network.
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -26,7 +26,8 @@ services:
       AI_LOG_LEVEL: ${AI_LOG_LEVEL:-INFO}
       AI_INTERNAL_TOKEN: ${AI_INTERNAL_TOKEN:-}
     ports:
-      - "${AI_HOST_PORT:-8000}:8000"
+      # Bound to 127.0.0.1 so the AI service is not accessible from the local network.
+      - "127.0.0.1:${AI_HOST_PORT:-8000}:8000"
     # The image defines its own HEALTHCHECK (GET /health).
 
 volumes:

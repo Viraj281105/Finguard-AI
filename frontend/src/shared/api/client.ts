@@ -1,5 +1,5 @@
 import axios, { isAxiosError, type InternalAxiosRequestConfig } from "axios";
-import { clearToken, getRefreshToken, getToken, setTokens } from "../auth/tokenStorage";
+import { clearToken, getToken, isAuthenticated, setTokens } from "../auth/tokenStorage";
 
 /** Set VITE_API_BASE_URL (see .env.example) to point the app at a different backend. */
 export const API_BASE_URL: string =
@@ -39,12 +39,11 @@ interface CustomRequestConfig extends InternalAxiosRequestConfig {
 let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
 
-async function executeRefresh(): Promise<string | null> {
-  const storedRefreshToken = getRefreshToken();
+async function performRefreshCall(): Promise<string | null> {
   try {
     const res = await axios.post<{ accessToken: string; refreshToken?: string }>(
       `${API_BASE_URL}/auth/refresh`,
-      { refreshToken: storedRefreshToken ?? undefined },
+      {},
       { withCredentials: true }
     );
     const newAccessToken = res.data.accessToken;
@@ -54,6 +53,21 @@ async function executeRefresh(): Promise<string | null> {
     clearToken();
     return null;
   }
+}
+
+async function executeRefresh(): Promise<string | null> {
+  const tokenBefore = getToken();
+  // Coordinate across multiple browser tabs using Web Locks when supported (O-03)
+  if (typeof navigator !== "undefined" && navigator?.locks?.request) {
+    return navigator.locks.request("finguard_auth_refresh", async () => {
+      const currentToken = getToken();
+      if (currentToken && currentToken !== tokenBefore && isAuthenticated()) {
+        return currentToken;
+      }
+      return performRefreshCall();
+    });
+  }
+  return performRefreshCall();
 }
 
 // Interceptor handles 401 on protected routes via silent refresh with rotation.

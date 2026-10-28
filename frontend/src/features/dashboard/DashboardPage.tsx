@@ -41,6 +41,13 @@ export default function DashboardPage() {
   );
 
   const { data, loading, error, reload } = useResource(fetchDashboard, LOAD_ERROR);
+  // The recommendations panel and the forecast preview load their own data. After an import they must be re-created or
+  // they keep showing the pre-import answer ("not enough history") until a manual reload (found by the end-to-end audit).
+  const [importCount, setImportCount] = useState(0);
+  const handleImported = () => {
+    reload();
+    setImportCount((n) => n + 1);
+  };
 
   const handleRangeChange = (from?: string, to?: string) => {
     setDateRange({ from, to });
@@ -97,7 +104,7 @@ export default function DashboardPage() {
               onClick={handleLogout}
               className="ml-2 sm:ml-4 px-3.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors border border-slate-200/60"
             >
-              Logout
+              Sign out
             </button>
           </div>
         </div>
@@ -141,7 +148,7 @@ export default function DashboardPage() {
               Upload CSV statements (HDFC, ICICI, SBI, Axis, Kotak) to refresh your financial intelligence
             </p>
           </div>
-          <CsvUpload onUploadComplete={reload} />
+          <CsvUpload onUploadComplete={handleImported} />
         </div>
 
         {/* Empty state for new users */}
@@ -262,10 +269,10 @@ export default function DashboardPage() {
             <BudgetHealthPreviewCard overview={data.budgetOverview} goals={data.goals} />
 
             {/* Predictive Forecasting Integration */}
-            <ForecastPreviewCard />
+            <ForecastPreviewCard key={`forecast-${importCount}`} />
 
             {/* Data-grounded general guidance */}
-            <RecommendationsPanel />
+            <RecommendationsPanel key={`reco-${importCount}`} />
 
             {/* Visualizations Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">

@@ -45,6 +45,12 @@ public class LoanService {
     }
 
     private void apply(Loan l, LoanRequest request) {
+        if (request.startDate() != null && request.endDate() != null && request.endDate().isBefore(request.startDate())) {
+            throw ApiException.badRequest("Loan end date cannot be before start date");
+        }
+        if (request.emiAmount() != null && request.principal() != null && request.emiAmount().compareTo(request.principal()) > 0) {
+            throw ApiException.badRequest("Monthly EMI amount cannot exceed the total loan principal");
+        }
         l.setName(request.name());
         l.setType(request.type());
         l.setPrincipal(request.principal());

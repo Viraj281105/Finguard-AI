@@ -82,7 +82,7 @@ class OwnershipApiTest extends IntegrationTest {
     private String createAs(TestUser user, Resource resource) throws Exception {
         MockHttpServletRequestBuilder request = as(user, post(resource.path()))
                 .contentType(MediaType.APPLICATION_JSON).content(json(resource.create()));
-        String body = mvc.perform(request).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        String body = mvc.perform(request).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
         JsonNode node = json.readTree(body);
         return node.get("id").asText();
     }

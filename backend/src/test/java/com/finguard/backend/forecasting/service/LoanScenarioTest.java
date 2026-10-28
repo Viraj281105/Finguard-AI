@@ -12,7 +12,6 @@ import com.finguard.backend.ledger.transactions.Transaction;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;

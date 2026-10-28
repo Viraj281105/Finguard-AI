@@ -4,6 +4,41 @@ Format: [Keep a Changelog](https://keepachangelog.com); versioning: [VERSIONING.
 Only work that **exists in the repository** is listed. Planned releases are in [RELEASE_PLAN.md](RELEASE_PLAN.md).
 No version has been tagged yet; v0.1.0 is pending (see [PROGRESS.md](PROGRESS.md)).
 
+## [Unreleased] — End-to-end audit fixes
+
+Found by running the whole application (Docker PostgreSQL + AI service, Spring Boot, Vite, a real browser) and attacking it; full report in
+[AUDIT_E2E_2026-10-27.md](AUDIT_E2E_2026-10-27.md). Every fix has a regression test and was re-verified on the live stack.
+
+### Fixed
+- **Transactions page showed only the first 20 transactions ("Page 1 of 1")** in a real browser: CORS did not expose the `X-Total-*` pagination headers (P0).
+- `GET /api/forecast/cash-flow` and `/categories` returned 500 when the ledger had no months in the last 12 (now `UNAVAILABLE` with a reason) (P1).
+- A refresh token could be redeemed by several concurrent requests (now row-locked: exactly one succeeds) (P1).
+- Import: impossible dates (`31/02/26`) were moved to the last day of the month (strict dates now); a negative amount in a credit column became income (now refused);
+  dates before 1990 or in the future are refused; a very long narration or absurd amount no longer fails the whole statement; concurrent overlapping imports no longer
+  fail a job; a 10,000-row statement is accepted (the header no longer counts).
+- Validation: oversized strings, amounts above ₹10 trillion, more than 2 decimals, interest above 100 % and long names/passwords are `400` with a field message instead of a
+  misleading `409` or `200`; a request without a multipart body is `400`, not `500`.
+- "Recurring commitments" share compared a monthly cost with six months of spending (9.63 % shown, 57.75 % true); now per month.
+- `GET /api/budgets/overview` honours the documented `yearMonth` parameter (the older `month` still works).
+- Dashboard recommendations panel and forecast preview now refresh after an import.
+- Database outage returns a fast `503` (was `401`, which logged users out, or a 30 s hang then `500`); connection timeout 5 s.
+- **JWT storage and revocation (O-01, KI-051)**: Refresh tokens removed from `localStorage`. SPA silent refresh relies strictly on `HttpOnly; SameSite=Strict` cookie via `withCredentials: true`.
+- **Cross-tab refresh single-flighting & grace period (O-03, KI-052)**: Implemented Web Locks API (`finguard_auth_refresh` with localStorage fallback) in `client.ts` to single-flight token refreshes across tabs. Added 30s server grace period in `AuthService.java` where replay returns 401 without destroying the session family (replay outside 30s revokes family).
+- **Cautious UPI & grocery categorisation (O-04, KI-053)**: Handled `amazon (pay )?shopping` under `SHOPPING` and supermarket grocery narrations under `GROCERIES` at `P_SPECIFIC` (80); expanded cautious abstention for ATM withdrawals (`nfs atm`, `matm`, `atm debit`). Holdout accuracy at 100%.
+- **Soft domain validation (O-05, KI-054)**: Manual transaction dates bounded between 1990-01-01 and tomorrow, direction-category compatibility enforced; loan end date must be >= start date and EMI <= principal; goal target date must be >= today.
+- **Saved scenario unknown loan recovery (O-06, KI-054)**: Gracefully handles scenarios whose referenced loan was deleted with clear user guidance ("This scenario references a loan that no longer exists in your account and cannot be re-run.").
+- **UI consistency & styling polish (O-07, KI-055)**: Standardized "Sign out" nav button; fixed category name truncation with flex shrink and title tooltips in `CategoryBreakdownChart`; fixed upload progress bar reaching 100% on complete.
+- **Statement import footer summary rows (O-08, KI-055)**: Bank summary/footer lines ("Opening Balance", "Total Debits", "Total Credits", "Closing Balance") skipped as metadata rather than failing as rejected rows.
+- **Transaction default pagination (O-09, KI-054)**: `GET /api/transactions` defaults to `page=0, size=20` unless `unpaged=true` is explicitly requested; emits pagination headers `X-Total-Count`, `X-Page`, `X-Page-Size`, `X-Total-Pages`.
+
+### Tests
+- Full automated test suite passing: **665 automated tests** (387 backend, 150 frontend, 128 AI), 0 failures, 0 errors, 0 skipped.
+- Live stack & browser verification across all major pages (Dashboard, Budgets & Goals, Loans, Investments, Transactions, Forecasting), mobile responsive layouts (375px), and sign-out flow.
+
+### Open (documented architectural trade-offs)
+- **O-02**: Access tokens stay valid up to 15 minutes after logout or session revocation (stateless JWT).
+- **O-10**: In-memory rate limiting, brute force lockout, and cookie storage are single-instance; distributed Redis store deferred to multi-replica production deployment (v1.0.0).
+
 ## [0.10.0] — Data-grounded recommendations
 
 Stage 9. General-guidance recommendations from the user's own computed figures (rules only: no LLM, no external call). Rules and defaults: [FINANCIAL_RULES.md §9](FINANCIAL_RULES.md#9-recommendation-rules-v0100).

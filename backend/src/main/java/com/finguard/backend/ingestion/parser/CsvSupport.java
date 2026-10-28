@@ -8,6 +8,7 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
@@ -16,24 +17,60 @@ import java.util.Locale;
 /** Small helpers shared by the bank parsers. */
 final class CsvSupport {
 
+    /**
+     * STRICT resolution: a date that does not exist (31/02/26) is an error, not silently moved to the last day of the
+     * month by the lenient SMART style (found by the end-to-end audit). Strict mode needs {@code u} (proleptic year)
+     * instead of {@code y}; two-digit {@code uu} years are 2000-2099.
+     */
+    private static DateTimeFormatter strict(String pattern) {
+        return DateTimeFormatter.ofPattern(pattern, Locale.ENGLISH).withResolverStyle(ResolverStyle.STRICT);
+    }
+
     private static final List<DateTimeFormatter> FALLBACK_DATE_FORMATTERS = List.of(
-            DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH),
-            DateTimeFormatter.ofPattern("dd/MM/yy", Locale.ENGLISH),
-            DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.ENGLISH),
-            DateTimeFormatter.ofPattern("dd-MM-yy", Locale.ENGLISH),
-            DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.ENGLISH),
-            DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH)
+            strict("dd/MM/uuuu"),
+            strict("dd/MM/uu"),
+            strict("dd-MM-uuuu"),
+            strict("dd-MM-uu"),
+            strict("dd MMM uuuu"),
+            strict("d MMM uuuu"),
+            strict("uuuu-MM-dd")
     );
 
-    record ParsedAmount(BigDecimal amount, Boolean isCreditHint) {
+    /** Earliest statement date accepted. Anything older is a parsing accident, not a bank transaction. */
+    static final LocalDate EARLIEST_PLAUSIBLE_DATE = LocalDate.of(1990, 1, 1);
+
+    /** Largest single amount accepted (₹10 trillion). Larger values are data errors that would overflow storage. */
+    static final BigDecimal MAX_PLAUSIBLE_AMOUNT = new BigDecimal("10000000000000");
+
+    /** Longest title stored (the {@code transactions.title} column is varchar(255)). */
+    static final int MAX_TITLE_LENGTH = 255;
+
+    /**
+     * @param negative the cell carried a minus sign or was written in parentheses; the direction it implies is
+     *                 ambiguous in a debit/credit layout (it can be a reversal), so callers decide what to do.
+     */
+    record ParsedAmount(BigDecimal amount, Boolean isCreditHint, boolean negative) {
+    }
+
+    /** A statement cannot contain transactions from the future or from before 1990. */
+    static LocalDate requirePlausible(LocalDate date) {
+        LocalDate latest = LocalDate.now().plusDays(1); // one day of slack for time zones
+        if (date.isBefore(EARLIEST_PLAUSIBLE_DATE) || date.isAfter(latest)) {
+            throw new IllegalArgumentException("Date " + date + " is outside the plausible range (" + EARLIEST_PLAUSIBLE_DATE + " to today)");
+        }
+        return date;
+    }
+
+    static String truncateTitle(String title) {
+        return title.length() <= MAX_TITLE_LENGTH ? title : title.substring(0, MAX_TITLE_LENGTH - 3) + "...";
     }
 
     private CsvSupport() {
     }
 
+    /** The bank's preferred format, also strict (see {@link #strict}); {@code y} in the pattern is read as {@code u}. */
     static DateTimeFormatter dateFormat(String pattern) {
-        return DateTimeFormatter.ofPattern(pattern, Locale.ENGLISH);
+        return strict(pattern.replace('y', 'u'));
     }
 
     static List<String[]> readCsv(String content) {
@@ -143,13 +180,17 @@ final class CsvSupport {
 
         try {
             BigDecimal amount = new BigDecimal(clean);
+            if (amount.abs().compareTo(MAX_PLAUSIBLE_AMOUNT) > 0) {
+                throw new IllegalArgumentException("Amount is implausibly large: '" + value.trim() + "'");
+            }
+            boolean negative = parenthesized || amount.signum() < 0;
             if (parenthesized || Boolean.FALSE.equals(isCredit) || amount.signum() < 0) {
-                return new ParsedAmount(amount.abs(), Boolean.FALSE);
+                return new ParsedAmount(amount.abs(), Boolean.FALSE, negative);
             }
             if (Boolean.TRUE.equals(isCredit)) {
-                return new ParsedAmount(amount.abs(), Boolean.TRUE);
+                return new ParsedAmount(amount.abs(), Boolean.TRUE, negative);
             }
-            return new ParsedAmount(amount.abs(), null);
+            return new ParsedAmount(amount.abs(), null, negative);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Cannot parse amount: '" + value.trim() + "'");
         }

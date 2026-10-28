@@ -42,6 +42,7 @@ public class ImportWorker {
 
     private static final String GENERIC_FAILURE = "Unexpected error while importing the statement. Please try again.";
     private static final int MAX_STORED_ROW_ERRORS = 50;
+    private static final int MAX_SAVE_ATTEMPTS = 3;
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final UploadJobRepository jobs;
@@ -90,20 +91,34 @@ public class ImportWorker {
                     .map(Transaction::getFingerprint)
                     .collect(java.util.stream.Collectors.toSet());
 
-            Set<String> existingFingerprints = transactions.findExistingFingerprints(userId, candidateFingerprints);
-
-            List<Transaction> toImport = new ArrayList<>();
-            int duplicateCount = 0;
-            for (Transaction tx : candidates) {
-                if (existingFingerprints.contains(tx.getFingerprint())) {
-                    duplicateCount++;
-                } else {
-                    toImport.add(tx);
+            List<Transaction> toImport;
+            int duplicateCount;
+            List<Transaction> saved;
+            // Two imports of overlapping statements can run at the same time: both see the rows as new and one hits the
+            // unique fingerprint index. The whole batch rolls back, so look again (the other import's rows are now
+            // duplicates) and save only what is still new, instead of failing the job (found by the end-to-end audit).
+            for (int attempt = 1; ; attempt++) {
+                Set<String> existingFingerprints = transactions.findExistingFingerprints(userId, candidateFingerprints);
+                toImport = new ArrayList<>();
+                duplicateCount = 0;
+                for (Transaction tx : candidates) {
+                    if (existingFingerprints.contains(tx.getFingerprint())) {
+                        duplicateCount++;
+                    } else {
+                        toImport.add(tx);
+                    }
+                }
+                try {
+                    // Persist first: saving financial data never depends on the AI service.
+                    saved = toImport.isEmpty() ? List.of() : transactions.saveAll(toImport);
+                    break;
+                } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                    if (attempt >= MAX_SAVE_ATTEMPTS) {
+                        throw e;
+                    }
+                    log.warn("[Job {}] a concurrent import stored some of the same rows; re-checking duplicates (attempt {})", jobId, attempt);
                 }
             }
-
-            // Persist first: saving financial data never depends on the AI service.
-            List<Transaction> saved = toImport.isEmpty() ? List.of() : transactions.saveAll(toImport);
 
             job.setRowsProcessed(toImport.size());
             job.setDuplicateRows(duplicateCount);

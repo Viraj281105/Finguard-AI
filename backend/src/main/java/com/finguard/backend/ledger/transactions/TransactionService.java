@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,17 +33,21 @@ public class TransactionService {
     private static final int LOCK_CHUNK = 500;
 
     private final TransactionRepository transactionRepository;
+    private final Clock clock;
 
     @Transactional
     public Transaction create(TransactionRequest request, User user) {
         Transaction t = new Transaction();
         t.setUser(user);
-        t.setDate(request.date() != null ? request.date() : LocalDate.now());
+        t.setDate(request.date() != null ? request.date() : LocalDate.now(clock));
         t.setSource(TransactionSource.MANUAL);
+        validateDate(t.getDate());
         apply(t, request);
         // A category supplied by the person creating the transaction is their choice.
         if (request.category() != null && !request.category().isBlank()) {
-            t.assignUserCategory(requireCategory(request.category()));
+            TransactionCategory cat = requireCategory(request.category());
+            validateCategoryTypeCompatibility(cat, t.getType());
+            t.assignUserCategory(cat);
         }
         return transactionRepository.save(t);
     }
@@ -109,6 +114,7 @@ public class TransactionService {
     public Transaction update(String id, TransactionRequest request, User user) {
         Transaction t = getById(id, user);
         if (request.date() != null) {
+            validateDate(request.date());
             t.setDate(request.date());
         }
         apply(t, request);
@@ -116,8 +122,13 @@ public class TransactionService {
             if (request.category().isBlank()) {
                 t.clearCategory();
             } else {
-                t.assignUserCategory(requireCategory(request.category()));
+                TransactionCategory cat = requireCategory(request.category());
+                validateCategoryTypeCompatibility(cat, t.getType());
+                t.assignUserCategory(cat);
             }
+        } else if (t.getCategory() != null && !t.getCategory().isBlank()) {
+            TransactionCategory existingCat = requireCategory(t.getCategory());
+            validateCategoryTypeCompatibility(existingCat, t.getType());
         }
         return transactionRepository.save(t);
     }
@@ -126,7 +137,9 @@ public class TransactionService {
     @Transactional
     public Transaction setUserCategory(String id, String category, User user) {
         Transaction t = getById(id, user);
-        t.assignUserCategory(requireCategory(category));
+        TransactionCategory cat = requireCategory(category);
+        validateCategoryTypeCompatibility(cat, t.getType());
+        t.assignUserCategory(cat);
         return transactionRepository.save(t);
     }
 
@@ -210,6 +223,22 @@ public class TransactionService {
 
     private static String validIds() {
         return Arrays.stream(TransactionCategory.values()).map(Enum::name).collect(Collectors.joining(", "));
+    }
+
+    private static void validateCategoryTypeCompatibility(TransactionCategory category, TransactionType type) {
+        if (!category.allowedFor(type)) {
+            throw ApiException.badRequest("Category '" + category.name() + "' is not compatible with transaction type " + type);
+        }
+    }
+
+    private void validateDate(LocalDate date) {
+        if (date != null) {
+            LocalDate earliest = LocalDate.of(1990, 1, 1);
+            LocalDate latest = LocalDate.now(clock).plusDays(1);
+            if (date.isBefore(earliest) || date.isAfter(latest)) {
+                throw ApiException.badRequest("Transaction date " + date + " is outside the plausible range (1990 to today)");
+            }
+        }
     }
 
     private static String abbreviate(String value) {

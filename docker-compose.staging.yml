@@ -1,0 +1,13 @@
+# Local STAGING overlay. Isolated from the development stack: separate compose project (finguard-staging),
+# separate container names, separate volume, loopback-only ports. Synthetic data only.
+# Use through scripts/staging-up.ps1 (it generates throwaway secrets into .staging/staging.env).
+services:
+  postgres:
+    container_name: finguard-staging-postgres
+    ports: !override
+      - "127.0.0.1:${STAGING_PG_PORT:-15433}:5432"
+
+  ai:
+    container_name: finguard-staging-ai
+    ports: !override
+      - "127.0.0.1:${STAGING_AI_PORT:-18000}:8000"

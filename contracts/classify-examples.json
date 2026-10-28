@@ -104,14 +104,14 @@
       },
       {
         "id": "tx-weak-transfer",
-        "category": "TRANSFERS",
-        "confidence": 0.55,
+        "category": "UNCATEGORIZED",
+        "confidence": 0.0,
         "confidence_calibrated": false,
-        "method": "rule",
+        "method": "none",
         "model_version": "rules-1.0.0",
-        "rule_id": "transfers.neft",
+        "rule_id": null,
         "needs_review": true,
-        "reason": "Matched rule transfers.neft",
+        "reason": "Payment channel (NEFT/IMPS/RTGS/TRF) indicates transfer rail, not financial purpose or own-account movement; review required",
         "alternatives": []
       },
       {

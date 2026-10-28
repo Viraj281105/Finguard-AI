@@ -3,6 +3,7 @@ package com.finguard.backend.ledger.investments;
 import com.finguard.backend.identity.domain.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,7 +27,7 @@ public class InvestmentController {
     @PostMapping
     public ResponseEntity<InvestmentResponse> create(@Valid @RequestBody InvestmentRequest request,
                                                      @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(InvestmentResponse.from(investmentService.create(request, user)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(InvestmentResponse.from(investmentService.create(request, user)));
     }
 
     @GetMapping

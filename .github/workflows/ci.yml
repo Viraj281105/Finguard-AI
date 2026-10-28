@@ -6,16 +6,21 @@ on:
   pull_request:
     branches: [ main ]
 
+# Least privilege: no job needs to write to the repository.
+permissions:
+  contents: read
+
+# Third-party actions are pinned to a full commit SHA (the comment names the release it points to).
 jobs:
   backend:
     name: Backend (Java / Spring Boot)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -26,7 +31,7 @@ jobs:
 
       # The backend tests start the real Python AI service to verify the Java <-> Python contract.
       - name: Set up Python 3.12 for the live AI contract tests
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
 
@@ -45,7 +50,7 @@ jobs:
 
       - name: Upload JaCoCo Coverage Report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: jacoco-coverage-report
           path: backend/target/site/jacoco/
@@ -56,10 +61,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js 24
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: 'npm'
@@ -85,20 +90,20 @@ jobs:
         working-directory: frontend
         run: npm run build
 
+      # Blocking: a high or critical advisory in the dependency tree fails the build.
       - name: Security Audit
         working-directory: frontend
-        run: npm audit --audit-level=critical
-        continue-on-error: true
+        run: npm audit --audit-level=high
 
   ai-service:
     name: AI Service (Python / FastAPI)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
           cache: 'pip'

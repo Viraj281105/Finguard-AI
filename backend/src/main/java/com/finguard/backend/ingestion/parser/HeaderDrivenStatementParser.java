@@ -74,11 +74,17 @@ public abstract class HeaderDrivenStatementParser implements BankStatementParser
             int rowNumber = i + 1; // 1-indexed line number in the source file
             String rawLine = String.join(",", cols);
 
+            // Skip summary and footer rows (e.g. opening/closing balances, transaction totals, page numbers)
+            if (isSummaryOrFooterRow(rawLine)) {
+                skippedRows++;
+                continue;
+            }
+
             // 1. Date
             String dateVal = CsvSupport.get(cols, mapping.dateCol);
             LocalDate date;
             try {
-                date = CsvSupport.parseDate(dateVal, preferredDateFormat);
+                date = CsvSupport.requirePlausible(CsvSupport.parseDate(dateVal, preferredDateFormat));
             } catch (IllegalArgumentException e) {
                 // If the date is completely empty and no amounts exist, classify as skipped metadata row
                 String debitStr = mapping.debitCol != -1 ? CsvSupport.get(cols, mapping.debitCol) : "";
@@ -93,7 +99,7 @@ public abstract class HeaderDrivenStatementParser implements BankStatementParser
             }
 
             // 2. Description
-            String title = CsvSupport.normalizeDescription(CsvSupport.get(cols, mapping.descCol));
+            String title = CsvSupport.truncateTitle(CsvSupport.normalizeDescription(CsvSupport.get(cols, mapping.descCol)));
             if (title.isBlank()) {
                 title = bank.name() + " Transaction";
             }
@@ -114,7 +120,13 @@ public abstract class HeaderDrivenStatementParser implements BankStatementParser
                     boolean hasDebit = debitVal != null && debitVal.signum() > 0;
                     boolean hasCredit = creditVal != null && creditVal.signum() > 0;
 
-                    if (!hasDebit && !hasCredit) {
+                    // A negative or parenthesised debit is the documented way some banks print money out (KI-006) and stays an
+                    // expense. A negative CREDIT is a reversal under another name: reading it as income would silently turn money
+                    // out into money in, so that row is refused instead of guessed (found by the end-to-end audit).
+                    boolean negativeCredit = creditParsed != null && creditParsed.negative() && hasCredit;
+                    if (negativeCredit) {
+                        errors.add(RowError.of(rowNumber, "Negative amount in a credit column: the direction is ambiguous, so the row was not imported", rawLine));
+                    } else if (!hasDebit && !hasCredit) {
                         skippedRows++;
                     } else if (hasDebit && hasCredit) {
                         errors.add(RowError.of(rowNumber, "Ambiguous row: both debit and credit amounts are present", rawLine));
@@ -135,6 +147,10 @@ public abstract class HeaderDrivenStatementParser implements BankStatementParser
                         BigDecimal amt = amtParsed.amount();
                         TransactionType type = null;
 
+                        if (amtParsed.negative() && (mapping.crdrCol != -1 || amtParsed.isCreditHint() != null && Boolean.TRUE.equals(amtParsed.isCreditHint()))) {
+                            errors.add(RowError.of(rowNumber, "Negative amount together with a Cr/Dr indicator: the direction is ambiguous, so the row was not imported", rawLine));
+                            continue;
+                        }
                         if (mapping.crdrCol != -1) {
                             String crdr = CsvSupport.get(cols, mapping.crdrCol).toUpperCase(Locale.ROOT).trim();
                             if (crdr.contains("CR") || "C".equals(crdr)) {
@@ -246,6 +262,16 @@ public abstract class HeaderDrivenStatementParser implements BankStatementParser
         }
 
         return new ColumnMapping(dateCol, descCol, debitCol, creditCol, amtCol, crdrCol, balCol);
+    }
+
+    private static boolean isSummaryOrFooterRow(String rawLine) {
+        String lower = rawLine.toLowerCase(Locale.ROOT);
+        return lower.contains("opening balance") || lower.contains("closing balance")
+                || lower.contains("total debit") || lower.contains("total credit")
+                || lower.contains("total withdrawal") || lower.contains("total deposit")
+                || lower.contains("transaction total") || lower.contains("brought forward")
+                || lower.contains("carried forward") || lower.contains("statement summary")
+                || lower.contains("end of statement") || lower.matches(".*\\bpage\\s+\\d+\\s+of\\s+\\d+.*");
     }
 
     private record ColumnMapping(

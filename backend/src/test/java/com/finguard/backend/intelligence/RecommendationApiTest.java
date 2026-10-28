@@ -47,7 +47,7 @@ class RecommendationApiTest extends IntegrationTest {
         body.put("date", date);
         body.put("category", category);
         mvc.perform(as(user, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON).content(json(body)))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     /** Apr-Jun 2026: income 50,000; housing 20,000, dining 16,000, groceries 10,000 -> spending 46,000, savings rate 8 %. */
@@ -70,7 +70,7 @@ class RecommendationApiTest extends IntegrationTest {
         loan.put("emiAmount", emi);
         loan.put("interestRate", 9);
         loan.put("startDate", "2026-01-01");
-        mvc.perform(as(user, post("/api/loans")).contentType(MediaType.APPLICATION_JSON).content(json(loan))).andExpect(status().isOk());
+        mvc.perform(as(user, post("/api/loans")).contentType(MediaType.APPLICATION_JSON).content(json(loan))).andExpect(status().isCreated());
     }
 
     private JsonNode recommendations(TestUser user) throws Exception {

@@ -172,9 +172,9 @@ export default function CategoryBreakdownChart({ data }: CategoryBreakdownChartP
                     className="w-3 h-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: color }}
                   />
-                  <div className="truncate">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-semibold text-slate-800 truncate">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-semibold text-slate-800" title={cat.label}>
                         {cat.label}
                       </span>
                       {cat.isIncreasing && (

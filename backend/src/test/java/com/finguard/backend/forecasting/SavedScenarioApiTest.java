@@ -44,7 +44,7 @@ class SavedScenarioApiTest extends IntegrationTest {
         body.put("date", date);
         body.put("category", category);
         mvc.perform(as(user, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON).content(json(body)))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     private void sixSteadyMonths(TestUser user) throws Exception {

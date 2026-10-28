@@ -116,6 +116,8 @@ RULES: list[Rule] = [
             r"to self",
             r"sweep (in|out)",
             r"(savings|salary|current) account transfer",
+            r"transfer to (savings|current|own|self)",
+            r"fund transfer to (savings|current)",
         ),
     ),
     # ---- Fees whose wording is unambiguous (beat the broader categories) ------------------------
@@ -208,8 +210,14 @@ RULES: list[Rule] = [
     *_rules(
         C.GROCERIES,
         P_SPECIFIC,
-        strong=(r"swiggy instamart", r"instamart", r"zomato hyperpure", r"hyperpure",
-                r"amazon (pay )?(fresh|grocery|groceries)"),
+        strong=(
+            r"swiggy instamart",
+            r"instamart",
+            r"zomato hyperpure",
+            r"hyperpure",
+            r"amazon (pay )?(fresh|grocery|groceries)",
+            r"(big ?bazaar|star baza?ar|hypercity|supermarket|hypermarket) (groceries|grocery)",
+        ),
     ),
     *_rules(
         C.GROCERIES,
@@ -304,6 +312,11 @@ RULES: list[Rule] = [
     # ---- Shopping --------------------------------------------------------------------------------
     *_rules(
         C.SHOPPING,
+        P_SPECIFIC,
+        strong=(r"amazon (pay )?shopping",),
+    ),
+    *_rules(
+        C.SHOPPING,
         P_MERCHANT,
         strong=(
             r"flipkart", r"myntra", r"ajio", r"nykaa", r"meesho", r"snapdeal", r"tata ?cliq",
@@ -355,11 +368,12 @@ RULES: list[Rule] = [
                 r"(i|c|s)gst", r"stamp duty", r"charges", r"chrgs"),
     ),
     *_rules(C.FEES, P_GENERIC, weak=(r"fees?",)),
-    # ---- Transfers by channel: the narration says how, not why ----------------------------------
+    # ---- Transfers by channel: the narration says how, not why (abstain to avoid guessing purpose)
     *_rules(
-        C.TRANSFERS,
+        C.UNCATEGORIZED,
         P_CHANNEL,
-        weak=(r"neft", r"imps", r"rtgs", r"fund transfer", r"fund trf", r"tpt", r"trf"),
+        strong=(r"neft", r"imps", r"rtgs", r"fund transfer", r"fund trf", r"tpt", r"trf"),
+        reason="Payment channel (NEFT/IMPS/RTGS/TRF) indicates transfer rail, not financial purpose or own-account movement; review required",
     ),
     # ---- Explicit abstentions: well-known narrations that cannot be categorised honestly --------
     *_rules(
@@ -371,7 +385,14 @@ RULES: list[Rule] = [
     *_rules(
         C.UNCATEGORIZED,
         P_GENERIC,
-        strong=(r"atm (wdl|cash|withdrawal)", r"atm", r"cash (wdl|withdrawal|deposit)", r"cash dep"),
+        strong=(
+            r"atm (wdl|cash|withdrawal|debit)",
+            r"atm",
+            r"cash (wdl|withdrawal|deposit)",
+            r"cash dep",
+            r"nfs atm",
+            r"matm",
+        ),
         reason="Cash movement; what the cash was used for is unknown",
     ),
     *_rules(

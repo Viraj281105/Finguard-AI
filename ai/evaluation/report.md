@@ -12,7 +12,7 @@ Classifier under test: `rules-1.0.0` (method: rules). Regenerate with `cd ai; .\
 
 | Metric | `dev` | `holdout` |
 |---|---:|---:|
-| Rows | 59 | 133 |
+| Rows | 63 | 134 |
 | Accuracy (an abstention is correct when the label is UNCATEGORIZED) | 100.0% | 100.0% |
 | Coverage: labelled rows that received a category | 100.0% | 100.0% |
 | Precision when a category was asserted | 100.0% | 100.0% |
@@ -20,10 +20,10 @@ Classifier under test: `rules-1.0.0` (method: rules). Regenerate with `cd ai; .\
 | Abstained where the label was UNCATEGORIZED | 100.0% | 100.0% |
 | Macro-F1 over labelled categories | 100.0% | 100.0% |
 | Wrong category asserted (count) | 0 | 0 |
-| Rows asserted and flagged for review (precision) | 6 (100.0%) | 13 (100.0%) |
-| Rows asserted and not flagged for review (precision) | 44 (100.0%) | 107 (100.0%) |
+| Rows asserted and flagged for review (precision) | 5 (100.0%) | 8 (100.0%) |
+| Rows asserted and not flagged for review (precision) | 46 (100.0%) | 109 (100.0%) |
 
-Latency (in-process, 200 items, median of 20 runs): **25.42 ms** (max 30.36 ms). Measured on the machine that generated this report; it excludes HTTP and JSON overhead.
+Latency (in-process, 200 items, median of 20 runs): **26.47 ms** (max 31.14 ms). Measured on the machine that generated this report; it excludes HTTP and JSON overhead.
 
 ## `dev` — per-category results
 
@@ -34,7 +34,7 @@ Latency (in-process, 200 items, median of 20 runs): **25.42 ms** (max 30.36 ms).
 | EDUCATION | 2 | 100.0% | 100.0% | 100.0% |
 | ENTERTAINMENT | 2 | 100.0% | 100.0% | 100.0% |
 | FEES | 3 | 100.0% | 100.0% | 100.0% |
-| GROCERIES | 3 | 100.0% | 100.0% | 100.0% |
+| GROCERIES | 4 | 100.0% | 100.0% | 100.0% |
 | HEALTHCARE | 3 | 100.0% | 100.0% | 100.0% |
 | HOUSING | 2 | 100.0% | 100.0% | 100.0% |
 | INCOME | 3 | 100.0% | 100.0% | 100.0% |
@@ -42,9 +42,9 @@ Latency (in-process, 200 items, median of 20 runs): **25.42 ms** (max 30.36 ms).
 | INVESTMENTS | 4 | 100.0% | 100.0% | 100.0% |
 | LOAN_PAYMENTS | 2 | 100.0% | 100.0% | 100.0% |
 | REFUNDS | 3 | 100.0% | 100.0% | 100.0% |
-| SHOPPING | 3 | 100.0% | 100.0% | 100.0% |
+| SHOPPING | 4 | 100.0% | 100.0% | 100.0% |
 | SUBSCRIPTIONS | 3 | 100.0% | 100.0% | 100.0% |
-| TRANSFERS | 3 | 100.0% | 100.0% | 100.0% |
+| TRANSFERS | 2 | 100.0% | 100.0% | 100.0% |
 | TRANSPORT | 3 | 100.0% | 100.0% | 100.0% |
 | UTILITIES | 3 | 100.0% | 100.0% | 100.0% |
 
@@ -61,7 +61,7 @@ None.
 | EDUCATION |  |  | 2 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | ENTERTAINMENT |  |  |  | 2 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | FEES |  |  |  |  | 3 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| GROCERIES |  |  |  |  |  | 3 |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| GROCERIES |  |  |  |  |  | 4 |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | HEALTHCARE |  |  |  |  |  |  | 3 |  |  |  |  |  |  |  |  |  |  |  |  |
 | HOUSING |  |  |  |  |  |  |  | 2 |  |  |  |  |  |  |  |  |  |  |  |
 | INCOME |  |  |  |  |  |  |  |  | 3 |  |  |  |  |  |  |  |  |  |  |
@@ -69,11 +69,11 @@ None.
 | INVESTMENTS |  |  |  |  |  |  |  |  |  |  | 4 |  |  |  |  |  |  |  |  |
 | LOAN_PAYMENTS |  |  |  |  |  |  |  |  |  |  |  | 2 |  |  |  |  |  |  |  |
 | REFUNDS |  |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  |  |  |  |  |
-| SHOPPING |  |  |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  |  |  |  |
+| SHOPPING |  |  |  |  |  |  |  |  |  |  |  |  |  | 4 |  |  |  |  |  |
 | SUBSCRIPTIONS |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  |  |  |
-| TRANSFERS |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  |  |
+| TRANSFERS |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 2 |  |  |  |
 | TRANSPORT |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  |
-| UNCATEGORIZED |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 9 |  |
+| UNCATEGORIZED |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 12 |  |
 | UTILITIES |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 3 |
 
 ## `holdout` — per-category results
@@ -95,7 +95,7 @@ None.
 | REFUNDS | 5 | 100.0% | 100.0% | 100.0% |
 | SHOPPING | 8 | 100.0% | 100.0% | 100.0% |
 | SUBSCRIPTIONS | 7 | 100.0% | 100.0% | 100.0% |
-| TRANSFERS | 6 | 100.0% | 100.0% | 100.0% |
+| TRANSFERS | 3 | 100.0% | 100.0% | 100.0% |
 | TRANSPORT | 10 | 100.0% | 100.0% | 100.0% |
 | UTILITIES | 8 | 100.0% | 100.0% | 100.0% |
 
@@ -122,9 +122,9 @@ None.
 | REFUNDS |  |  |  |  |  |  |  |  |  |  |  |  | 5 |  |  |  |  |  |  |
 | SHOPPING |  |  |  |  |  |  |  |  |  |  |  |  |  | 8 |  |  |  |  |  |
 | SUBSCRIPTIONS |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 7 |  |  |  |  |
-| TRANSFERS |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 6 |  |  |  |
+| TRANSFERS |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  |  |
 | TRANSPORT |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 10 |  |  |
-| UNCATEGORIZED |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 13 |  |
+| UNCATEGORIZED |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 17 |  |
 | UTILITIES |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 8 |
 
 ## Changes made after reading the held-out errors
