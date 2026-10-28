@@ -24,7 +24,11 @@ services:
     container_name: finguard-ai
     environment:
       AI_LOG_LEVEL: ${AI_LOG_LEVEL:-INFO}
+      # dev (default) may run without a token; staging/prod refuse to start without AI_INTERNAL_TOKEN (>= 32 chars).
+      AI_ENV: ${AI_ENV:-dev}
       AI_INTERNAL_TOKEN: ${AI_INTERNAL_TOKEN:-}
+      # Rotation window: set to the old secret while the backend is moved to the new one, then clear it.
+      AI_INTERNAL_TOKEN_PREVIOUS: ${AI_INTERNAL_TOKEN_PREVIOUS:-}
     ports:
       # Bound to 127.0.0.1 so the AI service is not accessible from the local network.
       - "127.0.0.1:${AI_HOST_PORT:-8000}:8000"

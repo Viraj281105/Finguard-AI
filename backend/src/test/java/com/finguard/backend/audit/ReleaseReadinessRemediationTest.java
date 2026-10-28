@@ -330,6 +330,45 @@ class ReleaseReadinessRemediationTest extends IntegrationTest {
         }
 
         @Test
+        @DisplayName("Production requires the AI service shared secret (S0-06, KI-033)")
+        void securityEnvironmentGuardRequiresTheAiServiceSecretInProduction() {
+            SecurityEnvironmentGuard guard = new SecurityEnvironmentGuard();
+
+            // Missing secret
+            MockEnvironment missing = productionEnvironmentWithoutAiToken();
+            assertThatThrownBy(() -> guard.validateEnvironment(missing))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("ai.service.internal-token");
+
+            // Too short
+            MockEnvironment tooShort = productionEnvironmentWithoutAiToken();
+            tooShort.setProperty("ai.service.internal-token", "x".repeat(SecurityEnvironmentGuard.MIN_AI_TOKEN_LENGTH - 1));
+            assertThatThrownBy(() -> guard.validateEnvironment(tooShort))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("at least " + SecurityEnvironmentGuard.MIN_AI_TOKEN_LENGTH);
+
+            // Strong secret: the fully configured production environment starts
+            MockEnvironment ok = productionEnvironmentWithoutAiToken();
+            ok.setProperty("ai.service.internal-token", "x".repeat(SecurityEnvironmentGuard.MIN_AI_TOKEN_LENGTH));
+            org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> guard.validateEnvironment(ok));
+
+            // Development and test profiles are unaffected: no secret needed
+            MockEnvironment dev = new MockEnvironment();
+            dev.setActiveProfiles("dev");
+            dev.setProperty("jwt.secret", SecurityEnvironmentGuard.DEV_JWT_SECRET);
+            org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> guard.validateEnvironment(dev));
+        }
+
+        private MockEnvironment productionEnvironmentWithoutAiToken() {
+            MockEnvironment env = new MockEnvironment();
+            env.setActiveProfiles("prod");
+            env.setProperty("jwt.secret", "a_very_strong_and_secure_production_secret_key_1234567890");
+            env.setProperty("jwt.cookie-secure", "true");
+            env.setProperty("spring.datasource.password", "strong_prod_pass");
+            return env;
+        }
+
+        @Test
         @DisplayName("Rate limiter: Memory usage is bounded via LRU eviction")
         void rateLimiterMemoryIsBounded() {
             authRateLimiter.reset();

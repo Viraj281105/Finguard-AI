@@ -10,11 +10,12 @@ from fastapi import FastAPI
 from app import __version__
 from app.api import classify, health
 from app.classification.engine import build_default_classifier
-from app.core.config import Settings, get_settings
+from app.core.config import Settings, get_settings, validate_settings
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
+    validate_settings(settings)
     logging.basicConfig(level=settings.log_level)
 
     app = FastAPI(
