@@ -1,0 +1,55 @@
+# Weekly, grouped dependency updates (S0-07). Patch and minor updates are grouped to keep PR noise low;
+# majors arrive as individual PRs. Nothing auto-merges: every update passes CI and is reviewed.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: [ "*" ]
+
+  - package-ecosystem: maven
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      maven-minor-and-patch:
+        update-types: [ minor, patch ]
+    ignore:
+      # Spring Boot 3.5 -> 4.x is a planned, separate migration (roadmap S0-03).
+      - dependency-name: org.springframework.boot:spring-boot-starter-parent
+        update-types: [ version-update:semver-major ]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      npm-minor-and-patch:
+        update-types: [ minor, patch ]
+
+  - package-ecosystem: pip
+    directory: /ai
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      pip-minor-and-patch:
+        update-types: [ minor, patch ]
+
+  - package-ecosystem: docker
+    directory: /ai
+    schedule:
+      interval: weekly
+      day: monday
+
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
