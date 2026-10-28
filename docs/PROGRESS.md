@@ -3,6 +3,21 @@
 **As of 2026-10-25.** Evidence-based: everything under "Verified" was observed by running the command shown.
 Labels: see [README.md](README.md#status-vocabulary-used-in-every-document).
 
+> **CI baseline (S0-01, 2026-10-28) — first hosted run.** Sections below pre-date this entry and are otherwise unchanged.
+> The GitHub Actions workflow ran for the first time on current code in [PR 43](https://github.com/Viraj281105/Finguard-AI/pull/43)
+> ([run 40699640981](https://github.com/Viraj281105/Finguard-AI/actions/runs/40699640981), all 3 jobs **success**):
+>
+> | Job | Duration | Result |
+> |---|---|---|
+> | Backend (Java / Spring Boot) | 2 min 0 s | 387 tests, 0 failures/errors/skipped; the 5 live Java ↔ Python tests ran (not skipped) |
+> | Frontend (React / TypeScript / Vite) | 41 s | typecheck, lint, 150 tests, build clean; `npm audit --audit-level=high`: 0 vulnerabilities |
+> | AI Service (Python / FastAPI) | 17 s | ruff clean, 128 passed, evaluation metrics current |
+>
+> Changes: every third-party action pinned to a full commit SHA and upgraded to current majors; workflow `permissions: contents: read`;
+> `npm audit` is blocking at `high` (was non-blocking at `critical`); `zod` 4.3.6 → 4.6.7 (GHSA-mrhx-c7xc-m3w5).
+> Blocking audit proven: a throwaway PR adding `lodash@4.17.11` made the Frontend job fail at the audit step while the other two jobs passed (PR closed, branch deleted).
+> Still unverified in CI: Docker image builds (none exist for backend/frontend), the compose stack.
+
 ## 1. Snapshot
 
 | | |
