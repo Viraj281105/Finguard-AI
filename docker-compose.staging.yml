@@ -9,5 +9,8 @@ services:
 
   ai:
     container_name: finguard-staging-ai
+    environment:
+      # The staging AI service must run authenticated: it refuses to start without AI_INTERNAL_TOKEN.
+      AI_ENV: staging
     ports: !override
       - "127.0.0.1:${STAGING_AI_PORT:-18000}:8000"

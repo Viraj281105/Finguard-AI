@@ -997,8 +997,10 @@ Python service.
 
 **Authentication.** When `AI_INTERNAL_TOKEN` is set on the Python service it requires the same value in
 `X-Internal-Token` (constant-time comparison) on `/v1/*`; `/health` stays open. The backend sends the header when
-`ai.service.internal-token` (env `AI_INTERNAL_TOKEN`) is set. **When the variable is empty the check is disabled**
-(local development) — set it in every shared environment (KI-033).
+`ai.service.internal-token` (env `AI_INTERNAL_TOKEN`) is set. **The check is disabled only when `AI_ENV=dev`
+(the default) and the variable is empty.** With `AI_ENV=staging|prod` the AI service refuses to start without a token of
+at least 32 characters, and the backend's `prod` profile refuses to start without one (KI-033 resolved). During rotation
+the AI service also accepts `AI_INTERNAL_TOKEN_PREVIOUS`.
 
 **Client behaviour (`AiClient`).** Timeouts 5 s connect / 30 s read. Every prediction is validated before use:
 the id must belong to the request, the confidence must be finite and within [0, 1], the method must be known;
