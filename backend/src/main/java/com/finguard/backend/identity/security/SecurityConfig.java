@@ -2,7 +2,9 @@ package com.finguard.backend.identity.security;
 
 import com.finguard.backend.common.config.CorsProperties;
 import com.finguard.backend.identity.domain.UserRepository;
+import jakarta.servlet.ServletContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,7 +30,8 @@ import java.util.List;
 
 /**
  * Stateless JWT security with standard security headers and CORS protection.
- * Only {@code /api/auth/**} is public; everything else requires a valid access token.
+ * Only {@code /api/auth/**} is public on the main application port; health probes
+ * ({@code /actuator/health/**}) are permitted exclusively on the isolated management port.
  */
 @Configuration
 @EnableWebSecurity
@@ -39,9 +42,11 @@ public class SecurityConfig {
     private final UserRepository userRepository;
     private final CorsProperties corsProperties;
     private final RestAuthenticationHandlers authenticationHandlers;
+    private final ObjectProvider<ServletContext> mainServletContextProvider;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        ServletContext mainServletContext = mainServletContextProvider.getIfAvailable();
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(AbstractHttpConfigurer::disable)
@@ -54,6 +59,15 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(request -> {
+                    if (mainServletContext == null || request.getServletContext() == mainServletContext) {
+                        return false;
+                    }
+                    String uri = request.getRequestURI();
+                    return "/actuator/health".equals(uri)
+                        || "/actuator/health/liveness".equals(uri)
+                        || "/actuator/health/readiness".equals(uri);
+                }).permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
