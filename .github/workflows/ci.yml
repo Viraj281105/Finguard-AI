@@ -129,7 +129,7 @@ jobs:
         run: python -m evaluation.evaluate --check
 
   staging-smoke:
-    name: Reproducible Staging Smoke (S0-08)
+    name: Reproducible Staging Smoke & Restore Drill (S0-08 / S0-09)
     runs-on: ubuntu-latest
     needs: [backend, frontend, ai-service]
     steps:
@@ -148,6 +148,15 @@ jobs:
 
       - name: Run end-to-end staging smoke workflow
         run: node scripts/staging-smoke.mjs
+
+      - name: Rehearse PostgreSQL 18 backup and restore drill (S0-09)
+        env:
+          PG_CONTAINER: finguard-staging-postgres
+          POSTGRES_DB: finguard_staging
+          POSTGRES_USER: finguard_staging
+        run: |
+          chmod +x scripts/backup-db.sh scripts/restore-drill.sh
+          ./scripts/restore-drill.sh
 
       - name: Dump staging logs on failure
         if: failure()
