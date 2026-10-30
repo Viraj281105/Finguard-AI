@@ -1,6 +1,6 @@
 # Database
 
-PostgreSQL 15 (Docker image `postgres:15`; tests use embedded PostgreSQL **15.19**). The schema is owned by
+PostgreSQL 18 (Docker image `postgres:18`; tests use embedded PostgreSQL **18.6.0**). The schema is owned by
 Flyway migrations in [`backend/src/main/resources/db/migration`](../backend/src/main/resources/db/migration);
 Hibernate only **validates** it (`spring.jpa.hibernate.ddl-auto=validate`), so a schema/entity mismatch stops
 the application at startup.
