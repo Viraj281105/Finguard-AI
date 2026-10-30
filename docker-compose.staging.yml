@@ -1,6 +1,7 @@
-# Local STAGING overlay. Isolated from the development stack: separate compose project (finguard-staging),
-# separate container names, separate volume, loopback-only ports. Synthetic data only.
-# Use through scripts/staging-up.ps1 (it generates throwaway secrets into .staging/staging.env).
+# Local & CI STAGING overlay (S0-08).
+# Isolated from the development stack: separate compose project (finguard-staging),
+# separate container names, separate volume, loopback-only ports, and production profile settings.
+# Synthetic data only. Use through scripts/staging-up.ps1 or scripts/staging-up.sh.
 services:
   postgres:
     container_name: finguard-staging-postgres
@@ -9,5 +10,33 @@ services:
 
   ai:
     container_name: finguard-staging-ai
+    environment:
+      AI_ENV: staging
+      AI_LOG_LEVEL: ${AI_LOG_LEVEL:-INFO}
+      AI_INTERNAL_TOKEN: ${AI_INTERNAL_TOKEN}
     ports: !override
       - "127.0.0.1:${STAGING_AI_PORT:-18000}:8000"
+
+  backend:
+    container_name: finguard-staging-backend
+    profiles: ["full"]
+    environment:
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=UTC"
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-finguard_staging}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-finguard_staging}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_COOKIE_SECURE: "true"
+      CORS_ALLOWED_ORIGINS: "http://localhost:${STAGING_WEB_PORT:-14173},http://127.0.0.1:${STAGING_WEB_PORT:-14173}"
+      AI_SERVICE_URL: http://ai:8000
+      AI_INTERNAL_TOKEN: ${AI_INTERNAL_TOKEN}
+      MANAGEMENT_SERVER_PORT: 8081
+    ports: !override
+      - "127.0.0.1:${STAGING_API_PORT:-18080}:8080"
+
+  frontend:
+    container_name: finguard-staging-frontend
+    profiles: ["full"]
+    ports: !override
+      - "127.0.0.1:${STAGING_WEB_PORT:-14173}:8080"
