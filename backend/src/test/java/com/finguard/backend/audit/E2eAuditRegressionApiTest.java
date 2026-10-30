@@ -1,6 +1,6 @@
 package com.finguard.backend.audit;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.finguard.backend.support.IntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;

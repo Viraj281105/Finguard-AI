@@ -1,16 +1,16 @@
 package com.finguard.backend.support;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
 
 import java.util.Map;
 import java.util.UUID;
@@ -65,7 +65,8 @@ public abstract class IntegrationTest {
         return json.writeValueAsString(value);
     }
 
-    protected MockHttpServletRequestBuilder as(TestUser user, MockHttpServletRequestBuilder request) {
+    /** Spring Framework 7: plain and multipart builders share only the generic base, hence the type parameter. */
+    protected <B extends AbstractMockHttpServletRequestBuilder<B>> B as(TestUser user, B request) {
         return request.header("Authorization", user.bearer());
     }
 }

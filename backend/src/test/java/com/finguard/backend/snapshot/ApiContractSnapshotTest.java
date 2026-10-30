@@ -9,7 +9,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.RequestBuilder;
+import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -209,7 +210,7 @@ class ApiContractSnapshotTest extends IntegrationTest {
 
     // ---- request helpers ---------------------------------------------------------------------------------------------
 
-    private MockHttpServletRequestBuilder as(MockHttpServletRequestBuilder request) {
+    private <B extends AbstractMockHttpServletRequestBuilder<B>> B as(B request) {
         return as(user, request);
     }
 
@@ -226,11 +227,11 @@ class ApiContractSnapshotTest extends IntegrationTest {
     }
 
     /** Performs the request, records the normalised exchange and returns the raw response body. */
-    private String record(String label, MockHttpServletRequestBuilder request) throws Exception {
+    private String record(String label, RequestBuilder request) throws Exception {
         return recordRaw(label, request, -1);
     }
 
-    private String recordRaw(String label, MockHttpServletRequestBuilder request, int expectedStatus) throws Exception {
+    private String recordRaw(String label, RequestBuilder request, int expectedStatus) throws Exception {
         MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
         String body = response.getContentAsString(StandardCharsets.UTF_8);
         if (expectedStatus > 0) {

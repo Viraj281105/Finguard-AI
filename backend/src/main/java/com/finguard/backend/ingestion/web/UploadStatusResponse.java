@@ -1,7 +1,8 @@
 package com.finguard.backend.ingestion.web;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.finguard.backend.categorization.ClassificationStatus;
 import com.finguard.backend.ingestion.parser.RowError;
 import com.finguard.backend.ingestion.service.UploadJob;
@@ -35,7 +36,7 @@ public record UploadStatusResponse(
         LocalDateTime completedAt
 ) {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = JsonMapper.builder().build();
 
     public static UploadStatusResponse from(UploadJob job) {
         List<RowErrorDto> errors = parseErrors(job.getRowErrorsJson());

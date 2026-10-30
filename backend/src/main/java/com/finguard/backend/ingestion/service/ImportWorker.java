@@ -1,6 +1,7 @@
 package com.finguard.backend.ingestion.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.finguard.backend.categorization.CategorizationService;
 import com.finguard.backend.categorization.CategorizationSummary;
 import com.finguard.backend.categorization.ClassificationStatus;
@@ -43,7 +44,7 @@ public class ImportWorker {
     private static final String GENERIC_FAILURE = "Unexpected error while importing the statement. Please try again.";
     private static final int MAX_STORED_ROW_ERRORS = 50;
     private static final int MAX_SAVE_ATTEMPTS = 3;
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = JsonMapper.builder().build();
 
     private final UploadJobRepository jobs;
     private final UserRepository users;

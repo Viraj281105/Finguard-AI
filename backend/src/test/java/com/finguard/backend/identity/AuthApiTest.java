@@ -1,6 +1,6 @@
 package com.finguard.backend.identity;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.finguard.backend.identity.domain.RefreshToken;
 import com.finguard.backend.identity.domain.RefreshTokenRepository;
 import com.finguard.backend.identity.domain.User;
