@@ -32,6 +32,10 @@ public record DomainEventEnvelope<T>(
     public static final String TYPE_LEDGER_PERIOD_CHANGED = "com.finguard.ledger.period_changed";
     public static final String TYPE_CATEGORY_REVIEWED = "com.finguard.transaction.category_reviewed";
     public static final String TYPE_ACCOUNT_DELETION_REQUESTED = "com.finguard.account.deletion_requested";
+    public static final String TYPE_ACCOUNT_DELETION_CANCELLED = "com.finguard.account.deletion_cancelled";
+    public static final String TYPE_ACCOUNT_DELETED = "com.finguard.account.deleted";
+    public static final String TYPE_ACCOUNT_EXPORTED = "com.finguard.account.exported";
+    public static final String TYPE_AUTH_LOGGED_IN = "com.finguard.auth.logged_in";
 
     public static <T> DomainEventEnvelope<T> create(
             String type,
@@ -105,6 +109,35 @@ public record DomainEventEnvelope<T>(
     public record AccountDeletionRequestedPayload(
             String requestedAt,
             String graceUntil
+    ) {
+    }
+
+    /** Payload for {@code com.finguard.account.deletion_cancelled} v1. */
+    public record AccountDeletionCancelledPayload(
+            String cancelledAt
+    ) {
+    }
+
+    /** Payload for {@code com.finguard.account.deleted} v1. */
+    public record AccountDeletedPayload(
+            String deletedAt,
+            int deletedRows,
+            String mode
+    ) {
+    }
+
+    /** Payload for {@code com.finguard.account.exported} v1. */
+    public record AccountExportedPayload(
+            String format,
+            int totalRecords,
+            String exportedAt
+    ) {
+    }
+
+    /** Payload for {@code com.finguard.auth.logged_in} v1. */
+    public record AuthLoggedInPayload(
+            String method,
+            boolean sessionIssued
     ) {
     }
 }

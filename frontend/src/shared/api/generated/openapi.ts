@@ -6,12 +6,154 @@
 
 export interface components {
   schemas: {
+    AccountDeletionRequest: {
+      password: string;
+      immediate?: boolean;
+    };
+    AccountDeletionResponse: {
+      status: string;
+      requestedAt: string;
+      graceUntil: string;
+      deletedRows: number;
+    };
+    AccountExportResponse: {
+      exportedAt: string;
+      profile: components["schemas"]["AccountExportResponse_UserProfileExportDto"];
+      recordCounts: components["schemas"]["AccountExportResponse_ExportRecordCountsDto"];
+      transactions: components["schemas"]["AccountExportResponse_ExportTransactionDto"][];
+      investments: components["schemas"]["AccountExportResponse_ExportInvestmentDto"][];
+      loans: components["schemas"]["AccountExportResponse_ExportLoanDto"][];
+      uploadJobs: components["schemas"]["AccountExportResponse_ExportUploadJobDto"][];
+      budgets: components["schemas"]["AccountExportResponse_ExportBudgetDto"][];
+      goals: components["schemas"]["AccountExportResponse_ExportGoalDto"][];
+      goalContributions: components["schemas"]["AccountExportResponse_ExportGoalContributionDto"][];
+      savedScenarios: components["schemas"]["AccountExportResponse_ExportSavedScenarioDto"][];
+    };
+    AccountExportResponse_ExportBudgetDto: {
+      id: string;
+      yearMonth: string;
+      category: string | null;
+      amount: number;
+      createdAt: string;
+      updatedAt: string;
+    };
+    AccountExportResponse_ExportGoalContributionDto: {
+      id: string;
+      goalId: string;
+      amount: number;
+      contributionDate: string;
+      note: string | null;
+      createdAt: string;
+    };
+    AccountExportResponse_ExportGoalDto: {
+      id: string;
+      name: string;
+      description: string | null;
+      targetAmount: number;
+      currentAmount: number;
+      targetDate: string | null;
+      status: string;
+      createdAt: string;
+      updatedAt: string;
+    };
+    AccountExportResponse_ExportInvestmentDto: {
+      id: string;
+      name: string;
+      type: string;
+      amountInvested: number;
+      currentValue: number | null;
+      notes: string | null;
+      createdAt: string;
+    };
+    AccountExportResponse_ExportLoanDto: {
+      id: string;
+      name: string;
+      type: string;
+      principal: number;
+      emiAmount: number;
+      interestRate: number;
+      startDate: string | null;
+      endDate: string | null;
+      active: boolean;
+      createdAt: string;
+    };
+    AccountExportResponse_ExportRecordCountsDto: {
+      transactions: number;
+      investments: number;
+      loans: number;
+      uploadJobs: number;
+      budgets: number;
+      goals: number;
+      goalContributions: number;
+      savedScenarios: number;
+      totalRecords: number;
+    };
+    AccountExportResponse_ExportSavedScenarioDto: {
+      id: string;
+      name: string;
+      horizonMonths: number;
+      methodVersion: string;
+      requestJson: string;
+      resultJson: string;
+      createdAt: string;
+    };
+    AccountExportResponse_ExportTransactionDto: {
+      id: string;
+      title: string;
+      amount: number;
+      type: string;
+      date: string;
+      category: string | null;
+      categorySource: string;
+      categoryConfidence: number | null;
+      categoryNeedsReview: boolean;
+      note: string | null;
+      source: string;
+      importJobId: string | null;
+      createdAt: string;
+    };
+    AccountExportResponse_ExportUploadJobDto: {
+      id: string;
+      originalFilename: string;
+      bankName: string;
+      status: string;
+      totalRows: number;
+      rowsProcessed: number;
+      duplicateRows: number;
+      rejectedRows: number;
+      skippedRows: number;
+      closingBalance: number | null;
+      statementFrom: string | null;
+      statementTo: string | null;
+      classificationStatus: string;
+      classifiedRows: number;
+      createdAt: string;
+      completedAt: string | null;
+    };
+    AccountExportResponse_UserProfileExportDto: {
+      id: string;
+      name: string;
+      email: string;
+      createdAt: string;
+      deletionRequestedAt: string | null;
+      deletionScheduledAt: string | null;
+    };
     ApiError: {
       timestamp: string;
       status: number;
       error: string;
       message: string;
       fieldErrors?: Record<string, string>;
+    };
+    AuditLogEntryDto: {
+      id: string;
+      eventId: string;
+      eventType: string;
+      aggregateType: string;
+      aggregateId: string;
+      traceId: string | null;
+      occurredAt: string;
+      summary: Record<string, unknown>;
     };
     AuthResponse: {
       accessToken: string;
@@ -421,6 +563,24 @@ export interface components {
       from: string | null;
       to: string | null;
     };
+    PrivacyActionRequest: {
+      password: string;
+    };
+    PrivacyStatusResponse: {
+      userId: string;
+      email: string;
+      deletionPending: boolean;
+      deletionRequestedAt: string | null;
+      deletionScheduledAt: string | null;
+      gracePeriodDays: number;
+      retentionPolicy: components["schemas"]["PrivacyStatusResponse_RetentionPolicyDto"];
+    };
+    PrivacyStatusResponse_RetentionPolicyDto: {
+      rowErrorsRetentionDays: number;
+      outboxRetentionDays: number;
+      inboxRetentionDays: number;
+      auditLogRetentionDays: number;
+    };
     ReclassifyResponse: {
       status: components["schemas"]["ClassificationStatus"];
       attempted: number;
@@ -744,7 +904,21 @@ export interface components {
   };
 }
 
+export type AccountDeletionRequest = components["schemas"]["AccountDeletionRequest"];
+export type AccountDeletionResponse = components["schemas"]["AccountDeletionResponse"];
+export type AccountExportResponse = components["schemas"]["AccountExportResponse"];
+export type AccountExportResponse_ExportBudgetDto = components["schemas"]["AccountExportResponse_ExportBudgetDto"];
+export type AccountExportResponse_ExportGoalContributionDto = components["schemas"]["AccountExportResponse_ExportGoalContributionDto"];
+export type AccountExportResponse_ExportGoalDto = components["schemas"]["AccountExportResponse_ExportGoalDto"];
+export type AccountExportResponse_ExportInvestmentDto = components["schemas"]["AccountExportResponse_ExportInvestmentDto"];
+export type AccountExportResponse_ExportLoanDto = components["schemas"]["AccountExportResponse_ExportLoanDto"];
+export type AccountExportResponse_ExportRecordCountsDto = components["schemas"]["AccountExportResponse_ExportRecordCountsDto"];
+export type AccountExportResponse_ExportSavedScenarioDto = components["schemas"]["AccountExportResponse_ExportSavedScenarioDto"];
+export type AccountExportResponse_ExportTransactionDto = components["schemas"]["AccountExportResponse_ExportTransactionDto"];
+export type AccountExportResponse_ExportUploadJobDto = components["schemas"]["AccountExportResponse_ExportUploadJobDto"];
+export type AccountExportResponse_UserProfileExportDto = components["schemas"]["AccountExportResponse_UserProfileExportDto"];
 export type ApiError = components["schemas"]["ApiError"];
+export type AuditLogEntryDto = components["schemas"]["AuditLogEntryDto"];
 export type AuthResponse = components["schemas"]["AuthResponse"];
 export type BacktestSummaryResponse = components["schemas"]["BacktestSummaryResponse"];
 export type BacktestSummaryResponse_ErrorMetrics = components["schemas"]["BacktestSummaryResponse_ErrorMetrics"];
@@ -796,6 +970,9 @@ export type MomComparisonDto = components["schemas"]["MomComparisonDto"];
 export type MonthlyBudgetOverviewResponse = components["schemas"]["MonthlyBudgetOverviewResponse"];
 export type MonthlyFlowDto = components["schemas"]["MonthlyFlowDto"];
 export type PeriodDto = components["schemas"]["PeriodDto"];
+export type PrivacyActionRequest = components["schemas"]["PrivacyActionRequest"];
+export type PrivacyStatusResponse = components["schemas"]["PrivacyStatusResponse"];
+export type PrivacyStatusResponse_RetentionPolicyDto = components["schemas"]["PrivacyStatusResponse_RetentionPolicyDto"];
 export type ReclassifyResponse = components["schemas"]["ReclassifyResponse"];
 export type RecommendationsResponse = components["schemas"]["RecommendationsResponse"];
 export type RecommendationsResponse_Evidence = components["schemas"]["RecommendationsResponse_Evidence"];
@@ -1320,6 +1497,62 @@ export interface operations {
       404: components["schemas"]["ApiError"];
     };
   };
+  Privacy_getAuditLog: {
+    responses: {
+      200: components["schemas"]["AuditLogEntryDto"][];
+      400: components["schemas"]["ApiError"];
+      401: components["schemas"]["ApiError"];
+      404: components["schemas"]["ApiError"];
+    };
+  };
+  Privacy_cancelAccountDeletion: {
+    requestBody: components["schemas"]["PrivacyActionRequest"];
+    responses: {
+      200: components["schemas"]["PrivacyStatusResponse"];
+      400: components["schemas"]["ApiError"];
+      401: components["schemas"]["ApiError"];
+      404: components["schemas"]["ApiError"];
+      409: components["schemas"]["ApiError"];
+    };
+  };
+  Privacy_requestAccountDeletion: {
+    requestBody: components["schemas"]["AccountDeletionRequest"];
+    responses: {
+      200: components["schemas"]["AccountDeletionResponse"];
+      400: components["schemas"]["ApiError"];
+      401: components["schemas"]["ApiError"];
+      404: components["schemas"]["ApiError"];
+      409: components["schemas"]["ApiError"];
+    };
+  };
+  Privacy_exportJson: {
+    requestBody: components["schemas"]["PrivacyActionRequest"];
+    responses: {
+      200: components["schemas"]["AccountExportResponse"];
+      400: components["schemas"]["ApiError"];
+      401: components["schemas"]["ApiError"];
+      404: components["schemas"]["ApiError"];
+      409: components["schemas"]["ApiError"];
+    };
+  };
+  Privacy_exportCsv: {
+    requestBody: components["schemas"]["PrivacyActionRequest"];
+    responses: {
+      200: string;
+      400: components["schemas"]["ApiError"];
+      401: components["schemas"]["ApiError"];
+      404: components["schemas"]["ApiError"];
+      409: components["schemas"]["ApiError"];
+    };
+  };
+  Privacy_getStatus: {
+    responses: {
+      200: components["schemas"]["PrivacyStatusResponse"];
+      400: components["schemas"]["ApiError"];
+      401: components["schemas"]["ApiError"];
+      404: components["schemas"]["ApiError"];
+    };
+  };
   Recommendation_getRecommendations: {
     responses: {
       200: components["schemas"]["RecommendationsResponse"];
@@ -1609,6 +1842,24 @@ export interface paths {
     get: operations["Loan_getById"];
     put: operations["Loan_update"];
     delete: operations["Loan_delete"];
+  };
+  "/api/privacy/audit-log": {
+    get: operations["Privacy_getAuditLog"];
+  };
+  "/api/privacy/delete-cancel": {
+    post: operations["Privacy_cancelAccountDeletion"];
+  };
+  "/api/privacy/delete-request": {
+    post: operations["Privacy_requestAccountDeletion"];
+  };
+  "/api/privacy/export": {
+    post: operations["Privacy_exportJson"];
+  };
+  "/api/privacy/export/csv": {
+    post: operations["Privacy_exportCsv"];
+  };
+  "/api/privacy/status": {
+    get: operations["Privacy_getStatus"];
   };
   "/api/recommendations": {
     get: operations["Recommendation_getRecommendations"];

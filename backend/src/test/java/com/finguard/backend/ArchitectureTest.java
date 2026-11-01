@@ -22,26 +22,35 @@ class ArchitectureTest {
     static final ArchRule commonDependsOnNoModule = noClasses().that().resideInAPackage("..backend.common..")
             .should().dependOnClassesThat().resideInAnyPackage(
                     "..backend.identity..", "..backend.ledger..", "..backend.ingestion..", "..backend.ai..",
-                    "..backend.categorization..", "..backend.intelligence..", "..backend.budgeting..", "..backend.forecasting..");
+                    "..backend.categorization..", "..backend.intelligence..", "..backend.budgeting..",
+                    "..backend.forecasting..", "..backend.privacy..");
 
     @ArchTest
     static final ArchRule aiDependsOnNoModule = noClasses().that().resideInAPackage("..backend.ai..")
             .should().dependOnClassesThat().resideInAnyPackage(
                     "..backend.identity..", "..backend.ledger..", "..backend.ingestion..",
-                    "..backend.categorization..", "..backend.intelligence..", "..backend.budgeting..", "..backend.forecasting..");
+                    "..backend.categorization..", "..backend.intelligence..", "..backend.budgeting..",
+                    "..backend.forecasting..", "..backend.privacy..");
 
     @ArchTest
     static final ArchRule identityIsTheBase = noClasses().that().resideInAPackage("..backend.identity..")
             .should().dependOnClassesThat().resideInAnyPackage(
                     "..backend.ledger..", "..backend.ingestion..", "..backend.ai..", "..backend.categorization..",
-                    "..backend.intelligence..", "..backend.budgeting..", "..backend.forecasting..");
+                    "..backend.intelligence..", "..backend.budgeting..", "..backend.forecasting..", "..backend.privacy..");
 
     @ArchTest
     static final ArchRule ledgerDoesNotDependOnImportAiOrCategorization = noClasses()
             .that().resideInAPackage("..backend.ledger..")
             .should().dependOnClassesThat().resideInAnyPackage(
                     "..backend.ingestion..", "..backend.ai..", "..backend.categorization..",
-                    "..backend.intelligence..", "..backend.budgeting..", "..backend.forecasting..");
+                    "..backend.intelligence..", "..backend.budgeting..", "..backend.forecasting..", "..backend.privacy..");
+
+    @ArchTest
+    static final ArchRule privacyDependsOnlyOnCommonAndIdentity = noClasses()
+            .that().resideInAPackage("..backend.privacy..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                    "..backend.ledger..", "..backend.ingestion..", "..backend.ai..",
+                    "..backend.categorization..", "..backend.intelligence..", "..backend.budgeting..", "..backend.forecasting..");
 
     @ArchTest
     static final ArchRule categorizationDoesNotDependOnIngestionOrIntelligence = noClasses()

@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "governance_note": "SYNTHETIC DATA ONLY — synthetic != real. Real bank statements must never be committed to Git.",
+  "datasets": {
+    "dev": {
+      "dataset_id": "synthetic_dev",
+      "file": "synthetic_dev.csv",
+      "data_provenance": "synthetic",
+      "sha256": "bfc8f0ce2fb2a9146218f58a56767ea5cc1334aef5b0ae7ec248856fcc3b3638",
+      "row_count": 63,
+      "label_procedure": "Developer-authored synthetic Indian bank narration fixtures created alongside unit tests; UNCATEGORIZED where a human reviewer would abstain.",
+      "frozen_holdout": false
+    },
+    "holdout": {
+      "dataset_id": "synthetic_holdout",
+      "file": "synthetic_holdout.csv",
+      "data_provenance": "synthetic",
+      "sha256": "80d859761d4eda4dfb2dd06d79f646b30ca3976087415efbfca6c91f367710a8",
+      "row_count": 134,
+      "label_procedure": "Developer-authored synthetic bank-style narrations written from memory after initial rule table creation; post-first-look adjustments documented in evaluation/report.md.",
+      "frozen_holdout": true
+    },
+    "adversarial": {
+      "dataset_id": "synthetic_adversarial",
+      "file": "synthetic_adversarial.csv",
+      "data_provenance": "synthetic",
+      "sha256": "49a34d855dfd3e600a00bfd9030db564e1abe23b980209f1e69f2f318040f114",
+      "row_count": 28,
+      "label_procedure": "Developer-authored synthetic adversarial stress suite covering 7 perturbation families: homoglyphs, truncation, mixed_case, reference_noise, merchant_lookalikes, direction_mismatch, and prompt_injection.",
+      "frozen_holdout": true
+    }
+  }
+}

@@ -16,6 +16,7 @@ import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -50,6 +51,20 @@ public class User implements UserDetails {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "deletion_requested_at")
+    private Instant deletionRequestedAt;
+
+    @Column(name = "deletion_scheduled_at")
+    private Instant deletionScheduledAt;
+
+    public User(String id, String name, String email, String password, LocalDateTime createdAt) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.createdAt = createdAt;
+    }
 
     @PrePersist
     protected void onCreate() {

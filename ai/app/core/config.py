@@ -17,6 +17,8 @@ class Settings:
     """Shared secret the backend sends as ``X-Internal-Token``. Empty disables the check (``dev`` only)."""
     internal_token_previous: str = ""
     """Previous secret, still accepted while the backend is switched to the new one (rotation window)."""
+    classifier_chain: str = "rules-1.0.0"
+    """Active classifier chain specification (e.g. ``rules-1.0.0`` or ``rules-0.9.0`` for rollback)."""
 
 
 def get_settings() -> Settings:
@@ -25,6 +27,7 @@ def get_settings() -> Settings:
         env=os.environ.get("AI_ENV", DEV_ENV).strip().lower(),
         internal_token=os.environ.get("AI_INTERNAL_TOKEN", ""),
         internal_token_previous=os.environ.get("AI_INTERNAL_TOKEN_PREVIOUS", ""),
+        classifier_chain=os.environ.get("AI_CLASSIFIER_CHAIN", "rules-1.0.0").strip() or "rules-1.0.0",
     )
 
 

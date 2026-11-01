@@ -120,8 +120,8 @@ class OpenApiContractTest extends IntegrationTest {
         Set<String> openApiEndpoints = extractOpenApiEndpoints(liveSpec);
 
         assertThat(documentedEndpoints)
-                .as("docs/API.md must document all 54 public/protected /api endpoints")
-                .hasSize(54);
+                .as("docs/API.md must document all 60 public/protected /api endpoints")
+                .hasSize(60);
         assertThat(openApiEndpoints)
                 .as("OpenAPI 3.1 specification must contain exactly the endpoints documented in docs/API.md")
                 .isEqualTo(documentedEndpoints);

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://finguard.ai/contracts/events/account.deleted.v1.json",
+  "title": "com.finguard.account.deleted.v1",
+  "description": "Emitted when a user's account and all owned records are permanently erased.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "type",
+    "schema_version",
+    "source",
+    "time",
+    "subject",
+    "tenant",
+    "trace_id",
+    "data"
+  ],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "type": { "const": "com.finguard.account.deleted" },
+    "schema_version": { "const": 1 },
+    "source": { "type": "string" },
+    "time": { "type": "string", "format": "date-time" },
+    "subject": { "type": "string" },
+    "tenant": { "type": "string" },
+    "trace_id": { "type": ["string", "null"] },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deletedAt", "deletedRows", "mode"],
+      "properties": {
+        "deletedAt": { "type": "string", "format": "date-time" },
+        "deletedRows": { "type": "integer", "minimum": 0 },
+        "mode": { "type": "string", "enum": ["IMMEDIATE", "GRACE_EXPIRED"] }
+      }
+    }
+  }
+}
+

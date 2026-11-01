@@ -31,7 +31,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         description="Stateless computation service called by the Spring Boot backend.",
     )
     app.state.settings = settings
-    app.state.classifier = build_default_classifier()
+    app.state.classifier = build_default_classifier(settings.classifier_chain)
     app.state.metrics = AiMetricsRegistry()
     app.add_middleware(TraceAndMetricsMiddleware)
     app.include_router(health.router)

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://finguard.ai/contracts/events/account.deletion_cancelled.v1.json",
+  "title": "com.finguard.account.deletion_cancelled.v1",
+  "description": "Emitted when a user cancels a pending account deletion request during the grace period.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "type",
+    "schema_version",
+    "source",
+    "time",
+    "subject",
+    "tenant",
+    "trace_id",
+    "data"
+  ],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "type": { "const": "com.finguard.account.deletion_cancelled" },
+    "schema_version": { "const": 1 },
+    "source": { "type": "string" },
+    "time": { "type": "string", "format": "date-time" },
+    "subject": { "type": "string" },
+    "tenant": { "type": "string" },
+    "trace_id": { "type": ["string", "null"] },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cancelledAt"],
+      "properties": {
+        "cancelledAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}
+

@@ -1,6 +1,6 @@
 """Deterministic, explainable baseline classifier built on the rule table."""
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 from app.classification.base import (
     Classification,
@@ -15,6 +15,16 @@ from app.classification.rules import P_CHANNEL, RULES, RULESET_VERSION, WEAK, Ru
 from app.classification.taxonomy import Category, TxType, allows
 
 _MAX_ALTERNATIVES = 3
+
+# Post-initial-holdout rule ids added in rules-1.0.0 (documented in evaluation/report.md).
+# Kept so `rules-0.9.0` can be instantiated for versioned rollback drills.
+_POST_0_9_0_PATTERNS = frozenset({
+    "hypercity",
+    "chai point",
+    "haldirams",
+    "byjus",
+    "medibuddy",
+})
 
 
 class RuleBasedClassifier:
@@ -34,10 +44,10 @@ class RuleBasedClassifier:
     """
 
     name = "rules"
-    version = RULESET_VERSION
 
-    def __init__(self, rules: Sequence[Rule] = RULES) -> None:
+    def __init__(self, rules: Sequence[Rule] = RULES, version: str = RULESET_VERSION) -> None:
         self._rules = tuple(rules)
+        self.version = version
 
     def classify(self, item: ClassificationInput) -> Classification:
         norm = normalize(item.description)
@@ -114,6 +124,42 @@ def _alternatives(categories: Sequence[Category]) -> list[Category]:
     return list(categories)[:_MAX_ALTERNATIVES]
 
 
-def build_default_classifier() -> Classifier:
-    """The classifier the service runs. Add a trained model by appending it to the chain."""
-    return ClassifierChain([RuleBasedClassifier()])
+def _build_rules_0_9_0() -> Classifier:
+    filtered = [
+        r for r in RULES
+        if not any(tok in r.id for tok in _POST_0_9_0_PATTERNS)
+    ]
+    return RuleBasedClassifier(rules=filtered, version="rules-0.9.0")
+
+
+_CLASSIFIER_REGISTRY: dict[str, Callable[[], Classifier]] = {
+    "rules": lambda: RuleBasedClassifier(RULES, RULESET_VERSION),
+    RULESET_VERSION: lambda: RuleBasedClassifier(RULES, RULESET_VERSION),
+    "rules-0.9.0": _build_rules_0_9_0,
+}
+
+
+def register_classifier_version(version_id: str, factory: Callable[[], Classifier]) -> None:
+    """Registers a named classifier stage for chain resolution and rollback testing."""
+    _CLASSIFIER_REGISTRY[version_id] = factory
+
+
+def resolve_classifier_chain(chain_spec: str | None = None) -> ClassifierChain:
+    """Builds a :class:`ClassifierChain` from a ``+`` or ``,`` separated chain specification."""
+    spec = (chain_spec or RULESET_VERSION).strip()
+    parts = [p.strip() for p in spec.replace(",", "+").split("+") if p.strip()]
+    if not parts:
+        parts = [RULESET_VERSION]
+    stages: list[Classifier] = []
+    for part in parts:
+        factory = _CLASSIFIER_REGISTRY.get(part)
+        if factory is None:
+            known = ", ".join(sorted(_CLASSIFIER_REGISTRY))
+            raise ValueError(f"Unknown classifier version '{part}' in chain '{spec}' (known: {known})")
+        stages.append(factory())
+    return ClassifierChain(stages)
+
+
+def build_default_classifier(chain_spec: str | None = None) -> Classifier:
+    """The classifier the service runs. Supports versioned chain rollback via ``chain_spec``."""
+    return resolve_classifier_chain(chain_spec)

@@ -2528,6 +2528,401 @@
         }
       }
     },
+    "/api/privacy/audit-log" : {
+      "get" : {
+        "tags" : [ "privacy" ],
+        "operationId" : "Privacy_getAuditLog",
+        "summary" : "GET /api/privacy/audit-log",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AuditLogEntryDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/privacy/delete-cancel" : {
+      "post" : {
+        "tags" : [ "privacy" ],
+        "operationId" : "Privacy_cancelAccountDeletion",
+        "summary" : "POST /api/privacy/delete-cancel",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PrivacyActionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PrivacyStatusResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/privacy/delete-request" : {
+      "post" : {
+        "tags" : [ "privacy" ],
+        "operationId" : "Privacy_requestAccountDeletion",
+        "summary" : "POST /api/privacy/delete-request",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AccountDeletionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccountDeletionResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/privacy/export" : {
+      "post" : {
+        "tags" : [ "privacy" ],
+        "operationId" : "Privacy_exportJson",
+        "summary" : "POST /api/privacy/export",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PrivacyActionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccountExportResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/privacy/export/csv" : {
+      "post" : {
+        "tags" : [ "privacy" ],
+        "operationId" : "Privacy_exportCsv",
+        "summary" : "POST /api/privacy/export/csv",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PrivacyActionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/privacy/status" : {
+      "get" : {
+        "tags" : [ "privacy" ],
+        "operationId" : "Privacy_getStatus",
+        "summary" : "GET /api/privacy/status",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PrivacyStatusResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/recommendations" : {
       "get" : {
         "tags" : [ "recommendations" ],
@@ -3624,6 +4019,475 @@
       }
     },
     "schemas" : {
+      "AccountDeletionRequest" : {
+        "type" : "object",
+        "required" : [ "password" ],
+        "properties" : {
+          "password" : {
+            "type" : "string"
+          },
+          "immediate" : {
+            "type" : "boolean"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "AccountDeletionResponse" : {
+        "type" : "object",
+        "required" : [ "status", "requestedAt", "graceUntil", "deletedRows" ],
+        "properties" : {
+          "status" : {
+            "type" : "string"
+          },
+          "requestedAt" : {
+            "type" : "string"
+          },
+          "graceUntil" : {
+            "type" : "string"
+          },
+          "deletedRows" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "AccountExportResponse" : {
+        "type" : "object",
+        "required" : [ "exportedAt", "profile", "recordCounts", "transactions", "investments", "loans", "uploadJobs", "budgets", "goals", "goalContributions", "savedScenarios" ],
+        "properties" : {
+          "exportedAt" : {
+            "type" : "string"
+          },
+          "profile" : {
+            "$ref" : "#/components/schemas/AccountExportResponse_UserProfileExportDto"
+          },
+          "recordCounts" : {
+            "$ref" : "#/components/schemas/AccountExportResponse_ExportRecordCountsDto"
+          },
+          "transactions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AccountExportResponse_ExportTransactionDto"
+            }
+          },
+          "investments" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AccountExportResponse_ExportInvestmentDto"
+            }
+          },
+          "loans" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AccountExportResponse_ExportLoanDto"
+            }
+          },
+          "uploadJobs" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AccountExportResponse_ExportUploadJobDto"
+            }
+          },
+          "budgets" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AccountExportResponse_ExportBudgetDto"
+            }
+          },
+          "goals" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AccountExportResponse_ExportGoalDto"
+            }
+          },
+          "goalContributions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AccountExportResponse_ExportGoalContributionDto"
+            }
+          },
+          "savedScenarios" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AccountExportResponse_ExportSavedScenarioDto"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "AccountExportResponse_ExportBudgetDto" : {
+        "type" : "object",
+        "required" : [ "id", "yearMonth", "category", "amount", "createdAt", "updatedAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "yearMonth" : {
+            "type" : "string"
+          },
+          "category" : {
+            "type" : [ "string", "null" ]
+          },
+          "amount" : {
+            "type" : "number"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "AccountExportResponse_ExportGoalContributionDto" : {
+        "type" : "object",
+        "required" : [ "id", "goalId", "amount", "contributionDate", "note", "createdAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "goalId" : {
+            "type" : "string"
+          },
+          "amount" : {
+            "type" : "number"
+          },
+          "contributionDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "note" : {
+            "type" : [ "string", "null" ]
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "AccountExportResponse_ExportGoalDto" : {
+        "type" : "object",
+        "required" : [ "id", "name", "description", "targetAmount", "currentAmount", "targetDate", "status", "createdAt", "updatedAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : [ "string", "null" ]
+          },
+          "targetAmount" : {
+            "type" : "number"
+          },
+          "currentAmount" : {
+            "type" : "number"
+          },
+          "targetDate" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "AccountExportResponse_ExportInvestmentDto" : {
+        "type" : "object",
+        "required" : [ "id", "name", "type", "amountInvested", "currentValue", "notes", "createdAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "amountInvested" : {
+            "type" : "number"
+          },
+          "currentValue" : {
+            "type" : [ "number", "null" ]
+          },
+          "notes" : {
+            "type" : [ "string", "null" ]
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "AccountExportResponse_ExportLoanDto" : {
+        "type" : "object",
+        "required" : [ "id", "name", "type", "principal", "emiAmount", "interestRate", "startDate", "endDate", "active", "createdAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "principal" : {
+            "type" : "number"
+          },
+          "emiAmount" : {
+            "type" : "number"
+          },
+          "interestRate" : {
+            "type" : "number"
+          },
+          "startDate" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "endDate" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "active" : {
+            "type" : "boolean"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "AccountExportResponse_ExportRecordCountsDto" : {
+        "type" : "object",
+        "required" : [ "transactions", "investments", "loans", "uploadJobs", "budgets", "goals", "goalContributions", "savedScenarios", "totalRecords" ],
+        "properties" : {
+          "transactions" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "investments" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "loans" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "uploadJobs" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "budgets" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "goals" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "goalContributions" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "savedScenarios" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalRecords" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "AccountExportResponse_ExportSavedScenarioDto" : {
+        "type" : "object",
+        "required" : [ "id", "name", "horizonMonths", "methodVersion", "requestJson", "resultJson", "createdAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "horizonMonths" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "methodVersion" : {
+            "type" : "string"
+          },
+          "requestJson" : {
+            "type" : "string"
+          },
+          "resultJson" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "AccountExportResponse_ExportTransactionDto" : {
+        "type" : "object",
+        "required" : [ "id", "title", "amount", "type", "date", "category", "categorySource", "categoryConfidence", "categoryNeedsReview", "note", "source", "importJobId", "createdAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "amount" : {
+            "type" : "number"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "category" : {
+            "type" : [ "string", "null" ]
+          },
+          "categorySource" : {
+            "type" : "string"
+          },
+          "categoryConfidence" : {
+            "type" : [ "number", "null" ]
+          },
+          "categoryNeedsReview" : {
+            "type" : "boolean"
+          },
+          "note" : {
+            "type" : [ "string", "null" ]
+          },
+          "source" : {
+            "type" : "string"
+          },
+          "importJobId" : {
+            "type" : [ "string", "null" ]
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "AccountExportResponse_ExportUploadJobDto" : {
+        "type" : "object",
+        "required" : [ "id", "originalFilename", "bankName", "status", "totalRows", "rowsProcessed", "duplicateRows", "rejectedRows", "skippedRows", "closingBalance", "statementFrom", "statementTo", "classificationStatus", "classifiedRows", "createdAt", "completedAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "originalFilename" : {
+            "type" : "string"
+          },
+          "bankName" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "totalRows" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "rowsProcessed" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "duplicateRows" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "rejectedRows" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "skippedRows" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "closingBalance" : {
+            "type" : [ "number", "null" ]
+          },
+          "statementFrom" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "statementTo" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "classificationStatus" : {
+            "type" : "string"
+          },
+          "classifiedRows" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "completedAt" : {
+            "type" : [ "string", "null" ],
+            "format" : "date-time"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "AccountExportResponse_UserProfileExportDto" : {
+        "type" : "object",
+        "required" : [ "id", "name", "email", "createdAt", "deletionRequestedAt", "deletionScheduledAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "deletionRequestedAt" : {
+            "type" : [ "string", "null" ]
+          },
+          "deletionScheduledAt" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "additionalProperties" : false
+      },
       "ApiError" : {
         "type" : "object",
         "required" : [ "timestamp", "status", "error", "message" ],
@@ -3647,6 +4511,38 @@
             "additionalProperties" : {
               "type" : "string"
             }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "AuditLogEntryDto" : {
+        "type" : "object",
+        "required" : [ "id", "eventId", "eventType", "aggregateType", "aggregateId", "traceId", "occurredAt", "summary" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "eventId" : {
+            "type" : "string"
+          },
+          "eventType" : {
+            "type" : "string"
+          },
+          "aggregateType" : {
+            "type" : "string"
+          },
+          "aggregateId" : {
+            "type" : "string"
+          },
+          "traceId" : {
+            "type" : [ "string", "null" ]
+          },
+          "occurredAt" : {
+            "type" : "string"
+          },
+          "summary" : {
+            "type" : "object",
+            "additionalProperties" : true
           }
         },
         "additionalProperties" : false
@@ -5110,6 +6006,68 @@
           "to" : {
             "type" : [ "string", "null" ],
             "format" : "date"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "PrivacyActionRequest" : {
+        "type" : "object",
+        "required" : [ "password" ],
+        "properties" : {
+          "password" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "PrivacyStatusResponse" : {
+        "type" : "object",
+        "required" : [ "userId", "email", "deletionPending", "deletionRequestedAt", "deletionScheduledAt", "gracePeriodDays", "retentionPolicy" ],
+        "properties" : {
+          "userId" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "deletionPending" : {
+            "type" : "boolean"
+          },
+          "deletionRequestedAt" : {
+            "type" : [ "string", "null" ]
+          },
+          "deletionScheduledAt" : {
+            "type" : [ "string", "null" ]
+          },
+          "gracePeriodDays" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "retentionPolicy" : {
+            "$ref" : "#/components/schemas/PrivacyStatusResponse_RetentionPolicyDto"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "PrivacyStatusResponse_RetentionPolicyDto" : {
+        "type" : "object",
+        "required" : [ "rowErrorsRetentionDays", "outboxRetentionDays", "inboxRetentionDays", "auditLogRetentionDays" ],
+        "properties" : {
+          "rowErrorsRetentionDays" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "outboxRetentionDays" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "inboxRetentionDays" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "auditLogRetentionDays" : {
+            "type" : "integer",
+            "format" : "int32"
           }
         },
         "additionalProperties" : false
