@@ -30,7 +30,13 @@ STALE_PHRASES: list[tuple[str, str]] = [
     (r"≈ 309 kB", "the measured production bundle is 488 kB (2026-10-28)"),
     (r"`simulation` \(v0\.9\.0\)", "there is no simulation module; scenarios live in forecasting"),
 ]
-HISTORY_FILES = {"CHANGELOG.md", "DECISIONS.md", "AUDIT_E2E_2026-10-27.md", "RELEASE_PLAN.md"}
+HISTORY_FILES = {
+    "CHANGELOG.md",
+    "DECISIONS.md",
+    "AUDIT_E2E_2026-10-27.md",
+    "RELEASE_PLAN.md",
+    "01-current-state-assessment.md",
+}
 
 KI_ROW = re.compile(r"^\|\s*(KI-\d{3})\s*\|", re.MULTILINE)
 KI_REF = re.compile(r"\bKI-(\d{3})\b")
