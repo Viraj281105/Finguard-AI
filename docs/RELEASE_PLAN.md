@@ -392,8 +392,8 @@ the *emergency fund below 3 months* rule is never evaluated (FinGuard holds no b
 **Effort:** L. **Depends on:** v0.10.0 (all features present).
 
 **Scope**
-- Responsive layouts and a keyboard/screen-reader pass on every page; loading skeletons; onboarding/empty states; error boundary; pagination and table UX for long lists (KI-030).
-- Containerise backend (JRE image) and frontend (static build behind a web server); a single Compose file that starts the whole stack with health checks (KI-032).
+- Responsive layouts and a keyboard/screen-reader pass on every page; loading skeletons; onboarding/empty states; error boundary; pagination and table UX for long lists (KI-060).
+- Containerise backend (JRE image) and frontend (static build behind a web server); a single Compose file that starts the whole stack with health checks (KI-062).
 - Backend health/readiness endpoint, structured logs with request ids, no sensitive data in logs.
 - **End-to-end test suite** (Playwright) driving the full workflow against the Compose stack: register → import → review categories → risk → forecast → scenario → recommendations; run in CI.
 - Performance sanity on a generated dataset of realistic size (measure and record; no budget is claimed until measured).
@@ -403,7 +403,7 @@ the *emergency fund below 3 months* rule is never evaluated (FinGuard holds no b
 - [ ] Axe/Lighthouse-style accessibility checks show no critical violations on the main pages; layouts verified at phone, tablet, desktop widths.
 - [ ] `docker compose up` starts every service healthy from a clean checkout.
 - [ ] Recorded measurements for list, analytics and import on the generated dataset.
-- [ ] KI-030, 032 closed.
+- [ ] KI-060, 062 closed.
 
 **Risks:** e2e flakiness (mitigate with deterministic seeded data and explicit waits); image sizes.
 **Done when:** criteria checked, tag `v0.11.0`.
@@ -441,4 +441,4 @@ the *emergency fund below 3 months* rule is never evaluated (FinGuard holds no b
 | KI-018, 022 | v0.1.0 | | KI-008, 025 | v0.5.0 |
 | KI-012, 013, 014, 015, 017, 021, 023, 024, 027, 028, 029 (413) | v0.2.0 | | KI-009, 010 | v0.6.0 |
 | KI-001, 002, 016, 026 | v0.3.0 | | KI-011 | v0.7.0 – v0.10.0 |
-| KI-003, 004, 005, 006, 007, 019, 029 (503) | v0.4.0 | | KI-030, 032 · KI-020 · KI-031 | v0.11.0 · v1.0.0 · owner decision |
+| KI-003, 004, 005, 006, 007, 019, 029 (503) | v0.4.0 | | KI-060, 062 · KI-020 · KI-061 | v0.11.0 · v1.0.0 · owner decision |

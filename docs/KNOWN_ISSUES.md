@@ -1,6 +1,7 @@
 # Known issues, risks and technical debt
 
-Last reviewed: 2026-10-22, against the refactored working tree (not yet committed).
+Last reviewed: 2026-10-28, against commit `41b38c2` (all tests re-run that day: 665 pass). Rows that were reviewed earlier keep their
+original text; the `scripts/check-docs.py` docs check keeps IDs unique and cross-references valid.
 Severity: **P0** blocks use or compromises data · **P1** blocks the core product experience · **P2** security,
 reliability, maintainability · **P3** polish. "Evidence" says how the item is known:
 **Confirmed** = observed in code *and* by a test/run or a read of the exact code path; **Suspected** = inferred from
@@ -60,7 +61,7 @@ registration page, the non-asynchronous import, the unusable test database) were
 
 | ID | Sev | Item | Why unverified | Resolve in |
 |---|---|---|---|---|
-| KI-018 | P2 | `docker-compose.yml` services (PostgreSQL 15 on 5433, `ai`), the `ai/Dockerfile` build (Python 3.12), `start.ps1` | Docker Desktop daemon not running on the development machine. `docker compose config` (syntax) passes. | Gate for v0.1.0 |
+| KI-018 | P2 | `docker-compose.yml` services (PostgreSQL 15 on 5433, `ai`), the `ai/Dockerfile` build (Python 3.12), `start.ps1` | Docker Desktop daemon not running on the development machine. `docker compose config` (syntax) passes. **Update 2026-10-28:** the dev and staging Compose stacks (PostgreSQL + AI image) were running and healthy; the backend and frontend still run on the host (KI-062). | Gate for v0.1.0 |
 | KI-019 | P2 | Parsers against **real** bank exports | Verified against synthetic fixtures and permutations (reordering, missing optional columns, multiple date/amount formats, BOM, Windows-1252); compatibility with proprietary bank exports directly from net banking portals remains unverified pending real anonymized samples from the owner. | Ongoing (v0.4.0+) |
 | KI-029 | P2 | HTTP 413 (file over 5 MB) and 503 (import queue full) paths | **Resolved in v0.4.0** (413 verified for uploads > 5MB throwing `MaxUploadSizeExceededException`; 503 verified for `TaskRejectedException` queue saturation via `UploadErrorApiTest`). | **Resolved in v0.4.0** |
 | KI-017 | P2 | Backend tests on a CI runner (embedded PostgreSQL on Linux) | **Resolved in v0.2.0** (`.github/workflows/ci.yml` added running backend, frontend, and AI test suites). | **Resolved in v0.2.0** |
@@ -78,9 +79,9 @@ registration page, the non-asynchronous import, the unusable test database) were
 | KI-023 | P3 | `npm audit` reports vulnerabilities (triaged: 24 findings mostly in build tooling and router patch advisory; dependency updates planned for v0.2.0). | **Resolved in v0.2.0** (`npm audit fix` reduced vulnerabilities from 24 to 7 without breaking changes; remaining 7 tied to Tailwind v3 / PostCSS parser awaiting Tailwind v4 migration) |
 | KI-024 | P3 | Test warnings: Mockito inline mock maker self-attaching (will break on a future JDK); Spring Security notice about a custom `AuthenticationProvider`. | **Resolved in v0.2.0** (Surefire `argLine` sets `-XX:+EnableDynamicAgentLoading`; redundant `DaoAuthenticationProvider` bean removed) |
 | KI-027 | P3 | No coverage tooling; no lint for Java; ArchUnit rules cover only existing modules. | **Resolved in v0.2.0** (JaCoCo 0.8.12 configured for backend; `@vitest/coverage-v8` configured for frontend) |
-| KI-030 | P3 | Frontend: amounts typed with `parseFloat`; no pagination UI; no accessibility audit; every page ships in one JS bundle (≈ 309 kB, 98 kB gzip). | v0.3.0 / v0.11.0 |
-| KI-031 | P3 | Original planning documents (`Documentation/*.docx`) live outside the repository, unversioned. Not read in full; not authoritative. | decide: import or archive |
-| KI-032 | P3 | Docker image for the backend and frontend do not exist; only PostgreSQL and the AI service are containerised. | v0.11.0 |
+| KI-060 | P3 | Frontend: amounts typed with `parseFloat`; no accessibility audit; every page ships in one JS bundle (measured 2026-10-28: **488 kB, 141 kB gzip**; earlier text said ≈ 309 kB). Pagination UI exists since v0.3.0. *(Formerly a second "KI-030".)* | v0.11.0 |
+| KI-061 | P3 | Original planning documents (`Documentation/*.docx`) live outside the repository, unversioned. Not read in full; not authoritative. *(Formerly a second "KI-031".)* | decide: import or archive |
+| KI-062 | P3 | Docker images for the backend and frontend do not exist; only PostgreSQL and the AI service are containerised. *(Formerly a second "KI-032".)* | v0.11.0 |
 
 ## D. Blockers and external dependencies
 

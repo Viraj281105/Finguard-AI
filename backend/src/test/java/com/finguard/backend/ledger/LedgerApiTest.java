@@ -106,7 +106,10 @@ class LedgerApiTest extends IntegrationTest {
         mvc.perform(as(user, post("/api/transactions")).contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("title", "Coffee", "amount", 120.00, "type", "EXPENSE"))))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.date").value(java.time.LocalDate.now().toString()))
+                // "Today" is the application's business date (Asia/Kolkata), not the JVM zone: between 18:30 and 24:00 UTC
+                // the two differ and this test failed on UTC CI runners.
+                .andExpect(jsonPath("$.date").value(
+                        java.time.LocalDate.now(com.finguard.backend.common.config.ClockConfig.DEFAULT_ZONE).toString()))
                 .andExpect(jsonPath("$.source").value("MANUAL"))
                 .andExpect(jsonPath("$.categorySource").value("NONE"));
     }

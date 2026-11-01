@@ -70,7 +70,8 @@ Package root `com.finguard.backend`. Organized by business domain with dedicated
 8. Nothing outside of controllers depends on controllers.
 9. No dependency cycles between modules (`slices().matching("com.finguard.backend.(*)..")`).
 
-**Planned modules** (not created yet; created by the version that needs them): `simulation` (v0.9.0).
+There is no separate `simulation` module: the what-if scenario simulator (v0.9.0) lives in `forecasting` (see §9). New
+modules are created by the version that needs them.
 
 ## 3. Key flows
 
@@ -202,11 +203,13 @@ job (`classificationStatus`, `classifiedRows`); the import is `COMPLETED` whatev
 | Profiles | `dev` is the default profile (local DB on port 5433, built-in development JWT key, verbose logging). `SPRING_PROFILES_ACTIVE=prod` removes all defaults: DB settings and `JWT_SECRET` must be supplied; startup fails if the secret is missing or shorter than 32 bytes (`ProfilesTest`). Risk: forgetting to set `prod` runs with the dev key (KI-028). |
 | Secrets | Only via environment variables; `.env` is git-ignored, `.env.example` documents them. Spring does not read `.env`; `start.ps1` and Docker Compose do. |
 | Authorization | Stateless JWT; every non-auth endpoint authenticated; per-user scoping in every repository call. No roles. |
-| Passwords | BCrypt (Spring default strength). Minimum length 6. |
-| CORS | Property-driven allow-list. |
+| Passwords | BCrypt (Spring default strength). Length 10–128 characters (`RegisterRequest`). |
+| CORS | Property-driven allow-list; the `X-Total-*` pagination headers are exposed to the browser. |
 | Input limits | JSON validated with Bean Validation; uploads ≤ 5 MB. |
 | Error disclosure | Generic 500 body; stack traces only in logs. |
-| Transport security, rate limiting, security headers | **Not implemented.** (KI-013) |
+| Rate limiting | **Implemented** (KI-013, R-3): in-process, bounded, per (IP, email), per IP and per account on login; limits on register/refresh. Single-instance only (O-10). |
+| Security headers | **Implemented** in `SecurityConfig`: `X-Content-Type-Options: nosniff`, frame deny, strict referrer policy, CSP `default-src 'self'; frame-ancestors 'none'`. |
+| Transport security (TLS, HSTS) | **Not handled by the application.** TLS and `Strict-Transport-Security` are expected from a terminating proxy; none is configured in this repository yet. |
 
 ## 7. Target architecture (Planned)
 
@@ -219,28 +222,27 @@ flowchart LR
         API["web layer"] --> ID[identity]
         API --> LED[ledger]
         API --> ING[ingestion]
-        API --> INT["intelligence (planned)<br/>analytics · risk · recommendations"]
-        API --> SIM["simulation (planned)"]
+        API --> INT["intelligence<br/>analytics · recommendations (risk score planned)"]
+        API --> FOR["forecasting<br/>forecasts · scenarios"]
         ING --> LED
         INT --> LED
-        SIM --> INT
+        FOR --> INT
         ING --> AIC[ai client]
-        INT --> AIC
     end
     LED --> DB[(PostgreSQL)]
-    AIC -->|"/v1/classify · /v1/forecast<br/>shared-secret header"| PY["FastAPI AI service<br/>stateless · no DB"]
+    AIC -->|"/v1/classify<br/>shared-secret header"| PY["FastAPI AI service<br/>stateless · no DB"]
 ```
 
-Division of work (Planned): **Java** computes everything that is a number the user relies on — summaries, risk score,
-scenario deltas, recommendation rules — with `BigDecimal`. **Python** is used only where a library adds real value:
-text classification and statistical forecasting.
+Division of work: **Java** computes everything that is a number the user relies on — summaries, forecasts, scenario
+deltas, recommendation rules (and, when built, the risk score) — with `BigDecimal`. **Python** is used only where a
+library adds real value: today text classification only (statistical forecasting stayed in Java, decision D-13).
 
 ### When a module may become its own service
 
 Extract only when at least one is *demonstrated*, not anticipated: (a) measured CPU/memory profile conflicts with the
 API's; (b) it needs an independent release cadence; (c) it needs a different runtime; (d) a separate team owns it.
 Until then do **not** introduce Kafka/queues, an API gateway, service discovery, Kubernetes or a second database.
-Identity, ingestion, intelligence and simulation are *not* extraction candidates in the planned releases.
+Identity, ingestion, intelligence and forecasting are *not* extraction candidates in the planned releases.
 
 ## 8. Ports
 
