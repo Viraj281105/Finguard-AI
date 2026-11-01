@@ -4,6 +4,16 @@ Format: [Keep a Changelog](https://keepachangelog.com); versioning: [VERSIONING.
 Only work that **exists in the repository** is listed. Planned releases are in [RELEASE_PLAN.md](RELEASE_PLAN.md).
 No version has been tagged yet; v0.1.0 is pending (see [PROGRESS.md](PROGRESS.md)).
 
+## [Unreleased] — Mandatory internal service credential (S0-06)
+
+### Changed
+- **AI service credential is mandatory outside development (KI-033).** New `AI_ENV` (`dev` default, `staging`, `prod`): with anything
+  other than `dev` the AI service refuses to start unless `AI_INTERNAL_TOKEN` is at least 32 characters; an unrecognised `AI_ENV`
+  refuses to start. The backend `prod` profile (`SecurityEnvironmentGuard`) refuses to start without `ai.service.internal-token`
+  of at least 32 characters. `AI_INTERNAL_TOKEN_PREVIOUS` is accepted during rotation. The staging overlay sets `AI_ENV=staging`.
+- A non-ASCII `X-Internal-Token` header now yields `401` (it could raise inside the comparison before).
+- Tests: +16 AI (`ai/tests/test_security.py`), +1 backend guard test. No API shape changed.
+
 ## [Unreleased] — End-to-end audit fixes
 
 Found by running the whole application (Docker PostgreSQL + AI service, Spring Boot, Vite, a real browser) and attacking it; full report in

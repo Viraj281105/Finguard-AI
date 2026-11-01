@@ -54,8 +54,13 @@ Docker: `docker compose up -d --wait ai` from the repository root (the image bui
 while development used 3.14.7 — [docs/KNOWN_ISSUES.md](../docs/KNOWN_ISSUES.md) KI-018; the service needs no
 scientific libraries, so the Python-version question in KI-025 is closed for now).
 
-Environment: `AI_LOG_LEVEL` (default `INFO`); `AI_INTERNAL_TOKEN` — shared secret the backend sends as
-`X-Internal-Token`; when empty (default) the check is **disabled** (local development only, KI-033).
+Environment: `AI_LOG_LEVEL` (default `INFO`); `AI_ENV` (`dev` default, `staging`, `prod`);
+`AI_INTERNAL_TOKEN` — shared secret the backend sends as `X-Internal-Token`;
+`AI_INTERNAL_TOKEN_PREVIOUS` — optional old secret still accepted during rotation.
+With `AI_ENV=dev` an empty token **disables** the check (local development only). With any other `AI_ENV` the service
+**refuses to start** unless the token is at least 32 characters (KI-033 resolved in S0-06); an unrecognised `AI_ENV`
+also refuses to start. To rotate: set `AI_INTERNAL_TOKEN_PREVIOUS` to the old value and `AI_INTERNAL_TOKEN` to the
+new one, move the backend to the new value, then clear the previous one.
 
 ## Layout
 
