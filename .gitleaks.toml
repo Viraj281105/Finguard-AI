@@ -1,0 +1,10 @@
+# gitleaks configuration (S0-07). Default rules stay on; only one specific, non-secret test value is allowed.
+title = "FinGuard AI gitleaks config"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Fake production-profile JWT secret used by ProfilesTest (a test constant, not a credential)"
+targetRules = ["generic-api-key"]
+regexes = ['''prod-secret-0123456789abcdef0123456789abcdef''']
