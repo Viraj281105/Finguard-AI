@@ -34,9 +34,11 @@ public class BudgetController {
     @GetMapping
     public ResponseEntity<List<BudgetDto>> listBudgets(
             @AuthenticationPrincipal User user,
+            @RequestParam(required = false) String yearMonth,
             @RequestParam(required = false) String month
     ) {
-        return ResponseEntity.ok(budgetService.listBudgets(user, month));
+        String targetMonth = (yearMonth != null && !yearMonth.isBlank()) ? yearMonth : month;
+        return ResponseEntity.ok(budgetService.listBudgets(user, targetMonth));
     }
 
     @GetMapping("/overview")
