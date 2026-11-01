@@ -72,7 +72,7 @@ services:
       - "127.0.0.1:${FRONTEND_HOST_PORT:-5173}:8080"
 
   prometheus:
-    image: prom/prometheus:v3.2.1
+    image: prom/prometheus:v3.15.1
     container_name: finguard-prometheus
     profiles: ["obs"]
     volumes:
