@@ -1,0 +1,97 @@
+# FinGuard-AI Multi-Window Multi-Burn-Rate Alert Rules (S1-01 — Project E)
+# Implements SLO-1 through SLO-5 from docs/architecture/next-evolution/06-security-and-reliability.md
+groups:
+  - name: finguard_slo_burn_rate_alerts
+    interval: 30s
+    rules:
+      # SLO-1: Core API Availability >= 99.5% (error budget = 0.005)
+      # Fast burn (14.4x over 1h & 5m) -> page
+      - alert: FinGuardApiErrorBudgetFastBurn
+        expr: |
+          (
+            sum(rate(http_server_requests_seconds_count{application="backend",status=~"5.."}[1h]))
+            /
+            clamp_min(sum(rate(http_server_requests_seconds_count{application="backend"}[1h])), 1e-9)
+          ) > (14.4 * 0.005)
+          and
+          (
+            sum(rate(http_server_requests_seconds_count{application="backend",status=~"5.."}[5m]))
+            /
+            clamp_min(sum(rate(http_server_requests_seconds_count{application="backend"}[5m])), 1e-9)
+          ) > (14.4 * 0.005)
+        for: 2m
+        labels:
+          severity: critical
+          slo: SLO-1
+        annotations:
+          summary: "SLO-1 Fast Burn: Core API 5xx error rate consuming >2% of 30d budget per hour"
+
+      # Slow burn (6x over 6h & 30m) -> ticket
+      - alert: FinGuardApiErrorBudgetSlowBurn
+        expr: |
+          (
+            sum(rate(http_server_requests_seconds_count{application="backend",status=~"5.."}[6h]))
+            /
+            clamp_min(sum(rate(http_server_requests_seconds_count{application="backend"}[6h])), 1e-9)
+          ) > (6.0 * 0.005)
+          and
+          (
+            sum(rate(http_server_requests_seconds_count{application="backend",status=~"5.."}[30m]))
+            /
+            clamp_min(sum(rate(http_server_requests_seconds_count{application="backend"}[30m])), 1e-9)
+          ) > (6.0 * 0.005)
+        for: 15m
+        labels:
+          severity: warning
+          slo: SLO-1
+        annotations:
+          summary: "SLO-1 Slow Burn: Core API 5xx error rate consuming >10% of 30d budget in 36h"
+
+      # SLO-2: Core Read API Latency (p95 <= 500ms)
+      - alert: FinGuardReadApiLatencySloBreach
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(http_server_requests_seconds_bucket{application="backend",method="GET"}[5m])) by (le)
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          slo: SLO-2
+        annotations:
+          summary: "SLO-2 Breach: Core Read API p95 latency > 500ms over 5m"
+
+      # SLO-3: Statement Import Completion Latency (p95 <= 60s)
+      - alert: FinGuardImportDurationSloBreach
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(finguard_import_duration_seconds_bucket{status="COMPLETED"}[15m])) by (le)
+          ) > 60.0
+        for: 5m
+        labels:
+          severity: warning
+          slo: SLO-3
+        annotations:
+          summary: "SLO-3 Breach: Statement import p95 duration > 60s"
+
+      # SLO-4: Ledger Financial Integrity Invariant (zero tolerance: reconciler delta > 0 paise)
+      - alert: FinGuardLedgerReconcilerDriftDetected
+        expr: finguard_ledger_reconciler_delta_paise > 0
+        for: 0m
+        labels:
+          severity: critical
+          slo: SLO-4
+        annotations:
+          summary: "SLO-4 CRITICAL: Authoritative ledger reconciliation drift > 0 paise"
+
+      # SLO-5: Derived Projection Freshness (oldest unpublished outbox event > 60s)
+      - alert: FinGuardOutboxProjectionLagBreach
+        expr: finguard_outbox_oldest_pending_seconds > 60
+        for: 2m
+        labels:
+          severity: warning
+          slo: SLO-5
+        annotations:
+          summary: "SLO-5 Breach: Oldest pending outbox event age exceeds 60s"
+

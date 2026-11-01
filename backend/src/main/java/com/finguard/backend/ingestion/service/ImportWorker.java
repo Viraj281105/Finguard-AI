@@ -6,6 +6,7 @@ import com.finguard.backend.categorization.CategorizationService;
 import com.finguard.backend.categorization.CategorizationSummary;
 import com.finguard.backend.categorization.ClassificationStatus;
 import com.finguard.backend.common.config.AsyncConfig;
+import com.finguard.backend.common.observability.FinGuardMetrics;
 import com.finguard.backend.identity.domain.User;
 import com.finguard.backend.identity.domain.UserRepository;
 import com.finguard.backend.ingestion.parser.ParsedRow;
@@ -20,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,9 +53,11 @@ public class ImportWorker {
     private final StatementParserRegistry parsers;
     private final TransactionService transactions;
     private final CategorizationService categorization;
+    private final FinGuardMetrics metrics;
 
     @Async(AsyncConfig.IMPORT_EXECUTOR)
     public void process(String jobId, String csvContent, String userId) {
+        long startedNanos = System.nanoTime();
         UploadJob job = jobs.findById(jobId).orElse(null);
         if (job == null) {
             log.error("[Job {}] vanished before processing started", jobId);
@@ -126,15 +130,22 @@ public class ImportWorker {
             categorize(job, userId, saved);
             job.setCompletedAt(LocalDateTime.now());
             update(job, JobStatus.COMPLETED);
+            metrics.recordImportCompleted(
+                    JobStatus.COMPLETED.name(),
+                    Duration.ofNanos(Math.max(0L, System.nanoTime() - startedNanos)),
+                    toImport.size(),
+                    duplicateCount,
+                    job.getRejectedRows()
+            );
             log.info("[Job {}] -> COMPLETED ({} imported, {} duplicates, {} rejected, {} skipped)",
                     jobId, toImport.size(), duplicateCount, job.getRejectedRows(), job.getSkippedRows());
 
         } catch (IllegalArgumentException e) {
             // Parser errors carry a message meant for the user (unrecognised format, missing header, ...).
-            fail(job, e.getMessage());
+            fail(job, e.getMessage(), startedNanos);
         } catch (Exception e) {
             log.error("[Job {}] failed", jobId, e);
-            fail(job, GENERIC_FAILURE);
+            fail(job, GENERIC_FAILURE, startedNanos);
         }
     }
 
@@ -206,10 +217,17 @@ public class ImportWorker {
         jobs.save(job);
     }
 
-    private void fail(UploadJob job, String message) {
+    private void fail(UploadJob job, String message, long startedNanos) {
         job.setErrorMessage(message);
         job.setCompletedAt(LocalDateTime.now());
         update(job, JobStatus.FAILED);
+        metrics.recordImportCompleted(
+                JobStatus.FAILED.name(),
+                Duration.ofNanos(Math.max(0L, System.nanoTime() - startedNanos)),
+                0,
+                0,
+                job.getRejectedRows()
+        );
         log.warn("[Job {}] -> FAILED: {}", job.getId(), message);
     }
 }

@@ -66,7 +66,8 @@ public class SecurityConfig {
                     String uri = request.getRequestURI();
                     return "/actuator/health".equals(uri)
                         || "/actuator/health/liveness".equals(uri)
-                        || "/actuator/health/readiness".equals(uri);
+                        || "/actuator/health/readiness".equals(uri)
+                        || "/actuator/prometheus".equals(uri);
                 }).permitAll()
                 .anyRequest().authenticated()
             )

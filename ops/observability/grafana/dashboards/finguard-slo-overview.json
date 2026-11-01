@@ -1,0 +1,63 @@
+{
+  "uid": "finguard-slo-overview",
+  "title": "FinGuard-AI SLO & Reliability Overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "15s",
+  "tags": ["finguard", "slo", "observability"],
+  "panels": [
+    {
+      "id": 1,
+      "title": "SLO-1: Backend HTTP Request Rate by Status",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{application=\"backend\"}[5m])) by (status)",
+          "legendFormat": "HTTP {{status}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "SLO-2: Read API p95 Latency (s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"backend\",method=\"GET\"}[5m])) by (le))",
+          "legendFormat": "p95 GET latency"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "SLO-3: Statement Import Jobs & Duration",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(finguard_import_jobs_total[5m])) by (status)",
+          "legendFormat": "Import {{status}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "SLO-4 & SLO-6: Ledger Drift (paise) & AI Classification Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "finguard_ledger_reconciler_delta_paise",
+          "legendFormat": "Reconciler Delta (paise)"
+        },
+        {
+          "expr": "sum(rate(finguard_ai_classify_items_total[5m])) by (method)",
+          "legendFormat": "AI Items ({{method}})"
+        }
+      ]
+    }
+  ]
+}
+

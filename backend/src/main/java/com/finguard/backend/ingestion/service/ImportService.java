@@ -1,6 +1,7 @@
 package com.finguard.backend.ingestion.service;
 
 import com.finguard.backend.common.error.ApiException;
+import com.finguard.backend.common.observability.TraceContext;
 import com.finguard.backend.identity.domain.User;
 import com.finguard.backend.ingestion.parser.StatementParserRegistry;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,8 @@ public class ImportService {
         job.setBankName(parsers.detectBank(csvContent).name());
         job.setStatus(UploadJob.JobStatus.PENDING);
         jobs.save(job);
-        log.info("Created upload job [{}] for user [{}] bank [{}]", job.getId(), user.getId(), job.getBankName());
+        log.info("Created upload job [{}] for user [{}] bank [{}]",
+                job.getId(), TraceContext.hashUserId(user.getId()), job.getBankName());
 
         try {
             worker.process(job.getId(), csvContent, user.getId());

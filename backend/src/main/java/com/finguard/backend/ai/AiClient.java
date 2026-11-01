@@ -1,5 +1,7 @@
 package com.finguard.backend.ai;
 
+import com.finguard.backend.common.observability.FinGuardMetrics;
+import com.finguard.backend.common.observability.TraceContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -8,6 +10,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -40,18 +43,29 @@ public class AiClient {
     private final int batchSize;
     private final long maxTotalNanos;
     private final LongSupplier nanoClock;
+    private final FinGuardMetrics metrics;
 
     @Autowired
-    public AiClient(@Qualifier("aiRestClient") RestClient restClient, AiProperties properties) {
-        this(restClient, properties, System::nanoTime);
+    public AiClient(@Qualifier("aiRestClient") RestClient restClient, AiProperties properties, FinGuardMetrics metrics) {
+        this(restClient, properties, System::nanoTime, metrics);
     }
 
     /** Lets tests control the clock that enforces the time budget. */
     AiClient(RestClient restClient, AiProperties properties, LongSupplier nanoClock) {
+        this(restClient, properties, nanoClock, null);
+    }
+
+    AiClient(RestClient restClient, AiProperties properties, LongSupplier nanoClock, FinGuardMetrics metrics) {
         this.restClient = restClient;
         this.batchSize = properties.batchSize();
         this.maxTotalNanos = properties.maxTotalDuration().toNanos();
         this.nanoClock = nanoClock;
+        this.metrics = metrics;
+    }
+
+    /** Lets tests construct AiClient without FinGuardMetrics. */
+    AiClient(RestClient restClient, AiProperties properties) {
+        this(restClient, properties, System::nanoTime, null);
     }
 
     /**
@@ -101,16 +115,33 @@ public class AiClient {
 
     /** @return validated predictions, or {@code null} when the batch failed as a whole */
     private Map<String, AiPrediction> classifyBatch(List<ClassifyRequest.Item> batch) {
+        long batchStart = nanoClock.getAsLong();
         try {
-            ClassifyResponse response = restClient.post()
-                    .uri(CLASSIFY_PATH)
+            RestClient.RequestBodySpec requestSpec = restClient.post().uri(CLASSIFY_PATH);
+            String traceparent = TraceContext.currentOutboundTraceparent();
+            if (traceparent != null) {
+                requestSpec.header(TraceContext.TRACEPARENT_HEADER, traceparent);
+            }
+            String requestId = TraceContext.currentRequestId();
+            if (requestId != null && !requestId.isBlank()) {
+                requestSpec.header(TraceContext.REQUEST_ID_HEADER, requestId);
+            }
+
+            ClassifyResponse response = requestSpec
                     .body(new ClassifyRequest(List.copyOf(batch)))
                     .retrieve()
                     .body(ClassifyResponse.class);
 
+            Duration elapsed = Duration.ofNanos(Math.max(0L, nanoClock.getAsLong() - batchStart));
             if (response == null || response.results() == null) {
                 log.warn("AI service returned an empty or malformed classify response");
+                if (metrics != null) {
+                    metrics.recordAiBatch("failure", elapsed, batch.size());
+                }
                 return null;
+            }
+            if (metrics != null) {
+                metrics.recordAiBatch("success", elapsed, batch.size());
             }
             return validate(batch, response.results());
         } catch (RuntimeException e) {
@@ -118,6 +149,10 @@ public class AiClient {
             // message converters throw: the AI service must never take an import down with it.
             // Only the failure kind is logged: response bodies and parser messages can echo the
             // transaction descriptions we sent.
+            Duration elapsed = Duration.ofNanos(Math.max(0L, nanoClock.getAsLong() - batchStart));
+            if (metrics != null) {
+                metrics.recordAiBatch("failure", elapsed, batch.size());
+            }
             log.warn("AI classify call failed; continuing without categories: {}", describe(e));
             return null;
         }

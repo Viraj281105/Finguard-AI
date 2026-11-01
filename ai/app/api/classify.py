@@ -44,10 +44,23 @@ def classify(body: ClassifyRequest, request: Request) -> ClassifyResponse:
             )
         )
 
+    elapsed_sec = time.perf_counter() - started
+    method_counts: dict[str, int] = {}
+    for r in results:
+        method_counts[r.method] = method_counts.get(r.method, 0) + 1
+
+    metrics = getattr(request.app.state, "metrics", None)
+    if metrics is not None:
+        metrics.record_classify(elapsed_sec, method_counts)
+
+    trace_id = getattr(request.state, "trace_id", "-")
+    request_id = getattr(request.state, "request_id", "-")
     logger.info(
-        "classified %d transactions (%d abstained) in %.1f ms",
+        "classified %d transactions (%d abstained) in %.1f ms [trace_id=%s request_id=%s]",
         len(results),
-        sum(1 for r in results if r.method == "none"),
-        (time.perf_counter() - started) * 1000,
+        method_counts.get("none", 0),
+        elapsed_sec * 1000,
+        trace_id,
+        request_id,
     )
     return ClassifyResponse(model_version=classifier.version, results=results)
