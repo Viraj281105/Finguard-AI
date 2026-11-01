@@ -18,14 +18,20 @@ public record AiPrediction(
         String id,
         String category,
         double confidence,
-        @JsonProperty("confidence_calibrated") boolean confidenceCalibrated,
+        @JsonProperty("confidence_calibrated") Boolean confidenceCalibrated,
         String method,
         @JsonProperty("model_version") String modelVersion,
         @JsonProperty("rule_id") String ruleId,
-        @JsonProperty("needs_review") boolean needsReview,
+        @JsonProperty("needs_review") Boolean needsReview,
         String reason,
         List<String> alternatives
 ) {
+
+    public AiPrediction {
+        confidenceCalibrated = (confidenceCalibrated != null) ? confidenceCalibrated : false;
+        needsReview = (needsReview != null) ? needsReview : false;
+        alternatives = (alternatives != null) ? List.copyOf(alternatives) : List.of();
+    }
 
     public boolean abstained() {
         return "none".equals(method);

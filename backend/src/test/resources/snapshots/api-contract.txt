@@ -1,0 +1,3928 @@
+### POST /api/auth/register
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+header Set-Cookie: HttpOnly; Max-Age=604800; Path=/api/auth; refreshToken=<value>; SameSite=Strict
+body: {
+  "accessToken": "<jwt>",
+  "email": "snapshot-user@example.com",
+  "name": "Snapshot User"
+}
+
+### POST /api/auth/register (duplicate email)
+status: 409
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Conflict",
+  "message": "Email already registered",
+  "status": 409,
+  "timestamp": "<timestamp>"
+}
+
+### POST /api/auth/register (password too short)
+status: 400
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Bad Request",
+  "fieldErrors": {
+    "password": "Password must be at least 10 characters (and at most 128)"
+  },
+  "message": "Validation failed",
+  "status": 400,
+  "timestamp": "<timestamp>"
+}
+
+### POST /api/auth/login
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+header Set-Cookie: HttpOnly; Max-Age=604800; Path=/api/auth; refreshToken=<value>; SameSite=Strict
+body: {
+  "accessToken": "<jwt>",
+  "email": "snapshot-user@example.com",
+  "name": "Snapshot User"
+}
+
+### POST /api/auth/login (wrong password)
+status: 401
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Unauthorized",
+  "message": "Invalid email or password",
+  "status": 401,
+  "timestamp": "<timestamp>"
+}
+
+### POST /api/auth/refresh (no cookie)
+status: 401
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Unauthorized",
+  "message": "Refresh token is required",
+  "status": 401,
+  "timestamp": "<timestamp>"
+}
+
+### GET /api/transactions (empty account)
+status: 200
+header Content-Type: application/json
+header X-Total-Count: 0
+header X-Page: 0
+header X-Page-Size: 20
+header X-Total-Pages: 0
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: []
+
+### GET /api/loans (empty account)
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: []
+
+### GET /api/investments (empty account)
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: []
+
+### GET /api/goals (empty account)
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: []
+
+### GET /api/scenarios (empty account)
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: []
+
+### GET /api/upload/jobs (empty account)
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: []
+
+### GET /api/analytics/summary (empty account)
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "activeLoansCount": 0,
+  "dataQuality": {
+    "hasSufficientHistory": false,
+    "totalTransactions": 0,
+    "uncategorizedCount": 0,
+    "uncategorizedPercentage": 0.00
+  },
+  "excludes": [
+    "TRANSFERS",
+    "CARD_PAYMENTS",
+    "INVESTMENTS"
+  ],
+  "gainPercentage": 0.00,
+  "grossExpenses": 0.00,
+  "momComparison": null,
+  "netCashFlow": 0.00,
+  "period": {
+    "from": null,
+    "to": null
+  },
+  "savingsRate": null,
+  "savingsRateApplicable": false,
+  "savingsRateCaveat": "Savings rate cannot be computed because no income was recorded for this period.",
+  "topInsights": [],
+  "totalCurrentValue": 0.00,
+  "totalExpenses": 0.00,
+  "totalIncome": 0.00,
+  "totalInvested": 0.00,
+  "totalMonthlyEmi": 0.00,
+  "totalPrincipal": 0.00,
+  "totalRefunds": 0.00,
+  "unrealizedGain": 0.00
+}
+
+### GET /api/forecast/cash-flow (empty account)
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "algorithmVersion": "2.0.0",
+  "asOf": "2026-07-15",
+  "assumptions": [
+    "Method LEVEL_DAMPED_TREND 2.0.0: a robust recent level (outliers clipped) plus a damped trend only when it is statistically significant.",
+    "Only complete calendar months are used; the current month (2026-07) is excluded from training.",
+    "Projected months are the months after the current month; amounts are in rupees.",
+    "Seasonality is not modelled (it needs at least two full years of history).",
+    "Definitions follow docs/FINANCIAL_RULES.md: transfers, card payments and investments are excluded; refunds offset spending; uncategorised credits count as income.",
+    "Annual and irregular payments are not detected, so a large yearly bill can make its own month higher than projected."
+  ],
+  "currentMonth": null,
+  "historical": [],
+  "history": {
+    "firstMonthPossiblyPartial": false,
+    "from": null,
+    "minMonthsLimited": 3,
+    "minMonthsReliable": 6,
+    "missingMonths": [],
+    "monthsUsed": 0,
+    "to": null,
+    "transactionsUsed": 0
+  },
+  "horizonMonths": 3,
+  "incomeAvailable": false,
+  "intervalNote": "Bands (when shown) span the 10th to 90th percentile of this method's own past forecast errors on this history, added to the projection; at least 8 past errors at the same distance are required. They are descriptive, not a calibrated probability.",
+  "method": "LEVEL_DAMPED_TREND",
+  "projected": [],
+  "recurring": [],
+  "reliability": "UNAVAILABLE",
+  "summary": null,
+  "warnings": [
+    "No complete month of income or spending is recorded yet, so no forecast can be made."
+  ]
+}
+
+### GET /api/recommendations (empty account)
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "disclaimer": "General guidance based on simple rules applied to your own records. It is not financial, tax or investment advice and does not know your full situation. You can ignore any item.",
+  "healthy": false,
+  "notEvaluated": [
+    {
+      "id": "LOW_SAVINGS_RATE",
+      "reason": "Needs records in at least 3 of the last 3 complete months; found 0.",
+      "title": "Savings rate below 20%"
+    },
+    {
+      "id": "RISING_SPEND",
+      "reason": "Needs records in at least 3 of the last 3 complete months; found 0.",
+      "title": "Spending has risen three months in a row"
+    },
+    {
+      "id": "UNCATEGORISED_SHARE",
+      "reason": "Needs at least 10 transactions; found 0.",
+      "title": "Many transactions have no category"
+    },
+    {
+      "id": "EMERGENCY_FUND",
+      "reason": "This needs your actual savings balance. FinGuard holds no account balances and goal contributions are self-tracked, so it cannot tell whether you have three months set aside.",
+      "title": "Emergency fund below three months of spending"
+    }
+  ],
+  "period": {
+    "from": "2026-04-01",
+    "months": 3,
+    "monthsWithData": 0,
+    "to": "2026-06-30"
+  },
+  "recommendations": [],
+  "thresholds": {
+    "maxEmiSharePercent": 40,
+    "maxInvestmentClassSharePercent": 70,
+    "maxUncategorisedPercent": 20,
+    "minSavingsRatePercent": 20,
+    "risingSpendMinIncreasePercent": 10,
+    "subscriptionReviewCount": 3
+  }
+}
+
+### POST /api/transactions (income)
+status: 201
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "amount": 50000.00,
+  "category": "INCOME",
+  "categoryConfidence": null,
+  "categoryConfidenceCalibrated": false,
+  "categoryModelVersion": null,
+  "categoryNeedsReview": false,
+  "categoryRule": null,
+  "categorySource": "USER",
+  "createdAt": "<timestamp>",
+  "date": "2026-01-01",
+  "id": "<uuid>",
+  "note": null,
+  "source": "MANUAL",
+  "title": "Salary Jan",
+  "type": "INCOME"
+}
+
+### POST /api/transactions (validation error)
+status: 400
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Bad Request",
+  "fieldErrors": {
+    "amount": "must not be null",
+    "title": "must not be blank",
+    "type": "must not be null"
+  },
+  "message": "Validation failed",
+  "status": 400,
+  "timestamp": "<timestamp>"
+}
+
+### POST /api/transactions (malformed JSON)
+status: 400
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Bad Request",
+  "message": "Malformed or incomplete request",
+  "status": 400,
+  "timestamp": "<timestamp>"
+}
+
+### POST /api/transactions (unsupported media type)
+status: 415
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Unsupported Media Type",
+  "message": "Unsupported media type",
+  "status": 415,
+  "timestamp": "<timestamp>"
+}
+
+### POST /api/loans
+status: 201
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "active": true,
+  "createdAt": "<timestamp>",
+  "emiAmount": 24000.00,
+  "endDate": "2045-01-01",
+  "id": "<uuid>",
+  "interestRate": 8.5,
+  "name": "Home loan",
+  "principal": 2500000.00,
+  "startDate": "2025-01-01",
+  "type": "HOME"
+}
+
+### POST /api/investments
+status: 201
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "amountInvested": 100000.00,
+  "createdAt": "<timestamp>",
+  "currentValue": 112500.25,
+  "id": "<uuid>",
+  "name": "Index fund",
+  "notes": "snapshot",
+  "type": "MUTUAL_FUND"
+}
+
+### POST /api/upload/csv (hdfc)
+status: 202
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "bankName": "HDFC",
+  "classificationStatus": "NOT_ATTEMPTED",
+  "classifiedRows": 0,
+  "closingBalance": null,
+  "completedAt": null,
+  "createdAt": null,
+  "duplicateRows": 0,
+  "errorMessage": null,
+  "jobId": "<uuid>",
+  "originalFilename": "hdfc.csv",
+  "rejectedRows": 0,
+  "rowErrors": [],
+  "rowsProcessed": 0,
+  "skippedRows": 0,
+  "statementFrom": null,
+  "statementTo": null,
+  "status": "PENDING",
+  "totalRows": 0
+}
+
+### GET /api/upload/status/{jobId}
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "bankName": "HDFC",
+  "classificationStatus": "UNAVAILABLE",
+  "classifiedRows": 0,
+  "closingBalance": 75550.00,
+  "completedAt": "<timestamp>",
+  "createdAt": "<timestamp>",
+  "duplicateRows": 0,
+  "errorMessage": null,
+  "jobId": "<uuid>",
+  "originalFilename": "hdfc.csv",
+  "rejectedRows": 1,
+  "rowErrors": [
+    {
+      "errorMessage": "Cannot parse date: 'notadate'",
+      "rowNumber": 8,
+      "snippet": "notadate,INVALID DATE ROW,0002,06/03/26,100.00,,75450.00"
+    }
+  ],
+  "rowsProcessed": 3,
+  "skippedRows": 1,
+  "statementFrom": "2026-03-01",
+  "statementTo": "2026-03-05",
+  "status": "COMPLETED",
+  "totalRows": 5
+}
+
+### GET /api/upload/status/{unknown}
+status: 404
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Not Found",
+  "message": "Upload job not found",
+  "status": 404,
+  "timestamp": "<timestamp>"
+}
+
+### POST /api/upload/csv (no multipart body)
+status: 400
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Bad Request",
+  "message": "Expected a multipart/form-data upload with a 'file' part",
+  "status": 400,
+  "timestamp": "<timestamp>"
+}
+
+### GET /api/transactions (page 0)
+status: 200
+header Content-Type: application/json
+header X-Total-Count: 22
+header X-Page: 0
+header X-Page-Size: 20
+header X-Total-Pages: 2
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: [
+  {
+    "amount": 1450.75,
+    "category": null,
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "NONE",
+    "createdAt": "<timestamp>",
+    "date": "2026-06-20",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Mystery payee",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-06-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-06",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-06-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-06",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-06-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-06",
+    "type": "INCOME"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-05-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-05",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-05-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-05",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-05-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-05",
+    "type": "INCOME"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-04-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-04",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-04-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-04",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-04-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-04",
+    "type": "INCOME"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-03",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 10000.00,
+    "category": null,
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "NONE",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-05",
+    "id": "<uuid>",
+    "note": "Imported from HDFC | 2026-03-05",
+    "source": "IMPORT",
+    "title": "ATM WDL, MG ROAD BENGALURU",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-03",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 75000.00,
+    "category": null,
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "NONE",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-02",
+    "id": "<uuid>",
+    "note": "Imported from HDFC | 2026-03-02",
+    "source": "IMPORT",
+    "title": "NEFT-ACME LTD-SALARY MARCH",
+    "type": "INCOME"
+  },
+  {
+    "amount": 450.00,
+    "category": null,
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "NONE",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-01",
+    "id": "<uuid>",
+    "note": "Imported from HDFC | 2026-03-01",
+    "source": "IMPORT",
+    "title": "UPI-SWIGGY-swiggy@icici",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-03",
+    "type": "INCOME"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-02-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-02",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-02-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-02",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-02-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-02",
+    "type": "INCOME"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-01-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-01",
+    "type": "EXPENSE"
+  }
+]
+
+### GET /api/transactions?page=1&size=5
+status: 200
+header Content-Type: application/json
+header X-Total-Count: 22
+header X-Page: 1
+header X-Page-Size: 5
+header X-Total-Pages: 5
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: [
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-05-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-05",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-05-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-05",
+    "type": "INCOME"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-04-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-04",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-04-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-04",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-04-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-04",
+    "type": "INCOME"
+  }
+]
+
+### GET /api/transactions?unpaged=true
+status: 200
+header Content-Type: application/json
+header X-Total-Count: 22
+header X-Page: 0
+header X-Page-Size: 22
+header X-Total-Pages: 1
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: [
+  {
+    "amount": 1450.75,
+    "category": null,
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "NONE",
+    "createdAt": "<timestamp>",
+    "date": "2026-06-20",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Mystery payee",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-06-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-06",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-06-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-06",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-06-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-06",
+    "type": "INCOME"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-05-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-05",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-05-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-05",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-05-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-05",
+    "type": "INCOME"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-04-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-04",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-04-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-04",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-04-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-04",
+    "type": "INCOME"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-03",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 10000.00,
+    "category": null,
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "NONE",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-05",
+    "id": "<uuid>",
+    "note": "Imported from HDFC | 2026-03-05",
+    "source": "IMPORT",
+    "title": "ATM WDL, MG ROAD BENGALURU",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-03",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 75000.00,
+    "category": null,
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "NONE",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-02",
+    "id": "<uuid>",
+    "note": "Imported from HDFC | 2026-03-02",
+    "source": "IMPORT",
+    "title": "NEFT-ACME LTD-SALARY MARCH",
+    "type": "INCOME"
+  },
+  {
+    "amount": 450.00,
+    "category": null,
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "NONE",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-01",
+    "id": "<uuid>",
+    "note": "Imported from HDFC | 2026-03-01",
+    "source": "IMPORT",
+    "title": "UPI-SWIGGY-swiggy@icici",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-03",
+    "type": "INCOME"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-02-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-02",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-02-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-02",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-02-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-02",
+    "type": "INCOME"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-01-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-01",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-01-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-01",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-01-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary Jan",
+    "type": "INCOME"
+  }
+]
+
+### GET /api/transactions/{id}
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "amount": 1450.75,
+  "category": null,
+  "categoryConfidence": null,
+  "categoryConfidenceCalibrated": false,
+  "categoryModelVersion": null,
+  "categoryNeedsReview": false,
+  "categoryRule": null,
+  "categorySource": "NONE",
+  "createdAt": "<timestamp>",
+  "date": "2026-06-20",
+  "id": "<uuid>",
+  "note": null,
+  "source": "MANUAL",
+  "title": "Mystery payee",
+  "type": "EXPENSE"
+}
+
+### GET /api/transactions/{unknown}
+status: 404
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Not Found",
+  "message": "Transaction not found",
+  "status": 404,
+  "timestamp": "<timestamp>"
+}
+
+### PATCH /api/transactions/{id}/category
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "amount": 1450.75,
+  "category": "DINING",
+  "categoryConfidence": null,
+  "categoryConfidenceCalibrated": false,
+  "categoryModelVersion": null,
+  "categoryNeedsReview": false,
+  "categoryRule": null,
+  "categorySource": "USER",
+  "createdAt": "<timestamp>",
+  "date": "2026-06-20",
+  "id": "<uuid>",
+  "note": null,
+  "source": "MANUAL",
+  "title": "Mystery payee",
+  "type": "EXPENSE"
+}
+
+### POST /api/transactions/reclassify
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "attempted": 3,
+  "categorized": 0,
+  "needsReview": 0,
+  "status": "UNAVAILABLE",
+  "stillUncategorized": 3
+}
+
+### GET /api/loans
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: [
+  {
+    "active": true,
+    "createdAt": "<timestamp>",
+    "emiAmount": 24000.00,
+    "endDate": "2045-01-01",
+    "id": "<uuid>",
+    "interestRate": 8.5000,
+    "name": "Home loan",
+    "principal": 2500000.00,
+    "startDate": "2025-01-01",
+    "type": "HOME"
+  }
+]
+
+### GET /api/loans/{id}
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "active": true,
+  "createdAt": "<timestamp>",
+  "emiAmount": 24000.00,
+  "endDate": "2045-01-01",
+  "id": "<uuid>",
+  "interestRate": 8.5000,
+  "name": "Home loan",
+  "principal": 2500000.00,
+  "startDate": "2025-01-01",
+  "type": "HOME"
+}
+
+### PUT /api/loans/{id}
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "active": true,
+  "createdAt": "<timestamp>",
+  "emiAmount": 25000.00,
+  "endDate": "2045-01-01",
+  "id": "<uuid>",
+  "interestRate": 8.5,
+  "name": "Home loan",
+  "principal": 2500000.00,
+  "startDate": "2025-01-01",
+  "type": "HOME"
+}
+
+### GET /api/investments
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: [
+  {
+    "amountInvested": 100000.00,
+    "createdAt": "<timestamp>",
+    "currentValue": 112500.25,
+    "id": "<uuid>",
+    "name": "Index fund",
+    "notes": "snapshot",
+    "type": "MUTUAL_FUND"
+  }
+]
+
+### PUT /api/investments/{id}
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "amountInvested": 100000.00,
+  "createdAt": "<timestamp>",
+  "currentValue": 115000.00,
+  "id": "<uuid>",
+  "name": "Index fund",
+  "notes": "updated",
+  "type": "MUTUAL_FUND"
+}
+
+### GET /api/analytics/summary
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "activeLoansCount": 1,
+  "dataQuality": {
+    "hasSufficientHistory": true,
+    "totalTransactions": 22,
+    "uncategorizedCount": 3,
+    "uncategorizedPercentage": 13.64
+  },
+  "excludes": [
+    "TRANSFERS",
+    "CARD_PAYMENTS",
+    "INVESTMENTS"
+  ],
+  "gainPercentage": 15.00,
+  "grossExpenses": 191903.75,
+  "momComparison": null,
+  "netCashFlow": 183096.25,
+  "period": {
+    "from": "2026-01-01",
+    "to": "2026-06-20"
+  },
+  "savingsRate": 48.83,
+  "savingsRateApplicable": true,
+  "savingsRateCaveat": null,
+  "topInsights": [
+    {
+      "confidenceCaveat": "Computed as (Net Cash Flow / Income) * 100 on verified ledger transactions.",
+      "id": "ins-savings-rate",
+      "message": "You saved 48.83% of your income this period (₹183096.25 net cash surplus).",
+      "period": "2026-01-01 to 2026-06-20",
+      "ruleTriggered": "SAVINGS_RATE_HEALTHY",
+      "supportingFigures": {
+        "netCashFlow": 183096.25,
+        "savingsRate": 48.83
+      },
+      "title": "Strong Savings Rate",
+      "type": "POSITIVE"
+    }
+  ],
+  "totalCurrentValue": 115000.00,
+  "totalExpenses": 191903.75,
+  "totalIncome": 375000.00,
+  "totalInvested": 100000.00,
+  "totalMonthlyEmi": 25000.00,
+  "totalPrincipal": 2500000.00,
+  "totalRefunds": 0.00,
+  "unrealizedGain": 15000.00
+}
+
+### GET /api/analytics/monthly
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: [
+  {
+    "expenses": 30000.50,
+    "grossExpenses": 30000.50,
+    "income": 50000.00,
+    "momExpenseChangePct": null,
+    "momIncomeChangePct": null,
+    "month": "2026-01",
+    "netCashFlow": 19999.50,
+    "refunds": 0.00,
+    "savingsRate": 40.00,
+    "transactionCount": 3
+  },
+  {
+    "expenses": 30000.50,
+    "grossExpenses": 30000.50,
+    "income": 50000.00,
+    "momExpenseChangePct": 0.00,
+    "momIncomeChangePct": 0.00,
+    "month": "2026-02",
+    "netCashFlow": 19999.50,
+    "refunds": 0.00,
+    "savingsRate": 40.00,
+    "transactionCount": 3
+  },
+  {
+    "expenses": 40450.50,
+    "grossExpenses": 40450.50,
+    "income": 125000.00,
+    "momExpenseChangePct": 34.83,
+    "momIncomeChangePct": 150.00,
+    "month": "2026-03",
+    "netCashFlow": 84549.50,
+    "refunds": 0.00,
+    "savingsRate": 67.64,
+    "transactionCount": 6
+  },
+  {
+    "expenses": 30000.50,
+    "grossExpenses": 30000.50,
+    "income": 50000.00,
+    "momExpenseChangePct": -25.83,
+    "momIncomeChangePct": -60.00,
+    "month": "2026-04",
+    "netCashFlow": 19999.50,
+    "refunds": 0.00,
+    "savingsRate": 40.00,
+    "transactionCount": 3
+  },
+  {
+    "expenses": 30000.50,
+    "grossExpenses": 30000.50,
+    "income": 50000.00,
+    "momExpenseChangePct": 0.00,
+    "momIncomeChangePct": 0.00,
+    "month": "2026-05",
+    "netCashFlow": 19999.50,
+    "refunds": 0.00,
+    "savingsRate": 40.00,
+    "transactionCount": 3
+  },
+  {
+    "expenses": 31451.25,
+    "grossExpenses": 31451.25,
+    "income": 50000.00,
+    "momExpenseChangePct": 4.84,
+    "momIncomeChangePct": 0.00,
+    "month": "2026-06",
+    "netCashFlow": 18548.75,
+    "refunds": 0.00,
+    "savingsRate": 37.10,
+    "transactionCount": 4
+  }
+]
+
+### GET /api/analytics/categories
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "categories": [
+    {
+      "amount": 120000.00,
+      "averageTransactionAmount": 20000.00,
+      "category": "HOUSING",
+      "flow": "EXPENSE",
+      "isIncreasing": false,
+      "label": "Housing",
+      "largestTransaction": {
+        "amount": 20000.00,
+        "category": "HOUSING",
+        "date": "2026-06-03",
+        "id": "<uuid>",
+        "title": "Landlord 2026-06"
+      },
+      "momChangePct": 0.00,
+      "percentage": 62.53,
+      "transactionCount": 6
+    },
+    {
+      "amount": 60003.00,
+      "averageTransactionAmount": 10000.50,
+      "category": "GROCERIES",
+      "flow": "EXPENSE",
+      "isIncreasing": false,
+      "label": "Groceries",
+      "largestTransaction": {
+        "amount": 10000.50,
+        "category": "GROCERIES",
+        "date": "2026-06-15",
+        "id": "<uuid>",
+        "title": "Market 2026-06"
+      },
+      "momChangePct": 0.00,
+      "percentage": 31.27,
+      "transactionCount": 6
+    },
+    {
+      "amount": 10450.00,
+      "averageTransactionAmount": 5225.00,
+      "category": "UNCATEGORIZED",
+      "flow": "UNKNOWN",
+      "isIncreasing": false,
+      "label": "Uncategorized",
+      "largestTransaction": {
+        "amount": 10000.00,
+        "category": null,
+        "date": "2026-03-05",
+        "id": "<uuid>",
+        "title": "ATM WDL, MG ROAD BENGALURU"
+      },
+      "momChangePct": null,
+      "percentage": 5.45,
+      "transactionCount": 2
+    },
+    {
+      "amount": 1450.75,
+      "averageTransactionAmount": 1450.75,
+      "category": "DINING",
+      "flow": "EXPENSE",
+      "isIncreasing": false,
+      "label": "Dining",
+      "largestTransaction": {
+        "amount": 1450.75,
+        "category": "DINING",
+        "date": "2026-06-20",
+        "id": "<uuid>",
+        "title": "Mystery payee"
+      },
+      "momChangePct": null,
+      "percentage": 0.76,
+      "transactionCount": 1
+    }
+  ],
+  "largestCategory": "HOUSING",
+  "period": {
+    "from": "2026-01-01",
+    "to": "2026-06-20"
+  },
+  "risingCategories": [],
+  "totalGrossExpenses": 191903.75,
+  "totalNetExpenses": 191903.75,
+  "totalRefunds": 0.00
+}
+
+### GET /api/analytics/recurring
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "items": [
+    {
+      "amount": 20000.00,
+      "cadence": "MONTHLY",
+      "category": "HOUSING",
+      "confidence": "HIGH",
+      "explanation": "Consistent monthly cadence of ~30 days observed across 6 transactions (latest: 2026-06-03).",
+      "id": "rec-1",
+      "isConfirmed": false,
+      "lastDate": "2026-06-03",
+      "merchant": "Landlord",
+      "occurrences": 6,
+      "title": "Landlord 2026-06"
+    },
+    {
+      "amount": 10000.50,
+      "cadence": "MONTHLY",
+      "category": "GROCERIES",
+      "confidence": "HIGH",
+      "explanation": "Consistent monthly cadence of ~30 days observed across 6 transactions (latest: 2026-06-15).",
+      "id": "rec-2",
+      "isConfirmed": false,
+      "lastDate": "2026-06-15",
+      "merchant": "Market",
+      "occurrences": 6,
+      "title": "Market 2026-06"
+    }
+  ],
+  "period": {
+    "from": "2026-01-01",
+    "to": "2026-06-20"
+  },
+  "recurringPercentageOfExpenses": 93.80,
+  "totalMonthlyRecurring": 30000.50
+}
+
+### GET /api/analytics/data-quality
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "caveats": [
+    "13.64% of transactions are uncategorized. Spending breakdown by category may be incomplete."
+  ],
+  "coverageFrom": "2026-01-01",
+  "coverageTo": "2026-06-20",
+  "hasSufficientHistory": true,
+  "missingMonths": [],
+  "totalDaysCovered": 171,
+  "totalMonthsCovered": 6,
+  "totalTransactions": 22,
+  "uncategorizedCount": 3,
+  "uncategorizedPercentage": 13.64
+}
+
+### GET /api/analytics/insights
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "insights": [
+    {
+      "confidenceCaveat": "Computed as (Net Cash Flow / Income) * 100 on verified ledger transactions.",
+      "id": "ins-savings-rate",
+      "message": "You saved 48.83% of your income this period (₹183096.25 net cash surplus).",
+      "period": "2026-01-01 to 2026-06-20",
+      "ruleTriggered": "SAVINGS_RATE_HEALTHY",
+      "supportingFigures": {
+        "netCashFlow": 183096.25,
+        "savingsRate": 48.83
+      },
+      "title": "Strong Savings Rate",
+      "type": "POSITIVE"
+    }
+  ],
+  "period": {
+    "from": "2026-01-01",
+    "to": "2026-06-20"
+  },
+  "unusualTransactions": []
+}
+
+### GET /api/analytics/summary?from=2026-03-01&to=2026-04-30
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "activeLoansCount": 1,
+  "dataQuality": {
+    "hasSufficientHistory": true,
+    "totalTransactions": 9,
+    "uncategorizedCount": 3,
+    "uncategorizedPercentage": 33.33
+  },
+  "excludes": [
+    "TRANSFERS",
+    "CARD_PAYMENTS",
+    "INVESTMENTS"
+  ],
+  "gainPercentage": 15.00,
+  "grossExpenses": 70451.00,
+  "momComparison": {
+    "expenseChange": 10450.00,
+    "expenseChangePct": 17.42,
+    "incomeChange": 75000.00,
+    "incomeChangePct": 75.00,
+    "netChange": 64550.00,
+    "previousExpenses": 60001.00,
+    "previousIncome": 100000.00,
+    "previousNet": 39999.00
+  },
+  "netCashFlow": 104549.00,
+  "period": {
+    "from": "2026-03-01",
+    "to": "2026-04-30"
+  },
+  "savingsRate": 59.74,
+  "savingsRateApplicable": true,
+  "savingsRateCaveat": null,
+  "topInsights": [
+    {
+      "confidenceCaveat": "Computed as (Net Cash Flow / Income) * 100 on verified ledger transactions.",
+      "id": "ins-savings-rate",
+      "message": "You saved 59.74% of your income this period (₹104549.00 net cash surplus).",
+      "period": "2026-03-01 to 2026-04-30",
+      "ruleTriggered": "SAVINGS_RATE_HEALTHY",
+      "supportingFigures": {
+        "netCashFlow": 104549.00,
+        "savingsRate": 59.74
+      },
+      "title": "Strong Savings Rate",
+      "type": "POSITIVE"
+    },
+    {
+      "confidenceCaveat": "Comparison reflects calendar month boundaries.",
+      "id": "ins-mom-expense-increase",
+      "message": "Your expenses increased 17.42% compared with the previous month (₹70451.00 vs ₹60001.00).",
+      "period": "2026-03-01 to 2026-04-30",
+      "ruleTriggered": "MOM_EXPENSE_INCREASE",
+      "supportingFigures": {
+        "changePct": 17.42,
+        "currentExpenses": 70451.00,
+        "previousExpenses": 60001.00
+      },
+      "title": "Monthly Spending Increased",
+      "type": "TREND"
+    },
+    {
+      "confidenceCaveat": "Estimated from recurring payment cadences and subscriptions.",
+      "id": "ins-rec-burden",
+      "message": "2 recurring payments account for approximately ₹30000.50 per month (42.6% of spending).",
+      "period": "2026-03-01 to 2026-04-30",
+      "ruleTriggered": "RECURRING_EXPENSE_BURDEN",
+      "supportingFigures": {
+        "monthlyTotal": 30000.50,
+        "percentOfExpenses": 42.6,
+        "recurringCount": 2
+      },
+      "title": "Recurring Payments Commitment",
+      "type": "INFO"
+    },
+    {
+      "confidenceCaveat": "Uncategorized rows are counted as expenses in net cash flow, but lack category breakdown.",
+      "id": "ins-data-uncategorized",
+      "message": "33.33% of your transactions (3 total) are uncategorized. Reviewing them will improve category intelligence.",
+      "period": "2026-03-01 to 2026-04-30",
+      "ruleTriggered": "HIGH_UNCATEGORIZED_VOLUME",
+      "supportingFigures": {
+        "percentage": 33.33,
+        "uncategorizedCount": 3
+      },
+      "title": "Uncategorized Transactions Notice",
+      "type": "INFO"
+    }
+  ],
+  "totalCurrentValue": 115000.00,
+  "totalExpenses": 70451.00,
+  "totalIncome": 175000.00,
+  "totalInvested": 100000.00,
+  "totalMonthlyEmi": 25000.00,
+  "totalPrincipal": 2500000.00,
+  "totalRefunds": 0.00,
+  "unrealizedGain": 15000.00
+}
+
+### GET /api/analytics/summary (bad date)
+status: 400
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Bad Request",
+  "message": "Parameter 'from' has an invalid value",
+  "status": 400,
+  "timestamp": "<timestamp>"
+}
+
+### POST /api/budgets (overall)
+status: 201
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "amount": 45000.00,
+  "category": null,
+  "createdAt": null,
+  "id": "<uuid>",
+  "updatedAt": null,
+  "yearMonth": "2026-07"
+}
+
+### POST /api/budgets (category)
+status: 201
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "amount": 12000.00,
+  "category": "GROCERIES",
+  "createdAt": null,
+  "id": "<uuid>",
+  "updatedAt": null,
+  "yearMonth": "2026-07"
+}
+
+### POST /api/budgets (duplicate)
+status: 409
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Conflict",
+  "message": "A budget for category GROCERIES already exists for 2026-07",
+  "status": 409,
+  "timestamp": "<timestamp>"
+}
+
+### GET /api/budgets
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: [
+  {
+    "amount": 12000.00,
+    "category": "GROCERIES",
+    "createdAt": "<timestamp>",
+    "id": "<uuid>",
+    "updatedAt": "<timestamp>",
+    "yearMonth": "2026-07"
+  },
+  {
+    "amount": 45000.00,
+    "category": null,
+    "createdAt": "<timestamp>",
+    "id": "<uuid>",
+    "updatedAt": "<timestamp>",
+    "yearMonth": "2026-07"
+  }
+]
+
+### GET /api/budgets/overview?yearMonth=2026-06
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "categoriesApproachingCount": 0,
+  "categoriesOverBudgetCount": 0,
+  "categoryBudgets": [],
+  "overallBudget": null,
+  "totalActualExpenses": 31451.25,
+  "totalCategoryBudgeted": 0.00,
+  "unbudgetedSpending": 31451.25,
+  "warnings": [],
+  "yearMonth": "2026-06"
+}
+
+### GET /api/budgets/overview?month=2026-07 (legacy alias)
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "categoriesApproachingCount": 0,
+  "categoriesOverBudgetCount": 0,
+  "categoryBudgets": [
+    {
+      "actualSpend": 0.00,
+      "budgetId": "<uuid>",
+      "budgetedAmount": 12000.00,
+      "category": "GROCERIES",
+      "categoryLabel": "Groceries",
+      "percentageUsed": 0.00,
+      "remainingAmount": 12000.00,
+      "status": "UNDER_BUDGET",
+      "transactionCount": 0
+    }
+  ],
+  "overallBudget": {
+    "actualSpend": 0.00,
+    "budgetId": "<uuid>",
+    "budgetedAmount": 45000.00,
+    "percentageUsed": 0.00,
+    "remainingAmount": 45000.00,
+    "status": "UNDER_BUDGET"
+  },
+  "totalActualExpenses": 0.00,
+  "totalCategoryBudgeted": 12000.00,
+  "unbudgetedSpending": 0.00,
+  "warnings": [],
+  "yearMonth": "2026-07"
+}
+
+### PUT /api/budgets/{id}
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "amount": 12500.00,
+  "category": "GROCERIES",
+  "createdAt": "<timestamp>",
+  "id": "<uuid>",
+  "updatedAt": "<timestamp>",
+  "yearMonth": "2026-07"
+}
+
+### POST /api/goals
+status: 201
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "contributionCount": 0,
+  "createdAt": null,
+  "currentAmount": 0.00,
+  "daysRemaining": 534,
+  "description": "six months",
+  "id": "<uuid>",
+  "isOverdue": false,
+  "name": "Emergency fund",
+  "progressPercentage": 0.00,
+  "remainingAmount": 300000.00,
+  "requiredMonthlyPace": 17088.03,
+  "status": "ACTIVE",
+  "targetAmount": 300000.00,
+  "targetDate": "2027-12-31",
+  "updatedAt": null
+}
+
+### POST /api/goals/{id}/contributions
+status: 201
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "amount": 15000.25,
+  "contributionDate": "2026-07-10",
+  "createdAt": null,
+  "goalId": "<uuid>",
+  "id": "<uuid>",
+  "note": "first"
+}
+
+### GET /api/goals
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: [
+  {
+    "contributionCount": 1,
+    "createdAt": "<timestamp>",
+    "currentAmount": 15000.25,
+    "daysRemaining": 534,
+    "description": "six months",
+    "id": "<uuid>",
+    "isOverdue": false,
+    "name": "Emergency fund",
+    "progressPercentage": 5.00,
+    "remainingAmount": 284999.75,
+    "requiredMonthlyPace": 16233.62,
+    "status": "ACTIVE",
+    "targetAmount": 300000.00,
+    "targetDate": "2027-12-31",
+    "updatedAt": "<timestamp>"
+  }
+]
+
+### GET /api/goals/{id}
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "contributions": [
+    {
+      "amount": 15000.25,
+      "contributionDate": "2026-07-10",
+      "createdAt": "<timestamp>",
+      "goalId": "<uuid>",
+      "id": "<uuid>",
+      "note": "first"
+    }
+  ],
+  "disclaimer": "Goal contributions are tracked for planning purposes and do not represent verified bank balances or automated account transfers.",
+  "goal": {
+    "contributionCount": 1,
+    "createdAt": "<timestamp>",
+    "currentAmount": 15000.25,
+    "daysRemaining": 534,
+    "description": "six months",
+    "id": "<uuid>",
+    "isOverdue": false,
+    "name": "Emergency fund",
+    "progressPercentage": 5.00,
+    "remainingAmount": 284999.75,
+    "requiredMonthlyPace": 16233.62,
+    "status": "ACTIVE",
+    "targetAmount": 300000.00,
+    "targetDate": "2027-12-31",
+    "updatedAt": "<timestamp>"
+  }
+}
+
+### GET /api/forecast/cash-flow
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "algorithmVersion": "2.0.0",
+  "asOf": "2026-07-15",
+  "assumptions": [
+    "Method LEVEL_DAMPED_TREND 2.0.0: a robust recent level (outliers clipped) plus a damped trend only when it is statistically significant.",
+    "Only complete calendar months are used; the current month (2026-07) is excluded from training.",
+    "Projected months are the months after the current month; amounts are in rupees.",
+    "Seasonality is not modelled (it needs at least two full years of history).",
+    "Definitions follow docs/FINANCIAL_RULES.md: transfers, card payments and investments are excluded; refunds offset spending; uncategorised credits count as income.",
+    "Annual and irregular payments are not detected, so a large yearly bill can make its own month higher than projected.",
+    "No statistically significant spending trend was found, so spending is projected at its recent level.",
+    "Detected active recurring payments (₹30000.50/month) are already inside the observed history; they are not added again and only raise a projection that would otherwise fall below them."
+  ],
+  "currentMonth": null,
+  "historical": [
+    {
+      "expenses": 30000.50,
+      "income": 50000.00,
+      "month": "2026-01",
+      "net": 19999.50
+    },
+    {
+      "expenses": 30000.50,
+      "income": 50000.00,
+      "month": "2026-02",
+      "net": 19999.50
+    },
+    {
+      "expenses": 40450.50,
+      "income": 125000.00,
+      "month": "2026-03",
+      "net": 84549.50
+    },
+    {
+      "expenses": 30000.50,
+      "income": 50000.00,
+      "month": "2026-04",
+      "net": 19999.50
+    },
+    {
+      "expenses": 30000.50,
+      "income": 50000.00,
+      "month": "2026-05",
+      "net": 19999.50
+    },
+    {
+      "expenses": 31451.25,
+      "income": 50000.00,
+      "month": "2026-06",
+      "net": 18548.75
+    }
+  ],
+  "history": {
+    "firstMonthPossiblyPartial": false,
+    "from": "2026-01",
+    "minMonthsLimited": 3,
+    "minMonthsReliable": 6,
+    "missingMonths": [],
+    "monthsUsed": 6,
+    "to": "2026-06",
+    "transactionsUsed": 22
+  },
+  "horizonMonths": 3,
+  "incomeAvailable": true,
+  "intervalNote": "Bands (when shown) span the 10th to 90th percentile of this method's own past forecast errors on this history, added to the projection; at least 8 past errors at the same distance are required. They are descriptive, not a calibrated probability.",
+  "method": "LEVEL_DAMPED_TREND",
+  "projected": [
+    {
+      "expenses": {
+        "lower": null,
+        "point": 31742.32,
+        "upper": null
+      },
+      "factors": [
+        "No uncertainty band: only 2 past forecast(s) at this distance (8 needed)."
+      ],
+      "income": {
+        "lower": null,
+        "point": 52500.00,
+        "upper": null
+      },
+      "month": "2026-08",
+      "net": {
+        "lower": null,
+        "point": 20757.68,
+        "upper": null
+      },
+      "recurringFloorApplied": false
+    },
+    {
+      "expenses": {
+        "lower": null,
+        "point": 31742.32,
+        "upper": null
+      },
+      "factors": [
+        "No uncertainty band: only 1 past forecast(s) at this distance (8 needed)."
+      ],
+      "income": {
+        "lower": null,
+        "point": 52500.00,
+        "upper": null
+      },
+      "month": "2026-09",
+      "net": {
+        "lower": null,
+        "point": 20757.68,
+        "upper": null
+      },
+      "recurringFloorApplied": false
+    },
+    {
+      "expenses": {
+        "lower": null,
+        "point": 31742.32,
+        "upper": null
+      },
+      "factors": [
+        "No uncertainty band: only 0 past forecast(s) at this distance (8 needed)."
+      ],
+      "income": {
+        "lower": null,
+        "point": 52500.00,
+        "upper": null
+      },
+      "month": "2026-10",
+      "net": {
+        "lower": null,
+        "point": 20757.68,
+        "upper": null
+      },
+      "recurringFloorApplied": false
+    }
+  ],
+  "recurring": [
+    {
+      "cadence": "MONTHLY",
+      "category": "HOUSING",
+      "confidence": "HIGH",
+      "id": "rec-1",
+      "includedInBaseline": true,
+      "monthlyAmount": 20000.00,
+      "title": "Landlord 2026-06",
+      "userConfirmed": false
+    },
+    {
+      "cadence": "MONTHLY",
+      "category": "GROCERIES",
+      "confidence": "HIGH",
+      "id": "rec-2",
+      "includedInBaseline": true,
+      "monthlyAmount": 10000.50,
+      "title": "Market 2026-06",
+      "userConfirmed": false
+    }
+  ],
+  "reliability": "RELIABLE",
+  "summary": {
+    "averageMonthlyNet": 20757.68,
+    "savingsRatePercent": 39.54,
+    "totalExpenses": 95226.96,
+    "totalIncome": 157500.00,
+    "totalNet": 62273.04
+  },
+  "warnings": [
+    "3 of 22 transactions are uncategorised. Totals are unaffected, but category forecasts may be incomplete.",
+    "Spending in 2026-03 was unusually high or low and was limited so it does not distort the projection.",
+    "Income in 2026-03 was unusually high or low and was limited so it does not distort the projection."
+  ]
+}
+
+### GET /api/forecast/categories
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "algorithmVersion": "2.0.0",
+  "asOf": "2026-07-15",
+  "assumptions": [
+    "Method LEVEL_DAMPED_TREND 2.0.0: a robust recent level (outliers clipped) plus a damped trend only when it is statistically significant.",
+    "Only complete calendar months are used; the current month (2026-07) is excluded from training.",
+    "Projected months are the months after the current month; amounts are in rupees.",
+    "Seasonality is not modelled (it needs at least two full years of history).",
+    "Definitions follow docs/FINANCIAL_RULES.md: transfers, card payments and investments are excluded; refunds offset spending; uncategorised credits count as income.",
+    "Annual and irregular payments are not detected, so a large yearly bill can make its own month higher than projected.",
+    "Category figures use the category breakdown rules: refunds filed under the generic Refunds category cannot be attributed to a category, so category totals can exceed the overall net expense figure by those refunds."
+  ],
+  "categories": [
+    {
+      "activeMonths": 6,
+      "category": "HOUSING",
+      "explanation": "Based on 6 of 6 months with spending in this category. No significant trend; projected at the recent level.",
+      "label": "Housing",
+      "monthly": [
+        {
+          "lower": null,
+          "point": 20000.00,
+          "upper": null
+        },
+        {
+          "lower": null,
+          "point": 20000.00,
+          "upper": null
+        },
+        {
+          "lower": null,
+          "point": 20000.00,
+          "upper": null
+        }
+      ],
+      "outlierMonths": [],
+      "projectedTotal": 60000.00,
+      "recentMonthlyAverage": 20000.00,
+      "recurringMonthly": 20000.00,
+      "reliability": "RELIABLE",
+      "trend": "STABLE",
+      "trendPercentPerMonth": null
+    },
+    {
+      "activeMonths": 6,
+      "category": "GROCERIES",
+      "explanation": "Based on 6 of 6 months with spending in this category. No significant trend; projected at the recent level.",
+      "label": "Groceries",
+      "monthly": [
+        {
+          "lower": null,
+          "point": 10000.50,
+          "upper": null
+        },
+        {
+          "lower": null,
+          "point": 10000.50,
+          "upper": null
+        },
+        {
+          "lower": null,
+          "point": 10000.50,
+          "upper": null
+        }
+      ],
+      "outlierMonths": [],
+      "projectedTotal": 30001.50,
+      "recentMonthlyAverage": 10000.50,
+      "recurringMonthly": 10000.50,
+      "reliability": "RELIABLE",
+      "trend": "STABLE",
+      "trendPercentPerMonth": null
+    }
+  ],
+  "history": {
+    "firstMonthPossiblyPartial": false,
+    "from": "2026-01",
+    "minMonthsLimited": 3,
+    "minMonthsReliable": 6,
+    "missingMonths": [],
+    "monthsUsed": 6,
+    "to": "2026-06",
+    "transactionsUsed": 22
+  },
+  "horizonMonths": 3,
+  "method": "LEVEL_DAMPED_TREND",
+  "reliability": "RELIABLE",
+  "risingCategories": [],
+  "warnings": [
+    "3 of 22 transactions are uncategorised. Totals are unaffected, but category forecasts may be incomplete."
+  ],
+  "withoutForecast": [
+    {
+      "category": "DINING",
+      "label": "Dining",
+      "reason": "Spending in only 1 of 6 month(s); at least 3 are needed for a category forecast."
+    },
+    {
+      "category": "UNCATEGORIZED",
+      "label": "Uncategorized",
+      "reason": "Spending in only 1 of 6 month(s); at least 3 are needed for a category forecast."
+    }
+  ]
+}
+
+### GET /api/forecast/budget-overruns
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "asOf": "2026-07-15",
+  "categories": [
+    {
+      "actualToDate": 0.00,
+      "basis": [
+        "HISTORY"
+      ],
+      "budgetAmount": 12500.00,
+      "budgetId": "<uuid>",
+      "category": "GROCERIES",
+      "estimatedOverrun": 0.00,
+      "expectedCentral": 10000.50,
+      "expectedHigh": 10000.50,
+      "expectedLow": 10000.50,
+      "factors": [
+        "Recorded so far: ₹0.00 of a ₹12500.00 budget.",
+        "Detected recurring payments not yet seen this month: Market 2026-06 ₹10000.50 (₹10000.50 in total).",
+        "History: the median of the last 6 complete months in this scope is ₹10000.50.",
+        "Based on a single estimate (HISTORY): treat as indicative."
+      ],
+      "indeterminateReason": null,
+      "label": "Groceries",
+      "recurringStillDue": 10000.50,
+      "remainingBudget": 12500.00,
+      "risk": "ON_TRACK",
+      "rule": "The highest available estimate (₹10000.50) is at or below 90% of the budget."
+    }
+  ],
+  "daysInMonth": 31,
+  "daysRemaining": 31,
+  "daysWithRecordedData": 0,
+  "month": "2026-07",
+  "overall": {
+    "actualToDate": 0.00,
+    "basis": [
+      "HISTORY"
+    ],
+    "budgetAmount": 45000.00,
+    "budgetId": "<uuid>",
+    "category": null,
+    "estimatedOverrun": 0.00,
+    "expectedCentral": 30000.50,
+    "expectedHigh": 30000.50,
+    "expectedLow": 30000.50,
+    "factors": [
+      "Recorded so far: ₹0.00 of a ₹45000.00 budget.",
+      "Detected recurring payments not yet seen this month: Landlord 2026-06 ₹20000.00, Market 2026-06 ₹10000.50 (₹30000.50 in total).",
+      "History: the median of the last 6 complete months in this scope is ₹30000.50.",
+      "Based on a single estimate (HISTORY): treat as indicative."
+    ],
+    "indeterminateReason": null,
+    "label": "Overall monthly spending",
+    "recurringStillDue": 30000.50,
+    "remainingBudget": 45000.00,
+    "risk": "ON_TRACK",
+    "rule": "The highest available estimate (₹30000.50) is at or below 90% of the budget."
+  },
+  "period": "CURRENT",
+  "warnings": []
+}
+
+### GET /api/forecast/savings
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "accounting": {
+    "goalsOvercommitted": false,
+    "projectedSurplusOverHorizon": 124546.08,
+    "recordedGoalContributions": 15000.25,
+    "totalRequiredGoalPace": 16764.69,
+    "verifiedBankBalance": null,
+    "verifiedBankBalanceNote": "Not available. FinGuard does not hold or verify account balances."
+  },
+  "algorithmVersion": "2.0.0",
+  "asOf": "2026-07-15",
+  "assumptions": [
+    "Method LEVEL_DAMPED_TREND 2.0.0: a robust recent level (outliers clipped) plus a damped trend only when it is statistically significant.",
+    "Only complete calendar months are used; the current month (2026-07) is excluded from training.",
+    "Projected months are the months after the current month; amounts are in rupees.",
+    "Seasonality is not modelled (it needs at least two full years of history).",
+    "Definitions follow docs/FINANCIAL_RULES.md: transfers, card payments and investments are excluded; refunds offset spending; uncategorised credits count as income.",
+    "Annual and irregular payments are not detected, so a large yearly bill can make its own month higher than projected.",
+    "No statistically significant spending trend was found, so spending is projected at its recent level.",
+    "Detected active recurring payments (₹30000.50/month) are already inside the observed history; they are not added again and only raise a projection that would otherwise fall below them."
+  ],
+  "averageMonthlyNet": 20757.68,
+  "disclaimer": "Projected surplus is the expected difference between recorded-style income and spending. It is not a bank balance and not verified savings. Goal contributions are self-tracked planning figures, not deposits. FinGuard holds no account balances.",
+  "goals": [
+    {
+      "completionMonthIfAllSurplusUsed": "2027-09",
+      "id": "<uuid>",
+      "monthsIfAllSurplusUsed": 14,
+      "name": "Emergency fund",
+      "onPaceIfAlone": true,
+      "recordedAmount": 15000.25,
+      "remaining": 284999.75,
+      "requiredMonthlyPace": 16764.69,
+      "targetAmount": 300000.00,
+      "targetDate": "2027-12-31"
+    }
+  ],
+  "history": {
+    "firstMonthPossiblyPartial": false,
+    "from": "2026-01",
+    "minMonthsLimited": 3,
+    "minMonthsReliable": 6,
+    "missingMonths": [],
+    "monthsUsed": 6,
+    "to": "2026-06",
+    "transactionsUsed": 22
+  },
+  "horizonMonths": 6,
+  "incomeAvailable": true,
+  "method": "LEVEL_DAMPED_TREND",
+  "points": [
+    {
+      "cumulativeNet": 20757.68,
+      "month": "2026-08",
+      "net": {
+        "lower": null,
+        "point": 20757.68,
+        "upper": null
+      }
+    },
+    {
+      "cumulativeNet": 41515.36,
+      "month": "2026-09",
+      "net": {
+        "lower": null,
+        "point": 20757.68,
+        "upper": null
+      }
+    },
+    {
+      "cumulativeNet": 62273.04,
+      "month": "2026-10",
+      "net": {
+        "lower": null,
+        "point": 20757.68,
+        "upper": null
+      }
+    },
+    {
+      "cumulativeNet": 83030.72,
+      "month": "2026-11",
+      "net": {
+        "lower": null,
+        "point": 20757.68,
+        "upper": null
+      }
+    },
+    {
+      "cumulativeNet": 103788.40,
+      "month": "2026-12",
+      "net": {
+        "lower": null,
+        "point": 20757.68,
+        "upper": null
+      }
+    },
+    {
+      "cumulativeNet": 124546.08,
+      "month": "2027-01",
+      "net": {
+        "lower": null,
+        "point": 20757.68,
+        "upper": null
+      }
+    }
+  ],
+  "projectedSavingsRatePercent": 39.54,
+  "reliability": "RELIABLE",
+  "warnings": [
+    "3 of 22 transactions are uncategorised. Totals are unaffected, but category forecasts may be incomplete.",
+    "Spending in 2026-03 was unusually high or low and was limited so it does not distort the projection.",
+    "Income in 2026-03 was unusually high or low and was limited so it does not distort the projection."
+  ]
+}
+
+### GET /api/forecast/backtest
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "algorithmVersion": "2.0.0",
+  "asOf": "2026-07-15",
+  "evaluatedOn": "USER_HISTORY",
+  "limitations": [
+    "Evaluated on this account's own recorded history; synthetic fixtures are evaluated separately (docs/TESTING.md).",
+    "Each forecast is scored using only months that precede its origin (chronological rolling origin, no random splits).",
+    "Fewer than 6 scored forecasts at a horizon is reported as INCONCLUSIVE; a handful of months cannot establish accuracy.",
+    "Past performance does not guarantee future results; the baselines are 'last month repeats' (naive) and 'mean of the last 3 months'."
+  ],
+  "method": "LEVEL_DAMPED_TREND",
+  "scheme": "CHRONOLOGICAL_ROLLING_ORIGIN",
+  "series": [
+    {
+      "horizons": [
+        {
+          "horizon": 1,
+          "mean3": {
+            "bias": 2999.75,
+            "mae": 2999.75,
+            "rmse": 3076.72,
+            "wapePercent": 9.84
+          },
+          "model": {
+            "bias": 2148.37,
+            "mae": 2148.37,
+            "rmse": 2521.95,
+            "wapePercent": 7.05
+          },
+          "naive": {
+            "bias": 2999.75,
+            "mae": 3966.92,
+            "rmse": 6091.17,
+            "wapePercent": 13.01
+          },
+          "samples": 3,
+          "verdict": "INCONCLUSIVE"
+        },
+        {
+          "horizon": 2,
+          "mean3": {
+            "bias": 2757.96,
+            "mae": 2757.96,
+            "rmse": 2851.75,
+            "wapePercent": 8.98
+          },
+          "model": {
+            "bias": 2322.54,
+            "mae": 2322.54,
+            "rmse": 2596.46,
+            "wapePercent": 7.56
+          },
+          "naive": {
+            "bias": 4499.63,
+            "mae": 5950.38,
+            "rmse": 7460.13,
+            "wapePercent": 19.37
+          },
+          "samples": 2,
+          "verdict": "INCONCLUSIVE"
+        },
+        {
+          "horizon": 3,
+          "mean3": {
+            "bias": 2032.58,
+            "mae": 2032.58,
+            "rmse": 2032.58,
+            "wapePercent": 6.46
+          },
+          "model": {
+            "bias": 2032.58,
+            "mae": 2032.58,
+            "rmse": 2032.58,
+            "wapePercent": 6.46
+          },
+          "naive": {
+            "bias": 8999.25,
+            "mae": 8999.25,
+            "rmse": 8999.25,
+            "wapePercent": 28.61
+          },
+          "samples": 1,
+          "verdict": "INCONCLUSIVE"
+        }
+      ],
+      "observedMonths": 6,
+      "series": "EXPENSES"
+    },
+    {
+      "horizons": [
+        {
+          "horizon": 1,
+          "mean3": {
+            "bias": 25000.00,
+            "mae": 25000.00,
+            "rmse": 25000.00,
+            "wapePercent": 50.00
+          },
+          "model": {
+            "bias": 15583.33,
+            "mae": 15583.33,
+            "rmse": 18125.14,
+            "wapePercent": 31.17
+          },
+          "naive": {
+            "bias": 25000.00,
+            "mae": 25000.00,
+            "rmse": 43301.27,
+            "wapePercent": 50.00
+          },
+          "samples": 3,
+          "verdict": "INCONCLUSIVE"
+        },
+        {
+          "horizon": 2,
+          "mean3": {
+            "bias": 25000.00,
+            "mae": 25000.00,
+            "rmse": 25000.00,
+            "wapePercent": 50.00
+          },
+          "model": {
+            "bias": 21875.00,
+            "mae": 21875.00,
+            "rmse": 22097.09,
+            "wapePercent": 43.75
+          },
+          "naive": {
+            "bias": 37500.00,
+            "mae": 37500.00,
+            "rmse": 53033.01,
+            "wapePercent": 75.00
+          },
+          "samples": 2,
+          "verdict": "INCONCLUSIVE"
+        },
+        {
+          "horizon": 3,
+          "mean3": {
+            "bias": 25000.00,
+            "mae": 25000.00,
+            "rmse": 25000.00,
+            "wapePercent": 50.00
+          },
+          "model": {
+            "bias": 25000.00,
+            "mae": 25000.00,
+            "rmse": 25000.00,
+            "wapePercent": 50.00
+          },
+          "naive": {
+            "bias": 75000.00,
+            "mae": 75000.00,
+            "rmse": 75000.00,
+            "wapePercent": 150.00
+          },
+          "samples": 1,
+          "verdict": "INCONCLUSIVE"
+        }
+      ],
+      "observedMonths": 6,
+      "series": "INCOME"
+    },
+    {
+      "horizons": [
+        {
+          "horizon": 1,
+          "mean3": {
+            "bias": 22000.25,
+            "mae": 22000.25,
+            "rmse": 22010.88,
+            "wapePercent": 112.73
+          },
+          "model": {
+            "bias": 13434.96,
+            "mae": 13434.96,
+            "rmse": 15603.55,
+            "wapePercent": 68.84
+          },
+          "naive": {
+            "bias": 22000.25,
+            "mae": 22000.25,
+            "rmse": 37277.37,
+            "wapePercent": 112.73
+          },
+          "samples": 3,
+          "verdict": "INCONCLUSIVE"
+        },
+        {
+          "horizon": 2,
+          "mean3": {
+            "bias": 22242.04,
+            "mae": 22242.04,
+            "rmse": 22253.87,
+            "wapePercent": 115.40
+          },
+          "model": {
+            "bias": 19552.46,
+            "mae": 19552.46,
+            "rmse": 19650.87,
+            "wapePercent": 101.44
+          },
+          "naive": {
+            "bias": 33000.38,
+            "mae": 33000.38,
+            "rmse": 45655.27,
+            "wapePercent": 171.22
+          },
+          "samples": 2,
+          "verdict": "INCONCLUSIVE"
+        },
+        {
+          "horizon": 3,
+          "mean3": {
+            "bias": 22967.42,
+            "mae": 22967.42,
+            "rmse": 22967.42,
+            "wapePercent": 123.82
+          },
+          "model": {
+            "bias": 22967.42,
+            "mae": 22967.42,
+            "rmse": 22967.42,
+            "wapePercent": 123.82
+          },
+          "naive": {
+            "bias": 66000.75,
+            "mae": 66000.75,
+            "rmse": 66000.75,
+            "wapePercent": 355.82
+          },
+          "samples": 1,
+          "verdict": "INCONCLUSIVE"
+        }
+      ],
+      "observedMonths": 6,
+      "series": "NET"
+    }
+  ],
+  "status": "COMPLETED",
+  "usableMonths": 6
+}
+
+### GET /api/forecast/cash-flow?horizonMonths=99
+status: 400
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Bad Request",
+  "message": "Forecast horizon must be between 1 and 12 months.",
+  "status": 400,
+  "timestamp": "<timestamp>"
+}
+
+### POST /api/forecast/scenarios/simulate (empty scenario)
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "available": true,
+  "baseline": {
+    "expenses": 95226.96,
+    "income": 157500.00,
+    "net": 62273.04,
+    "savingsRatePercent": 39.54
+  },
+  "baselineReliability": "RELIABLE",
+  "categories": [],
+  "delta": {
+    "expenses": 0.00,
+    "income": 0.00,
+    "net": 0.00,
+    "savingsRatePoints": 0.00
+  },
+  "disclaimer": "Hypothetical: these figures are calculated on the fly from your projected baseline and change nothing in your transactions, budgets or goals. They are not predictions of what will happen.",
+  "explanations": [
+    "No adjustments chosen: the scenario equals the baseline."
+  ],
+  "horizonMonths": 3,
+  "hypothetical": true,
+  "incomeAvailable": true,
+  "loanEffects": [],
+  "months": [
+    {
+      "baselineExpenses": 31742.32,
+      "baselineIncome": 52500.00,
+      "baselineNet": 20757.68,
+      "month": "2026-08",
+      "scenarioExpenses": 31742.32,
+      "scenarioIncome": 52500.00,
+      "scenarioNet": 20757.68
+    },
+    {
+      "baselineExpenses": 31742.32,
+      "baselineIncome": 52500.00,
+      "baselineNet": 20757.68,
+      "month": "2026-09",
+      "scenarioExpenses": 31742.32,
+      "scenarioIncome": 52500.00,
+      "scenarioNet": 20757.68
+    },
+    {
+      "baselineExpenses": 31742.32,
+      "baselineIncome": 52500.00,
+      "baselineNet": 20757.68,
+      "month": "2026-10",
+      "scenarioExpenses": 31742.32,
+      "scenarioIncome": 52500.00,
+      "scenarioNet": 20757.68
+    }
+  ],
+  "name": "baseline",
+  "scenario": {
+    "expenses": 95226.96,
+    "income": 157500.00,
+    "net": 62273.04,
+    "savingsRatePercent": 39.54
+  },
+  "unavailableReason": null,
+  "warnings": []
+}
+
+### POST /api/scenarios
+status: 201
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "request": {
+    "addedRecurringExpenses": null,
+    "categoryAdjustments": null,
+    "horizonMonths": 3,
+    "incomeAdjustment": null,
+    "loanAdjustments": null,
+    "name": "snapshot scenario",
+    "oneTimeItems": null,
+    "removedRecurringExpenseIds": null
+  },
+  "snapshot": {
+    "available": true,
+    "baseline": {
+      "expenses": 95226.96,
+      "income": 157500.00,
+      "net": 62273.04,
+      "savingsRatePercent": 39.54
+    },
+    "baselineReliability": "RELIABLE",
+    "categories": [],
+    "delta": {
+      "expenses": 0.00,
+      "income": 0.00,
+      "net": 0.00,
+      "savingsRatePoints": 0.00
+    },
+    "disclaimer": "Hypothetical: these figures are calculated on the fly from your projected baseline and change nothing in your transactions, budgets or goals. They are not predictions of what will happen.",
+    "explanations": [
+      "No adjustments chosen: the scenario equals the baseline."
+    ],
+    "horizonMonths": 3,
+    "hypothetical": true,
+    "incomeAvailable": true,
+    "loanEffects": [],
+    "months": [
+      {
+        "baselineExpenses": 31742.32,
+        "baselineIncome": 52500.00,
+        "baselineNet": 20757.68,
+        "month": "2026-08",
+        "scenarioExpenses": 31742.32,
+        "scenarioIncome": 52500.00,
+        "scenarioNet": 20757.68
+      },
+      {
+        "baselineExpenses": 31742.32,
+        "baselineIncome": 52500.00,
+        "baselineNet": 20757.68,
+        "month": "2026-09",
+        "scenarioExpenses": 31742.32,
+        "scenarioIncome": 52500.00,
+        "scenarioNet": 20757.68
+      },
+      {
+        "baselineExpenses": 31742.32,
+        "baselineIncome": 52500.00,
+        "baselineNet": 20757.68,
+        "month": "2026-10",
+        "scenarioExpenses": 31742.32,
+        "scenarioIncome": 52500.00,
+        "scenarioNet": 20757.68
+      }
+    ],
+    "name": "snapshot scenario",
+    "scenario": {
+      "expenses": 95226.96,
+      "income": 157500.00,
+      "net": 62273.04,
+      "savingsRatePercent": 39.54
+    },
+    "unavailableReason": null,
+    "warnings": []
+  },
+  "summary": {
+    "createdAt": null,
+    "horizonMonths": 3,
+    "id": "<uuid>",
+    "methodVersion": "LEVEL_DAMPED_TREND 2.0.0",
+    "name": "snapshot scenario",
+    "netChange": 0.00,
+    "spendingChange": 0.00
+  }
+}
+
+### GET /api/scenarios
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: [
+  {
+    "createdAt": "<timestamp>",
+    "horizonMonths": 3,
+    "id": "<uuid>",
+    "methodVersion": "LEVEL_DAMPED_TREND 2.0.0",
+    "name": "snapshot scenario",
+    "netChange": 0.00,
+    "spendingChange": 0.00
+  }
+]
+
+### GET /api/scenarios/{id}
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "request": {
+    "addedRecurringExpenses": null,
+    "categoryAdjustments": null,
+    "horizonMonths": 3,
+    "incomeAdjustment": null,
+    "loanAdjustments": null,
+    "name": "snapshot scenario",
+    "oneTimeItems": null,
+    "removedRecurringExpenseIds": null
+  },
+  "snapshot": {
+    "available": true,
+    "baseline": {
+      "expenses": 95226.96,
+      "income": 157500.00,
+      "net": 62273.04,
+      "savingsRatePercent": 39.54
+    },
+    "baselineReliability": "RELIABLE",
+    "categories": [],
+    "delta": {
+      "expenses": 0.00,
+      "income": 0.00,
+      "net": 0.00,
+      "savingsRatePoints": 0.00
+    },
+    "disclaimer": "Hypothetical: these figures are calculated on the fly from your projected baseline and change nothing in your transactions, budgets or goals. They are not predictions of what will happen.",
+    "explanations": [
+      "No adjustments chosen: the scenario equals the baseline."
+    ],
+    "horizonMonths": 3,
+    "hypothetical": true,
+    "incomeAvailable": true,
+    "loanEffects": [],
+    "months": [
+      {
+        "baselineExpenses": 31742.32,
+        "baselineIncome": 52500.00,
+        "baselineNet": 20757.68,
+        "month": "2026-08",
+        "scenarioExpenses": 31742.32,
+        "scenarioIncome": 52500.00,
+        "scenarioNet": 20757.68
+      },
+      {
+        "baselineExpenses": 31742.32,
+        "baselineIncome": 52500.00,
+        "baselineNet": 20757.68,
+        "month": "2026-09",
+        "scenarioExpenses": 31742.32,
+        "scenarioIncome": 52500.00,
+        "scenarioNet": 20757.68
+      },
+      {
+        "baselineExpenses": 31742.32,
+        "baselineIncome": 52500.00,
+        "baselineNet": 20757.68,
+        "month": "2026-10",
+        "scenarioExpenses": 31742.32,
+        "scenarioIncome": 52500.00,
+        "scenarioNet": 20757.68
+      }
+    ],
+    "name": "snapshot scenario",
+    "scenario": {
+      "expenses": 95226.96,
+      "income": 157500.00,
+      "net": 62273.04,
+      "savingsRatePercent": 39.54
+    },
+    "unavailableReason": null,
+    "warnings": []
+  },
+  "summary": {
+    "createdAt": "<timestamp>",
+    "horizonMonths": 3,
+    "id": "<uuid>",
+    "methodVersion": "LEVEL_DAMPED_TREND 2.0.0",
+    "name": "snapshot scenario",
+    "netChange": 0.00,
+    "spendingChange": 0.00
+  }
+}
+
+### POST /api/scenarios/{id}/rerun
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "current": {
+    "available": true,
+    "baseline": {
+      "expenses": 95226.96,
+      "income": 157500.00,
+      "net": 62273.04,
+      "savingsRatePercent": 39.54
+    },
+    "baselineReliability": "RELIABLE",
+    "categories": [],
+    "delta": {
+      "expenses": 0.00,
+      "income": 0.00,
+      "net": 0.00,
+      "savingsRatePoints": 0.00
+    },
+    "disclaimer": "Hypothetical: these figures are calculated on the fly from your projected baseline and change nothing in your transactions, budgets or goals. They are not predictions of what will happen.",
+    "explanations": [
+      "No adjustments chosen: the scenario equals the baseline."
+    ],
+    "horizonMonths": 3,
+    "hypothetical": true,
+    "incomeAvailable": true,
+    "loanEffects": [],
+    "months": [
+      {
+        "baselineExpenses": 31742.32,
+        "baselineIncome": 52500.00,
+        "baselineNet": 20757.68,
+        "month": "2026-08",
+        "scenarioExpenses": 31742.32,
+        "scenarioIncome": 52500.00,
+        "scenarioNet": 20757.68
+      },
+      {
+        "baselineExpenses": 31742.32,
+        "baselineIncome": 52500.00,
+        "baselineNet": 20757.68,
+        "month": "2026-09",
+        "scenarioExpenses": 31742.32,
+        "scenarioIncome": 52500.00,
+        "scenarioNet": 20757.68
+      },
+      {
+        "baselineExpenses": 31742.32,
+        "baselineIncome": 52500.00,
+        "baselineNet": 20757.68,
+        "month": "2026-10",
+        "scenarioExpenses": 31742.32,
+        "scenarioIncome": 52500.00,
+        "scenarioNet": 20757.68
+      }
+    ],
+    "name": "snapshot scenario",
+    "scenario": {
+      "expenses": 95226.96,
+      "income": 157500.00,
+      "net": 62273.04,
+      "savingsRatePercent": 39.54
+    },
+    "unavailableReason": null,
+    "warnings": []
+  },
+  "currentMethodVersion": "LEVEL_DAMPED_TREND 2.0.0",
+  "methodVersionChanged": false,
+  "request": {
+    "addedRecurringExpenses": null,
+    "categoryAdjustments": null,
+    "horizonMonths": 3,
+    "incomeAdjustment": null,
+    "loanAdjustments": null,
+    "name": "snapshot scenario",
+    "oneTimeItems": null,
+    "removedRecurringExpenseIds": null
+  },
+  "snapshot": {
+    "available": true,
+    "baseline": {
+      "expenses": 95226.96,
+      "income": 157500.00,
+      "net": 62273.04,
+      "savingsRatePercent": 39.54
+    },
+    "baselineReliability": "RELIABLE",
+    "categories": [],
+    "delta": {
+      "expenses": 0.00,
+      "income": 0.00,
+      "net": 0.00,
+      "savingsRatePoints": 0.00
+    },
+    "disclaimer": "Hypothetical: these figures are calculated on the fly from your projected baseline and change nothing in your transactions, budgets or goals. They are not predictions of what will happen.",
+    "explanations": [
+      "No adjustments chosen: the scenario equals the baseline."
+    ],
+    "horizonMonths": 3,
+    "hypothetical": true,
+    "incomeAvailable": true,
+    "loanEffects": [],
+    "months": [
+      {
+        "baselineExpenses": 31742.32,
+        "baselineIncome": 52500.00,
+        "baselineNet": 20757.68,
+        "month": "2026-08",
+        "scenarioExpenses": 31742.32,
+        "scenarioIncome": 52500.00,
+        "scenarioNet": 20757.68
+      },
+      {
+        "baselineExpenses": 31742.32,
+        "baselineIncome": 52500.00,
+        "baselineNet": 20757.68,
+        "month": "2026-09",
+        "scenarioExpenses": 31742.32,
+        "scenarioIncome": 52500.00,
+        "scenarioNet": 20757.68
+      },
+      {
+        "baselineExpenses": 31742.32,
+        "baselineIncome": 52500.00,
+        "baselineNet": 20757.68,
+        "month": "2026-10",
+        "scenarioExpenses": 31742.32,
+        "scenarioIncome": 52500.00,
+        "scenarioNet": 20757.68
+      }
+    ],
+    "name": "snapshot scenario",
+    "scenario": {
+      "expenses": 95226.96,
+      "income": 157500.00,
+      "net": 62273.04,
+      "savingsRatePercent": 39.54
+    },
+    "unavailableReason": null,
+    "warnings": []
+  },
+  "summary": {
+    "createdAt": "<timestamp>",
+    "horizonMonths": 3,
+    "id": "<uuid>",
+    "methodVersion": "LEVEL_DAMPED_TREND 2.0.0",
+    "name": "snapshot scenario",
+    "netChange": 0.00,
+    "spendingChange": 0.00
+  },
+  "unchanged": true
+}
+
+### GET /api/recommendations
+status: 200
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "disclaimer": "General guidance based on simple rules applied to your own records. It is not financial, tax or investment advice and does not know your full situation. You can ignore any item.",
+  "healthy": false,
+  "notEvaluated": [
+    {
+      "id": "EMERGENCY_FUND",
+      "reason": "This needs your actual savings balance. FinGuard holds no account balances and goal contributions are self-tracked, so it cannot tell whether you have three months set aside.",
+      "title": "Emergency fund below three months of spending"
+    }
+  ],
+  "period": {
+    "from": "2026-04-01",
+    "months": 3,
+    "monthsWithData": 3,
+    "to": "2026-06-30"
+  },
+  "recommendations": [
+    {
+      "estimatedMonthlyImpact": 5000.00,
+      "evidence": [
+        {
+          "metric": "Total monthly EMI",
+          "source": "/api/analytics/summary?from=2026-04-01&to=2026-06-30",
+          "unit": "₹",
+          "value": 25000.00
+        },
+        {
+          "metric": "Average monthly income",
+          "source": "/api/analytics/summary?from=2026-04-01&to=2026-06-30",
+          "unit": "₹",
+          "value": 50000.00
+        },
+        {
+          "metric": "EMI share of income",
+          "source": "/api/analytics/summary?from=2026-04-01&to=2026-06-30",
+          "unit": "%",
+          "value": 50.00
+        },
+        {
+          "metric": "Active loans",
+          "source": "/api/loans",
+          "unit": "loans",
+          "value": 1
+        }
+      ],
+      "explanation": "Your active loan EMIs add up to ₹25000.00 a month, 50% of your average recorded monthly income of ₹50000.00.",
+      "id": "HIGH_EMI_BURDEN",
+      "scenarioPreset": null,
+      "severity": "HIGH",
+      "suggestedAction": "Lenders often look for EMIs below about 40% of income. Try a prepayment or EMI change in the scenario simulator to see the effect (about ₹5000.00 a month above that level).",
+      "title": "Loan EMIs above 40% of income"
+    },
+    {
+      "estimatedMonthlyImpact": null,
+      "evidence": [
+        {
+          "metric": "Mutual fund value",
+          "source": "/api/investments",
+          "unit": "₹",
+          "value": 115000.00
+        },
+        {
+          "metric": "Total portfolio value",
+          "source": "/api/investments",
+          "unit": "₹",
+          "value": 115000.00
+        },
+        {
+          "metric": "Mutual fund share",
+          "source": "/api/investments",
+          "unit": "%",
+          "value": 100.00
+        }
+      ],
+      "explanation": "100% of the ₹115000.00 you have recorded in investments is in Mutual fund.",
+      "id": "INVESTMENT_CONCENTRATION",
+      "scenarioPreset": null,
+      "severity": "MEDIUM",
+      "suggestedAction": "Spreading across asset types can reduce the effect of one market falling. Whether and how to change this depends on your goals and risk tolerance.",
+      "title": "One investment type is above 70% of your portfolio"
+    }
+  ],
+  "thresholds": {
+    "maxEmiSharePercent": 40,
+    "maxInvestmentClassSharePercent": 70,
+    "maxUncategorisedPercent": 20,
+    "minSavingsRatePercent": 20,
+    "risingSpendMinIncreasePercent": 10,
+    "subscriptionReviewCount": 3
+  }
+}
+
+### GET /api/transactions (no token)
+status: 401
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Unauthorized",
+  "message": "Authentication required",
+  "status": 401,
+  "timestamp": "<timestamp>"
+}
+
+### GET /api/transactions (garbage token)
+status: 401
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Unauthorized",
+  "message": "Authentication required",
+  "status": 401,
+  "timestamp": "<timestamp>"
+}
+
+### GET /api/does-not-exist
+status: 404
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Not Found",
+  "message": "Resource not found",
+  "status": 404,
+  "timestamp": "<timestamp>"
+}
+
+### DELETE /api/forecast/cash-flow (method not allowed)
+status: 405
+header Content-Type: application/json
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: {
+  "error": "Method Not Allowed",
+  "message": "Method not allowed",
+  "status": 405,
+  "timestamp": "<timestamp>"
+}
+
+### GET /api/transactions with Origin (allowed)
+status: 200
+header Content-Type: application/json
+header X-Total-Count: 22
+header X-Page: 0
+header X-Page-Size: 20
+header X-Total-Pages: 2
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+header Access-Control-Allow-Origin: http://localhost:5173
+header Access-Control-Allow-Credentials: true
+header Access-Control-Expose-Headers: X-Total-Count, X-Page, X-Page-Size, X-Total-Pages
+body: [
+  {
+    "amount": 1450.75,
+    "category": "DINING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-06-20",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Mystery payee",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-06-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-06",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-06-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-06",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-06-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-06",
+    "type": "INCOME"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-05-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-05",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-05-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-05",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-05-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-05",
+    "type": "INCOME"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-04-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-04",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-04-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-04",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-04-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-04",
+    "type": "INCOME"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-03",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 10000.00,
+    "category": null,
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "NONE",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-05",
+    "id": "<uuid>",
+    "note": "Imported from HDFC | 2026-03-05",
+    "source": "IMPORT",
+    "title": "ATM WDL, MG ROAD BENGALURU",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-03",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 75000.00,
+    "category": null,
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "NONE",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-02",
+    "id": "<uuid>",
+    "note": "Imported from HDFC | 2026-03-02",
+    "source": "IMPORT",
+    "title": "NEFT-ACME LTD-SALARY MARCH",
+    "type": "INCOME"
+  },
+  {
+    "amount": 450.00,
+    "category": null,
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "NONE",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-01",
+    "id": "<uuid>",
+    "note": "Imported from HDFC | 2026-03-01",
+    "source": "IMPORT",
+    "title": "UPI-SWIGGY-swiggy@icici",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-03-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-03",
+    "type": "INCOME"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-02-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-02",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 20000.00,
+    "category": "HOUSING",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-02-03",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Landlord 2026-02",
+    "type": "EXPENSE"
+  },
+  {
+    "amount": 50000.00,
+    "category": "INCOME",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-02-01",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Salary 2026-02",
+    "type": "INCOME"
+  },
+  {
+    "amount": 10000.50,
+    "category": "GROCERIES",
+    "categoryConfidence": null,
+    "categoryConfidenceCalibrated": false,
+    "categoryModelVersion": null,
+    "categoryNeedsReview": false,
+    "categoryRule": null,
+    "categorySource": "USER",
+    "createdAt": "<timestamp>",
+    "date": "2026-01-15",
+    "id": "<uuid>",
+    "note": null,
+    "source": "MANUAL",
+    "title": "Market 2026-01",
+    "type": "EXPENSE"
+  }
+]
+
+### GET /api/transactions with Origin (not allowed)
+status: 403
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: Invalid CORS request
+
+### OPTIONS /api/transactions preflight (allowed)
+status: 200
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+header Access-Control-Allow-Origin: http://localhost:5173
+header Access-Control-Allow-Methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+header Access-Control-Allow-Headers: authorization, content-type
+header Access-Control-Allow-Credentials: true
+header Access-Control-Expose-Headers: X-Total-Count, X-Page, X-Page-Size, X-Total-Pages
+body: <empty>
+
+### DELETE /api/scenarios/{id}
+status: 204
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: <empty>
+
+### DELETE /api/budgets/{id}
+status: 204
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: <empty>
+
+### DELETE /api/loans/{id}
+status: 204
+header X-Content-Type-Options: nosniff
+header X-Frame-Options: DENY
+header Referrer-Policy: strict-origin-when-cross-origin
+header Content-Security-Policy: default-src 'self'; frame-ancestors 'none';
+body: <empty>
+

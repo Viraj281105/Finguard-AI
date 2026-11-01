@@ -1,7 +1,7 @@
 package com.finguard.backend.forecasting.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.finguard.backend.common.error.ApiException;
 import com.finguard.backend.forecasting.domain.SavedScenario;
 import com.finguard.backend.forecasting.domain.SavedScenarioRepository;
@@ -102,7 +102,7 @@ public class SavedScenarioService {
     private String write(Object value) {
         try {
             return mapper.writeValueAsString(value);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalStateException("Could not serialise scenario", e);
         }
     }
@@ -110,7 +110,7 @@ public class SavedScenarioService {
     private <T> T read(String json, Class<T> type) {
         try {
             return mapper.readValue(json, type);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalStateException("Stored scenario could not be read", e);
         }
     }

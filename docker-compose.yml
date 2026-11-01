@@ -2,7 +2,7 @@
 # (see start.ps1 / docs). Every value can be overridden through a root .env file (see .env.example).
 services:
   postgres:
-    image: postgres:15
+    image: postgres:18
     container_name: finguard-postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-finguard}

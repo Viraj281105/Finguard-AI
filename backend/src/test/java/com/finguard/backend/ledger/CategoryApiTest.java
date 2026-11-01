@@ -1,6 +1,6 @@
 package com.finguard.backend.ledger;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.finguard.backend.ai.AiClient;
 import com.finguard.backend.ai.AiPrediction;
 import com.finguard.backend.ai.ClassifyOutcome;
