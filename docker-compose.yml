@@ -1,5 +1,5 @@
-# Local development infrastructure. The Spring Boot backend and the React dev server run on the host
-# (see start.ps1 / docs). Every value can be overridden through a root .env file (see .env.example).
+# Local development infrastructure (default profile: postgres + ai) and full containerised stack (--profile full).
+# Every value can be overridden through a root .env file (see .env.example).
 services:
   postgres:
     image: postgres:18
@@ -33,6 +33,43 @@ services:
       # Bound to 127.0.0.1 so the AI service is not accessible from the local network.
       - "127.0.0.1:${AI_HOST_PORT:-8000}:8000"
     # The image defines its own HEALTHCHECK (GET /health).
+
+  backend:
+    build: ./backend
+    container_name: finguard-backend
+    profiles: ["full"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ai:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-finguard}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-finguard_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-finguard_pass}
+      JWT_SECRET: ${JWT_SECRET:-dev-only-compose-jwt-secret-0123456789abcdef0123456789abcdef}
+      JWT_COOKIE_SECURE: ${JWT_COOKIE_SECURE:-false}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+      AI_SERVICE_URL: http://ai:8000
+      AI_INTERNAL_TOKEN: ${AI_INTERNAL_TOKEN:-}
+      MANAGEMENT_SERVER_PORT: 8081
+    ports:
+      # Main API port bound to 127.0.0.1; management port 8081 stays internal to the container network.
+      - "127.0.0.1:${BACKEND_HOST_PORT:-8080}:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+    container_name: finguard-frontend
+    profiles: ["full"]
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${FRONTEND_HOST_PORT:-5173}:8080"
 
 volumes:
   postgres_data:

@@ -1,8 +1,13 @@
 .venv/
 __pycache__/
-*.pyc
+*.py[cod]
 .pytest_cache/
 .ruff_cache/
-models-cache/
-tests/
 *.egg-info/
+build/
+dist/
+.git/
+.gitignore
+tests/
+evaluation/
+*.md
