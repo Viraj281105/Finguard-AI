@@ -4,6 +4,7 @@ import com.finguard.backend.common.error.ApiException;
 import com.finguard.backend.common.events.DomainEventEnvelope;
 import com.finguard.backend.common.events.OutboxEventService;
 import com.finguard.backend.common.observability.TraceContext;
+import com.finguard.backend.common.tenant.TenantContext;
 import com.finguard.backend.identity.domain.RefreshTokenRepository;
 import com.finguard.backend.identity.domain.User;
 import com.finguard.backend.identity.domain.UserRepository;
@@ -251,6 +252,10 @@ public class PrivacyService {
      */
     @Transactional
     public int executeHardDelete(String userId, String mode) {
+        return TenantContext.callAs(userId, () -> executeHardDeleteInternal(userId, mode));
+    }
+
+    private int executeHardDeleteInternal(String userId, String mode) {
         int deleted = 0;
         deleted += jdbc.update("DELETE FROM goal_contributions WHERE user_id = ?", userId);
         deleted += jdbc.update("DELETE FROM financial_goals WHERE user_id = ?", userId);

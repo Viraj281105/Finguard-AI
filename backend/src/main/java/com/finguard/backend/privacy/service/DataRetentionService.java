@@ -1,5 +1,6 @@
 package com.finguard.backend.privacy.service;
 
+import com.finguard.backend.common.tenant.TenantContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -75,6 +76,10 @@ public class DataRetentionService {
      */
     @Transactional
     public int purgeExpiredRowErrors(Instant asOf) {
+        return TenantContext.callAsSystem(() -> purgeExpiredRowErrorsInternal(asOf));
+    }
+
+    private int purgeExpiredRowErrorsInternal(Instant asOf) {
         Instant now = asOf != null ? asOf : Instant.now(clock);
         Instant cutoff = now.minus(Duration.ofDays(rowErrorsRetentionDays));
         return jdbc.update(

@@ -163,10 +163,10 @@ Order: S1-01 → S1-02 → S1-03 → S1-09 → S1-05 → S1-06 → S1-04 → S1-
 * **Acceptance:** Project J criteria (zero residual rows; other user unchanged; export completeness; audit rows).
 * **Security:** re-auth for delete/export; rate limited; export link not guessable; audit without narrations. **Cost:** small storage. **Rollback:** feature-flag endpoints; deletion is irreversible by design after grace — hence grace period + backups. **Portfolio:** privacy engineering. **DoD:** privacy runbook + user-facing text drafted.
 
-### S1-06 — Tenant isolation hardening + key rotation · **P1** · 5 d
+### S1-06 — Tenant isolation hardening + key rotation · **P1** · 5 d [Completed]
 * **Proposal:** authorization-matrix test generated from controllers; RLS pilot ([06 §9](06-security-and-reliability.md#9-row-level-security-design-s1-06-pilot)); JWT `kid` + key set; CSRF tests for cookie endpoints; HSTS header (or documented proxy responsibility). **Dependencies:** S1-02 (audit hooks). 
 * **Acceptance:** broken-repository test returns zero foreign rows under RLS; matrix covers 100 % of endpoints; rotation drill: tokens signed with the old key still verify during the window, then fail; p95 regression ≤ 10 %.
-* **Cost:** none. **Rollback:** `DISABLE ROW LEVEL SECURITY`; keep previous key accepted. **Portfolio:** defence-in-depth. **DoD:** ADR-007.
+* **Cost:** none. **Rollback:** `DISABLE ROW LEVEL SECURITY`; keep previous key accepted. **Portfolio:** defence-in-depth. **DoD:** ADR-007 ([ADR-007-tenant-isolation-and-key-rotation.md](ADR-007-tenant-isolation-and-key-rotation.md)) accepted.
 
 ### S1-04 — Idempotency keys and resilience review · **P2** · 4 d
 * **Proposal:** `Idempotency-Key` per [04 §3](04-service-boundaries-and-contracts.md#3-rest-api-contract-policy); review timeouts/retries (`AiClient` already bounded **[V]**); add per-request server timeout. **Dependencies:** S1-02. **Acceptance:** same key twice → one row, same response; different body → 422; concurrent same key → one effect (10-thread test). **Security:** keys are per-user; stored hash only. **Cost:** table + purge. **Rollback:** header is optional. **Portfolio:** API reliability. **DoD:** documented in `docs/API.md`.

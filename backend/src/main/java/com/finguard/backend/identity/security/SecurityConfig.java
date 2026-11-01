@@ -29,7 +29,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 /**
- * Stateless JWT security with standard security headers and CORS protection.
+ * Stateless JWT security with standard security headers (including HSTS), CORS protection and CSRF controls (S1-06).
  * Only {@code /api/auth/**} is public on the main application port; health probes
  * ({@code /actuator/health/**}) are permitted exclusively on the isolated management port.
  */
@@ -51,11 +51,13 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(AbstractHttpConfigurer::disable)
             .headers(headers -> headers
-                .contentTypeOptions(HeadersConfigurer.ContentTypeOptionsConfig::disable) // keep default nosniff or customize
                 .contentTypeOptions(opts -> {}) // adds X-Content-Type-Options: nosniff
                 .frameOptions(HeadersConfigurer.FrameOptionsConfig::deny)
                 .referrerPolicy(ref -> ref.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
                 .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; frame-ancestors 'none';"))
+                .httpStrictTransportSecurity(hsts -> hsts
+                    .includeSubDomains(true)
+                    .maxAgeInSeconds(31536000))
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
@@ -110,7 +112,6 @@ public class SecurityConfig {
         return email -> userRepository.findByEmail(email.trim().toLowerCase())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
     }
-
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {

@@ -3,6 +3,7 @@ package com.finguard.backend.identity.security;
 import tools.jackson.databind.ObjectMapper;
 import com.finguard.backend.common.error.ApiError;
 import com.finguard.backend.common.observability.TraceContext;
+import com.finguard.backend.common.tenant.TenantContext;
 import com.finguard.backend.identity.domain.UserRepository;
 import io.jsonwebtoken.JwtException;
 import org.slf4j.MDC;
@@ -28,6 +29,7 @@ import java.io.IOException;
  * Authenticates requests carrying {@code Authorization: Bearer <access token>}.
  * An invalid, expired or wrong-type token leaves the request unauthenticated, so protected
  * endpoints answer 401 through {@link RestAuthenticationHandlers}.
+ * Authenticated requests establish the transaction-scoped {@link TenantContext} (S1-06, 06 §9).
  */
 @Slf4j
 @Component
@@ -61,7 +63,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 return;
             }
         }
-        filterChain.doFilter(request, response);
+        try {
+            if (TenantContext.getCurrentTenantId() == null) {
+                TenantContext.setCurrentTenantId("");
+            }
+            filterChain.doFilter(request, response);
+        } finally {
+            TenantContext.clear();
+        }
     }
 
     private void authenticate(String token, HttpServletRequest request) {
@@ -71,6 +80,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                TenantContext.setCurrentTenantId(user.getId());
                 MDC.put(TraceContext.MDC_USER_HASH, TraceContext.hashUserId(user.getId()));
             });
         } catch (JwtException | IllegalArgumentException e) {

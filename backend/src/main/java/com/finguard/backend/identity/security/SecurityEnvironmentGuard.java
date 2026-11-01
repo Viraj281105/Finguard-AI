@@ -31,6 +31,10 @@ public class SecurityEnvironmentGuard implements ApplicationContextInitializer<C
 
     public void validateEnvironment(@NonNull Environment environment) {
         String secret = environment.getProperty("jwt.secret", "");
+        String activeKid = environment.getProperty("jwt.active-kid", "v1");
+        if (secret.isBlank()) {
+            secret = environment.getProperty("jwt.keys." + activeKid, "");
+        }
         String datasourceUrl = environment.getProperty("spring.datasource.url", "");
         String datasourcePassword = environment.getProperty("spring.datasource.password", "");
         boolean cookieSecure = Boolean.parseBoolean(environment.getProperty("jwt.cookie-secure", "false"));

@@ -10,6 +10,7 @@ import com.finguard.backend.common.events.DomainEventEnvelope;
 import com.finguard.backend.common.events.DomainEventEnvelope.ImportCompletedPayload;
 import com.finguard.backend.common.events.OutboxEventService;
 import com.finguard.backend.common.observability.FinGuardMetrics;
+import com.finguard.backend.common.tenant.TenantContext;
 import com.finguard.backend.identity.domain.User;
 import com.finguard.backend.identity.domain.UserRepository;
 import com.finguard.backend.ingestion.parser.ParsedRow;
@@ -61,96 +62,87 @@ public class ImportWorker {
 
     @Async(AsyncConfig.IMPORT_EXECUTOR)
     public void process(String jobId, String csvContent, String userId) {
+        TenantContext.setCurrentTenantId(userId);
         long startedNanos = System.nanoTime();
-        UploadJob job = jobs.findById(jobId).orElse(null);
-        if (job == null) {
-            log.error("[Job {}] vanished before processing started", jobId);
-            return;
-        }
-
-        if (job.getStatus() != JobStatus.PENDING) {
-            log.warn("[Job {}] already in status {}, skipping duplicate execution", jobId, job.getStatus());
-            return;
-        }
-
         try {
-            update(job, JobStatus.PROCESSING);
-            log.info("[Job {}] -> PROCESSING", jobId);
-
-            StatementParseResult parseResult = parsers.parseStatement(csvContent);
-            List<ParsedRow> rows = parseResult.rows();
-
-            job.setTotalRows(parseResult.totalDataRows());
-            job.setRejectedRows(parseResult.errors().size());
-            job.setSkippedRows(parseResult.skippedRows());
-            job.setClosingBalance(parseResult.closingBalance());
-            job.setStatementFrom(parseResult.statementFrom());
-            job.setStatementTo(parseResult.statementTo());
-            job.setRowErrorsJson(serializeErrors(parseResult.errors()));
-            jobs.save(job);
-
-            log.info("[Job {}] parsed {} valid rows, {} errors, {} skipped from {} statement (total data rows: {})",
-                    jobId, rows.size(), parseResult.errors().size(), parseResult.skippedRows(),
-                    job.getBankName(), parseResult.totalDataRows());
-
-            User owner = users.getReferenceById(userId);
-            List<Transaction> candidates = toTransactions(rows, owner, jobId);
-
-            Set<String> candidateFingerprints = candidates.stream()
-                    .map(Transaction::getFingerprint)
-                    .collect(java.util.stream.Collectors.toSet());
-
-            List<Transaction> toImport;
-            int duplicateCount;
-            List<Transaction> saved;
-            // Two imports of overlapping statements can run at the same time: both see the rows as new and one hits the
-            // unique fingerprint index. The whole batch rolls back, so look again (the other import's rows are now
-            // duplicates) and save only what is still new, instead of failing the job (found by the end-to-end audit).
-            for (int attempt = 1; ; attempt++) {
-                Set<String> existingFingerprints = transactions.findExistingFingerprints(userId, candidateFingerprints);
-                toImport = new ArrayList<>();
-                duplicateCount = 0;
-                for (Transaction tx : candidates) {
-                    if (existingFingerprints.contains(tx.getFingerprint())) {
-                        duplicateCount++;
-                    } else {
-                        toImport.add(tx);
-                    }
-                }
-                try {
-                    // Persist first: saving financial data never depends on the AI service.
-                    saved = toImport.isEmpty() ? List.of() : transactions.saveAll(toImport);
-                    break;
-                } catch (org.springframework.dao.DataIntegrityViolationException e) {
-                    if (attempt >= MAX_SAVE_ATTEMPTS) {
-                        throw e;
-                    }
-                    log.warn("[Job {}] a concurrent import stored some of the same rows; re-checking duplicates (attempt {})", jobId, attempt);
-                }
+            UploadJob job = jobs.findById(jobId).orElse(null);
+            if (job == null) {
+                log.error("[Job {}] vanished before processing started", jobId);
+                return;
             }
 
-            job.setRowsProcessed(toImport.size());
-            job.setDuplicateRows(duplicateCount);
-            categorize(job, userId, saved);
-            job.setCompletedAt(LocalDateTime.now());
-            update(job, JobStatus.COMPLETED);
-            publishImportCompleted(job, userId);
-            metrics.recordImportCompleted(
-                    JobStatus.COMPLETED.name(),
-                    Duration.ofNanos(Math.max(0L, System.nanoTime() - startedNanos)),
-                    toImport.size(),
-                    duplicateCount,
-                    job.getRejectedRows()
-            );
-            log.info("[Job {}] -> COMPLETED ({} imported, {} duplicates, {} rejected, {} skipped)",
-                    jobId, toImport.size(), duplicateCount, job.getRejectedRows(), job.getSkippedRows());
+            if (job.getStatus() != JobStatus.PENDING) {
+                log.warn("[Job {}] already in status {}, skipping duplicate execution", jobId, job.getStatus());
+                return;
+            }
 
-        } catch (IllegalArgumentException e) {
-            // Parser errors carry a message meant for the user (unrecognised format, missing header, ...).
-            fail(job, e.getMessage(), startedNanos);
-        } catch (Exception e) {
-            log.error("[Job {}] failed", jobId, e);
-            fail(job, GENERIC_FAILURE, startedNanos);
+            try {
+                update(job, JobStatus.PROCESSING);
+                log.info("[Job {}] -> PROCESSING", jobId);
+
+                StatementParseResult parseResult = parsers.parseStatement(csvContent);
+                List<ParsedRow> rows = parseResult.rows();
+
+                job.setTotalRows(parseResult.totalDataRows());
+                job.setRejectedRows(parseResult.errors().size());
+                job.setSkippedRows(parseResult.skippedRows());
+                job.setClosingBalance(parseResult.closingBalance());
+                job.setStatementFrom(parseResult.statementFrom());
+                job.setStatementTo(parseResult.statementTo());
+                job.setRowErrorsJson(serializeErrors(parseResult.errors()));
+                jobs.save(job);
+
+                log.info("[Job {}] parsed {} valid rows, {} errors, {} skipped from {} statement (total data rows: {})",
+                        jobId, rows.size(), parseResult.errors().size(), parseResult.skippedRows(),
+                        job.getBankName(), parseResult.totalDataRows());
+
+                User owner = users.getReferenceById(userId);
+                List<Transaction> candidates = toTransactions(rows, owner, jobId);
+
+                Set<String> candidateFingerprints = candidates.stream()
+                        .map(Transaction::getFingerprint)
+                        .filter(java.util.Objects::nonNull)
+                        .collect(java.util.stream.Collectors.toSet());
+
+                Set<String> existing = transactions.findExistingFingerprints(userId, candidateFingerprints);
+                List<Transaction> fresh = candidates.stream()
+                        .filter(t -> t.getFingerprint() == null || !existing.contains(t.getFingerprint()))
+                        .toList();
+
+                int duplicateCount = candidates.size() - fresh.size();
+                job.setDuplicateRows(duplicateCount);
+
+                List<Transaction> saved = new ArrayList<>();
+                if (!fresh.isEmpty()) {
+                    saved = transactions.saveAll(fresh);
+                }
+
+                job.setRowsProcessed(saved.size());
+                categorize(job, userId, saved);
+
+                job.setCompletedAt(LocalDateTime.now());
+                update(job, JobStatus.COMPLETED);
+                metrics.recordImportCompleted(
+                        JobStatus.COMPLETED.name(),
+                        Duration.ofNanos(Math.max(0L, System.nanoTime() - startedNanos)),
+                        saved.size(),
+                        duplicateCount,
+                        job.getRejectedRows()
+                );
+                log.info("[Job {}] -> COMPLETED ({} imported, {} duplicates, {} rejected, {} skipped)",
+                        jobId, saved.size(), duplicateCount, job.getRejectedRows(), job.getSkippedRows());
+
+                publishImportCompleted(job, userId);
+
+            } catch (IllegalArgumentException | com.finguard.backend.common.error.ApiException e) {
+                log.warn("[Job {}] rejected: {}", jobId, e.getMessage());
+                fail(job, e.getMessage(), startedNanos);
+            } catch (Exception e) {
+                log.error("[Job {}] failed", jobId, e);
+                fail(job, GENERIC_FAILURE, startedNanos);
+            }
+        } finally {
+            TenantContext.clear();
         }
     }
 
