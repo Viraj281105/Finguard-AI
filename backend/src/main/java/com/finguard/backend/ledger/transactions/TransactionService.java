@@ -1,6 +1,10 @@
 package com.finguard.backend.ledger.transactions;
 
 import com.finguard.backend.common.error.ApiException;
+import com.finguard.backend.common.events.DomainEventEnvelope;
+import com.finguard.backend.common.events.DomainEventEnvelope.CategoryReviewedPayload;
+import com.finguard.backend.common.events.DomainEventEnvelope.LedgerPeriodChangedPayload;
+import com.finguard.backend.common.events.OutboxEventService;
 import com.finguard.backend.identity.domain.User;
 import com.finguard.backend.ledger.transactions.Transaction.CategorySource;
 import com.finguard.backend.ledger.transactions.Transaction.TransactionSource;
@@ -17,16 +21,18 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class TransactionService {
 
     /** Keeps {@code IN (...)} lists comfortably below database limits. */
@@ -34,6 +40,18 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final Clock clock;
+    private final OutboxEventService outboxEvents;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public TransactionService(TransactionRepository transactionRepository, Clock clock, OutboxEventService outboxEvents) {
+        this.transactionRepository = transactionRepository;
+        this.clock = clock;
+        this.outboxEvents = outboxEvents;
+    }
+
+    public TransactionService(TransactionRepository transactionRepository, Clock clock) {
+        this(transactionRepository, clock, null);
+    }
 
     @Transactional
     public Transaction create(TransactionRequest request, User user) {
@@ -49,7 +67,9 @@ public class TransactionService {
             validateCategoryTypeCompatibility(cat, t.getType());
             t.assignUserCategory(cat);
         }
-        return transactionRepository.save(t);
+        Transaction saved = transactionRepository.save(t);
+        publishPeriodChanged(user.getId(), saved.getId(), List.of(YearMonth.from(saved.getDate()).toString()), "MANUAL");
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -113,12 +133,20 @@ public class TransactionService {
     @Transactional
     public Transaction update(String id, TransactionRequest request, User user) {
         Transaction t = getById(id, user);
+        LocalDate previousDate = t.getDate();
+        String previousCategory = t.getCategory();
+        CategorySource previousSource = t.getCategorySource();
+        String previousRule = t.getCategoryRule();
+        String previousModelVersion = t.getCategoryModelVersion();
+
         if (request.date() != null) {
             validateDate(request.date());
             t.setDate(request.date());
         }
         apply(t, request);
+        boolean categoryTouched = false;
         if (request.category() != null) {
+            categoryTouched = true;
             if (request.category().isBlank()) {
                 t.clearCategory();
             } else {
@@ -130,28 +158,70 @@ public class TransactionService {
             TransactionCategory existingCat = requireCategory(t.getCategory());
             validateCategoryTypeCompatibility(existingCat, t.getType());
         }
-        return transactionRepository.save(t);
+        Transaction saved = transactionRepository.save(t);
+        Set<String> months = new TreeSet<>();
+        if (previousDate != null) {
+            months.add(YearMonth.from(previousDate).toString());
+        }
+        if (saved.getDate() != null) {
+            months.add(YearMonth.from(saved.getDate()).toString());
+        }
+        publishPeriodChanged(user.getId(), saved.getId(), List.copyOf(months), "MANUAL");
+        if (categoryTouched) {
+            publishCategoryReviewed(user.getId(), saved.getId(), previousCategory, saved.getCategory(),
+                    previousSource, previousRule, previousModelVersion);
+        }
+        return saved;
     }
 
     /** A person's correction. It is authoritative: automation never replaces it. */
     @Transactional
     public Transaction setUserCategory(String id, String category, User user) {
         Transaction t = getById(id, user);
+        String previousCategory = t.getCategory();
+        CategorySource previousSource = t.getCategorySource();
+        String previousRule = t.getCategoryRule();
+        String previousModelVersion = t.getCategoryModelVersion();
+
         TransactionCategory cat = requireCategory(category);
         validateCategoryTypeCompatibility(cat, t.getType());
         t.assignUserCategory(cat);
-        return transactionRepository.save(t);
+        Transaction saved = transactionRepository.save(t);
+        publishCategoryReviewed(user.getId(), saved.getId(), previousCategory, saved.getCategory(),
+                previousSource, previousRule, previousModelVersion);
+        if (saved.getDate() != null) {
+            publishPeriodChanged(user.getId(), saved.getId(), List.of(YearMonth.from(saved.getDate()).toString()), "CATEGORY");
+        }
+        return saved;
     }
 
     @Transactional
     public void delete(String id, User user) {
-        transactionRepository.delete(getById(id, user));
+        Transaction existing = getById(id, user);
+        String month = existing.getDate() != null ? YearMonth.from(existing.getDate()).toString() : null;
+        transactionRepository.delete(existing);
+        if (month != null) {
+            publishPeriodChanged(user.getId(), id, List.of(month), "DELETE");
+        }
     }
 
     /** Persists a batch atomically: either every transaction is saved or none is. Used by statement import. */
     @Transactional
     public List<Transaction> saveAll(List<Transaction> transactions) {
-        return transactionRepository.saveAll(transactions);
+        List<Transaction> saved = transactionRepository.saveAll(transactions);
+        if (!saved.isEmpty()) {
+            String userId = saved.getFirst().getUser().getId();
+            String importJobId = saved.getFirst().getImportJobId() != null ? saved.getFirst().getImportJobId() : "batch";
+            List<String> affectedMonths = saved.stream()
+                    .map(Transaction::getDate)
+                    .filter(Objects::nonNull)
+                    .map(d -> YearMonth.from(d).toString())
+                    .distinct()
+                    .sorted()
+                    .toList();
+            publishPeriodChanged(userId, importJobId, affectedMonths, "IMPORT");
+        }
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -244,5 +314,59 @@ public class TransactionService {
     private static String abbreviate(String value) {
         String trimmed = value.trim();
         return trimmed.length() > 40 ? trimmed.substring(0, 40) + "…" : trimmed;
+    }
+
+    private void publishPeriodChanged(String userId, String subjectId, List<String> affectedMonths, String cause) {
+        if (outboxEvents == null || affectedMonths.isEmpty()) {
+            return;
+        }
+        outboxEvents.publish(
+                "ledger",
+                userId,
+                DomainEventEnvelope.TYPE_LEDGER_PERIOD_CHANGED,
+                "finguard-backend/ledger",
+                "ledger/" + subjectId,
+                userId,
+                new LedgerPeriodChangedPayload(affectedMonths, cause)
+        );
+    }
+
+    private void publishCategoryReviewed(
+            String userId,
+            String transactionId,
+            String previousCategory,
+            String newCategory,
+            CategorySource previousSource,
+            String ruleId,
+            String modelVersion
+    ) {
+        if (outboxEvents == null) {
+            return;
+        }
+        String decision;
+        if (newCategory == null || newCategory.isBlank()) {
+            decision = "CLEARED";
+        } else if (Objects.equals(previousCategory, newCategory)) {
+            decision = "CONFIRMED";
+        } else {
+            decision = "CHANGED";
+        }
+        outboxEvents.publish(
+                "transaction",
+                transactionId,
+                DomainEventEnvelope.TYPE_CATEGORY_REVIEWED,
+                "finguard-backend/ledger",
+                "transaction/" + transactionId,
+                userId,
+                new CategoryReviewedPayload(
+                        transactionId,
+                        decision,
+                        previousCategory,
+                        newCategory,
+                        previousSource != null ? previousSource.name() : CategorySource.NONE.name(),
+                        ruleId,
+                        modelVersion
+                )
+        );
     }
 }

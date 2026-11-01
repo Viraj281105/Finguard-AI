@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://finguard.ai/contracts/events/transaction.category_reviewed.v1.json",
+  "title": "com.finguard.transaction.category_reviewed.v1",
+  "description": "Emitted when a user confirms, changes, or clears a transaction category. Never carries transaction narration text.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "type",
+    "schema_version",
+    "source",
+    "time",
+    "subject",
+    "tenant",
+    "trace_id",
+    "data"
+  ],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "type": { "const": "com.finguard.transaction.category_reviewed" },
+    "schema_version": { "const": 1 },
+    "source": { "type": "string" },
+    "time": { "type": "string", "format": "date-time" },
+    "subject": { "type": "string" },
+    "tenant": { "type": "string" },
+    "trace_id": { "type": ["string", "null"] },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transactionId",
+        "decision",
+        "previousCategory",
+        "newCategory",
+        "previousSource",
+        "ruleId",
+        "modelVersion"
+      ],
+      "properties": {
+        "transactionId": { "type": "string" },
+        "decision": {
+          "type": "string",
+          "enum": ["CONFIRMED", "CHANGED", "CLEARED"]
+        },
+        "previousCategory": { "type": ["string", "null"] },
+        "newCategory": { "type": ["string", "null"] },
+        "previousSource": {
+          "type": "string",
+          "enum": ["NONE", "RULE", "MODEL", "USER"]
+        },
+        "ruleId": { "type": ["string", "null"] },
+        "modelVersion": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

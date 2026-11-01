@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://finguard.ai/contracts/events/ledger.period_changed.v1.json",
+  "title": "com.finguard.ledger.period_changed.v1",
+  "description": "Emitted when a committed insert, update, category change, or delete modifies one or more user-months in the ledger.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "type",
+    "schema_version",
+    "source",
+    "time",
+    "subject",
+    "tenant",
+    "trace_id",
+    "data"
+  ],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "type": { "const": "com.finguard.ledger.period_changed" },
+    "schema_version": { "const": 1 },
+    "source": { "type": "string" },
+    "time": { "type": "string", "format": "date-time" },
+    "subject": { "type": "string" },
+    "tenant": { "type": "string" },
+    "trace_id": { "type": ["string", "null"] },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["affectedMonths", "cause"],
+      "properties": {
+        "affectedMonths": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" }
+        },
+        "cause": {
+          "type": "string",
+          "enum": ["IMPORT", "MANUAL", "CATEGORY", "DELETE"]
+        }
+      }
+    }
+  }
+}

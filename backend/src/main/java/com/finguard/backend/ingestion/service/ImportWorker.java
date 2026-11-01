@@ -6,6 +6,9 @@ import com.finguard.backend.categorization.CategorizationService;
 import com.finguard.backend.categorization.CategorizationSummary;
 import com.finguard.backend.categorization.ClassificationStatus;
 import com.finguard.backend.common.config.AsyncConfig;
+import com.finguard.backend.common.events.DomainEventEnvelope;
+import com.finguard.backend.common.events.DomainEventEnvelope.ImportCompletedPayload;
+import com.finguard.backend.common.events.OutboxEventService;
 import com.finguard.backend.common.observability.FinGuardMetrics;
 import com.finguard.backend.identity.domain.User;
 import com.finguard.backend.identity.domain.UserRepository;
@@ -54,6 +57,7 @@ public class ImportWorker {
     private final TransactionService transactions;
     private final CategorizationService categorization;
     private final FinGuardMetrics metrics;
+    private final OutboxEventService outboxEvents;
 
     @Async(AsyncConfig.IMPORT_EXECUTOR)
     public void process(String jobId, String csvContent, String userId) {
@@ -130,6 +134,7 @@ public class ImportWorker {
             categorize(job, userId, saved);
             job.setCompletedAt(LocalDateTime.now());
             update(job, JobStatus.COMPLETED);
+            publishImportCompleted(job, userId);
             metrics.recordImportCompleted(
                     JobStatus.COMPLETED.name(),
                     Duration.ofNanos(Math.max(0L, System.nanoTime() - startedNanos)),
@@ -215,6 +220,32 @@ public class ImportWorker {
     private void update(UploadJob job, JobStatus status) {
         job.setStatus(status);
         jobs.save(job);
+    }
+
+    private void publishImportCompleted(UploadJob job, String userId) {
+        if (outboxEvents == null) {
+            return;
+        }
+        outboxEvents.publish(
+                "upload_job",
+                job.getId(),
+                DomainEventEnvelope.TYPE_IMPORT_COMPLETED,
+                "finguard-backend/ingestion",
+                "upload_job/" + job.getId(),
+                userId,
+                new ImportCompletedPayload(
+                        job.getId(),
+                        job.getBankName(),
+                        job.getRowsProcessed(),
+                        job.getDuplicateRows(),
+                        job.getRejectedRows(),
+                        job.getSkippedRows(),
+                        job.getStatementFrom() != null ? job.getStatementFrom().toString() : null,
+                        job.getStatementTo() != null ? job.getStatementTo().toString() : null,
+                        job.getClassificationStatus() != null ? job.getClassificationStatus().name() : ClassificationStatus.NOT_ATTEMPTED.name(),
+                        job.getClassifiedRows()
+                )
+        );
     }
 
     private void fail(UploadJob job, String message, long startedNanos) {

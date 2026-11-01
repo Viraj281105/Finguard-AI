@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://finguard.ai/contracts/events/import.completed.v1.json",
+  "title": "com.finguard.import.completed.v1",
+  "description": "Emitted when a statement import job reaches COMPLETED status. Never carries transaction narration text or PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "type",
+    "schema_version",
+    "source",
+    "time",
+    "subject",
+    "tenant",
+    "trace_id",
+    "data"
+  ],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "type": { "const": "com.finguard.import.completed" },
+    "schema_version": { "const": 1 },
+    "source": { "type": "string" },
+    "time": { "type": "string", "format": "date-time" },
+    "subject": { "type": "string" },
+    "tenant": { "type": "string" },
+    "trace_id": { "type": ["string", "null"] },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "importJobId",
+        "bank",
+        "rowsProcessed",
+        "duplicateRows",
+        "rejectedRows",
+        "skippedRows",
+        "statementFrom",
+        "statementTo",
+        "classificationStatus",
+        "classifiedRows"
+      ],
+      "properties": {
+        "importJobId": { "type": "string" },
+        "bank": { "type": "string" },
+        "rowsProcessed": { "type": "integer", "minimum": 0 },
+        "duplicateRows": { "type": "integer", "minimum": 0 },
+        "rejectedRows": { "type": "integer", "minimum": 0 },
+        "skippedRows": { "type": "integer", "minimum": 0 },
+        "statementFrom": { "type": ["string", "null"] },
+        "statementTo": { "type": ["string", "null"] },
+        "classificationStatus": { "type": "string" },
+        "classifiedRows": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}
