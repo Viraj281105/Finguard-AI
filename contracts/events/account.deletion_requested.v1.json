@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://finguard.ai/contracts/events/account.deletion_requested.v1.json",
+  "title": "com.finguard.account.deletion_requested.v1",
+  "description": "Emitted when a user requests account deletion. Triggers derived-data purge and append-only audit entry.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "type",
+    "schema_version",
+    "source",
+    "time",
+    "subject",
+    "tenant",
+    "trace_id",
+    "data"
+  ],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "type": { "const": "com.finguard.account.deletion_requested" },
+    "schema_version": { "const": 1 },
+    "source": { "type": "string" },
+    "time": { "type": "string", "format": "date-time" },
+    "subject": { "type": "string" },
+    "tenant": { "type": "string" },
+    "trace_id": { "type": ["string", "null"] },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requestedAt", "graceUntil"],
+      "properties": {
+        "requestedAt": { "type": "string", "format": "date-time" },
+        "graceUntil": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

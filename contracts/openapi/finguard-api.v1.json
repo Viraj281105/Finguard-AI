@@ -1,0 +1,6250 @@
+{
+  "openapi" : "3.1.0",
+  "info" : {
+    "title" : "FinGuard-AI HTTP API",
+    "version" : "1.0.0",
+    "description" : "Machine-verified OpenAPI 3.1.0 contract generated from Spring Boot controllers and DTO records."
+  },
+  "servers" : [ {
+    "url" : "http://localhost:8080",
+    "description" : "Local development and staging server"
+  } ],
+  "paths" : {
+    "/api/analytics/categories" : {
+      "get" : {
+        "tags" : [ "analytics" ],
+        "operationId" : "Analytics_getCategoryBreakdown",
+        "summary" : "GET /api/analytics/categories",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "from",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CategoryBreakdownResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/data-quality" : {
+      "get" : {
+        "tags" : [ "analytics" ],
+        "operationId" : "Analytics_getDataQuality",
+        "summary" : "GET /api/analytics/data-quality",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "from",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DataQualityResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/insights" : {
+      "get" : {
+        "tags" : [ "analytics" ],
+        "operationId" : "Analytics_getInsights",
+        "summary" : "GET /api/analytics/insights",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "from",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InsightsResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/monthly" : {
+      "get" : {
+        "tags" : [ "analytics" ],
+        "operationId" : "Analytics_getMonthlyFlows",
+        "summary" : "GET /api/analytics/monthly",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "from",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/MonthlyFlowDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/recurring" : {
+      "get" : {
+        "tags" : [ "analytics" ],
+        "operationId" : "Analytics_getRecurringExpenses",
+        "summary" : "GET /api/analytics/recurring",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "from",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RecurringExpensesResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/summary" : {
+      "get" : {
+        "tags" : [ "analytics" ],
+        "operationId" : "Analytics_getSummary",
+        "summary" : "GET /api/analytics/summary",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "from",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FinancialSummaryResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "operationId" : "Auth_login",
+        "summary" : "POST /api/auth/login",
+        "security" : [ ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "headers" : {
+              "Set-Cookie" : {
+                "description" : "HttpOnly refreshToken cookie",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429" : {
+            "description" : "Rate limit exceeded",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "operationId" : "Auth_logout",
+        "summary" : "POST /api/auth/logout",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "refreshToken",
+          "in" : "cookie",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "required" : false,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LogoutRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "headers" : {
+              "Set-Cookie" : {
+                "description" : "HttpOnly refreshToken cookie",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "string"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429" : {
+            "description" : "Rate limit exceeded",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "operationId" : "Auth_refresh",
+        "summary" : "POST /api/auth/refresh",
+        "security" : [ ],
+        "parameters" : [ {
+          "name" : "refreshToken",
+          "in" : "cookie",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "required" : false,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RefreshRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "headers" : {
+              "Set-Cookie" : {
+                "description" : "HttpOnly refreshToken cookie",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429" : {
+            "description" : "Rate limit exceeded",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "operationId" : "Auth_register",
+        "summary" : "POST /api/auth/register",
+        "security" : [ ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RegisterRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "headers" : {
+              "Set-Cookie" : {
+                "description" : "HttpOnly refreshToken cookie",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429" : {
+            "description" : "Rate limit exceeded",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/budgets" : {
+      "get" : {
+        "tags" : [ "budgets" ],
+        "operationId" : "Budget_listBudgets",
+        "summary" : "GET /api/budgets",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "yearMonth",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "month",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/BudgetDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "budgets" ],
+        "operationId" : "Budget_createBudget",
+        "summary" : "POST /api/budgets",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateBudgetRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BudgetDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/budgets/overview" : {
+      "get" : {
+        "tags" : [ "budgets" ],
+        "operationId" : "Budget_getMonthlyOverview",
+        "summary" : "GET /api/budgets/overview",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "yearMonth",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "month",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MonthlyBudgetOverviewResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/budgets/{id}" : {
+      "put" : {
+        "tags" : [ "budgets" ],
+        "operationId" : "Budget_updateBudget",
+        "summary" : "PUT /api/budgets/{id}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateBudgetRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BudgetDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "budgets" ],
+        "operationId" : "Budget_deleteBudget",
+        "summary" : "DELETE /api/budgets/{id}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forecast/backtest" : {
+      "get" : {
+        "tags" : [ "forecast" ],
+        "operationId" : "Forecast_getBacktestSummary",
+        "summary" : "GET /api/forecast/backtest",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BacktestSummaryResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forecast/budget-overruns" : {
+      "get" : {
+        "tags" : [ "forecast" ],
+        "operationId" : "Forecast_getBudgetOverrunRisk",
+        "summary" : "GET /api/forecast/budget-overruns",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "yearMonth",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BudgetOverrunRiskResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forecast/cash-flow" : {
+      "get" : {
+        "tags" : [ "forecast" ],
+        "operationId" : "Forecast_getCashFlowForecast",
+        "summary" : "GET /api/forecast/cash-flow",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "horizonMonths",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 3
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CashFlowForecastResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forecast/categories" : {
+      "get" : {
+        "tags" : [ "forecast" ],
+        "operationId" : "Forecast_getCategoryForecast",
+        "summary" : "GET /api/forecast/categories",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "horizonMonths",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 3
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CategorySpendingForecastResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forecast/savings" : {
+      "get" : {
+        "tags" : [ "forecast" ],
+        "operationId" : "Forecast_getSavingsProjections",
+        "summary" : "GET /api/forecast/savings",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "horizonMonths",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 6
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SavingsProjectionResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forecast/scenarios/simulate" : {
+      "post" : {
+        "tags" : [ "forecast" ],
+        "operationId" : "Forecast_simulateScenario",
+        "summary" : "POST /api/forecast/scenarios/simulate",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ScenarioSimulationRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ScenarioSimulationResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/goals" : {
+      "get" : {
+        "tags" : [ "goals" ],
+        "operationId" : "Goal_listGoals",
+        "summary" : "GET /api/goals",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "status",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/GoalStatus"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/GoalResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "goals" ],
+        "operationId" : "Goal_createGoal",
+        "summary" : "POST /api/goals",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateGoalRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GoalResponseDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/goals/{goalId}/contributions/{contributionId}" : {
+      "delete" : {
+        "tags" : [ "goals" ],
+        "operationId" : "Goal_deleteContribution",
+        "summary" : "DELETE /api/goals/{goalId}/contributions/{contributionId}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "goalId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "contributionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/goals/{id}" : {
+      "get" : {
+        "tags" : [ "goals" ],
+        "operationId" : "Goal_getGoalDetail",
+        "summary" : "GET /api/goals/{id}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GoalDetailResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "goals" ],
+        "operationId" : "Goal_updateGoal",
+        "summary" : "PUT /api/goals/{id}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateGoalRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GoalResponseDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "goals" ],
+        "operationId" : "Goal_deleteGoal",
+        "summary" : "DELETE /api/goals/{id}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/goals/{id}/contributions" : {
+      "post" : {
+        "tags" : [ "goals" ],
+        "operationId" : "Goal_recordContribution",
+        "summary" : "POST /api/goals/{id}/contributions",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/GoalContributionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GoalContributionDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/investments" : {
+      "get" : {
+        "tags" : [ "investments" ],
+        "operationId" : "Investment_getAll",
+        "summary" : "GET /api/investments",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/InvestmentResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "investments" ],
+        "operationId" : "Investment_create",
+        "summary" : "POST /api/investments",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/InvestmentRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InvestmentResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/investments/{id}" : {
+      "get" : {
+        "tags" : [ "investments" ],
+        "operationId" : "Investment_getById",
+        "summary" : "GET /api/investments/{id}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InvestmentResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "investments" ],
+        "operationId" : "Investment_update",
+        "summary" : "PUT /api/investments/{id}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/InvestmentRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InvestmentResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "investments" ],
+        "operationId" : "Investment_delete",
+        "summary" : "DELETE /api/investments/{id}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/loans" : {
+      "get" : {
+        "tags" : [ "loans" ],
+        "operationId" : "Loan_getAll",
+        "summary" : "GET /api/loans",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/LoanResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "loans" ],
+        "operationId" : "Loan_create",
+        "summary" : "POST /api/loans",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LoanRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LoanResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/loans/{id}" : {
+      "get" : {
+        "tags" : [ "loans" ],
+        "operationId" : "Loan_getById",
+        "summary" : "GET /api/loans/{id}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LoanResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "loans" ],
+        "operationId" : "Loan_update",
+        "summary" : "PUT /api/loans/{id}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LoanRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LoanResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "loans" ],
+        "operationId" : "Loan_delete",
+        "summary" : "DELETE /api/loans/{id}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/recommendations" : {
+      "get" : {
+        "tags" : [ "recommendations" ],
+        "operationId" : "Recommendation_getRecommendations",
+        "summary" : "GET /api/recommendations",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RecommendationsResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scenarios" : {
+      "get" : {
+        "tags" : [ "scenarios" ],
+        "operationId" : "SavedScenario_list",
+        "summary" : "GET /api/scenarios",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/SavedScenarioResponses_Summary"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "scenarios" ],
+        "operationId" : "SavedScenario_save",
+        "summary" : "POST /api/scenarios",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ScenarioSimulationRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SavedScenarioResponses_Detail"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scenarios/{id}" : {
+      "get" : {
+        "tags" : [ "scenarios" ],
+        "operationId" : "SavedScenario_get",
+        "summary" : "GET /api/scenarios/{id}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SavedScenarioResponses_Detail"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "scenarios" ],
+        "operationId" : "SavedScenario_delete",
+        "summary" : "DELETE /api/scenarios/{id}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scenarios/{id}/rerun" : {
+      "post" : {
+        "tags" : [ "scenarios" ],
+        "operationId" : "SavedScenario_rerun",
+        "summary" : "POST /api/scenarios/{id}/rerun",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SavedScenarioResponses_Rerun"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transactions" : {
+      "get" : {
+        "tags" : [ "transactions" ],
+        "operationId" : "Transaction_getAll",
+        "summary" : "GET /api/transactions",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "unpaged",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
+          }
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "type",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/TransactionType"
+          }
+        }, {
+          "name" : "category",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "needsReview",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "headers" : {
+              "X-Total-Count" : {
+                "description" : "Total matching transactions",
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "X-Page" : {
+                "description" : "0-based page index",
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "X-Page-Size" : {
+                "description" : "Maximum entries per page",
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "X-Total-Pages" : {
+                "description" : "Total pages available",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TransactionResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "transactions" ],
+        "operationId" : "Transaction_create",
+        "summary" : "POST /api/transactions",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TransactionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TransactionResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transactions/reclassify" : {
+      "post" : {
+        "tags" : [ "transactions" ],
+        "operationId" : "Categorization_reclassify",
+        "summary" : "POST /api/transactions/reclassify",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "limit",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 200
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ReclassifyResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transactions/{id}" : {
+      "get" : {
+        "tags" : [ "transactions" ],
+        "operationId" : "Transaction_getById",
+        "summary" : "GET /api/transactions/{id}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TransactionResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "transactions" ],
+        "operationId" : "Transaction_update",
+        "summary" : "PUT /api/transactions/{id}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TransactionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TransactionResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "transactions" ],
+        "operationId" : "Transaction_delete",
+        "summary" : "DELETE /api/transactions/{id}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transactions/{id}/category" : {
+      "patch" : {
+        "tags" : [ "transactions" ],
+        "operationId" : "Transaction_updateCategory",
+        "summary" : "PATCH /api/transactions/{id}/category",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CategoryUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TransactionResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/upload/csv" : {
+      "post" : {
+        "tags" : [ "upload" ],
+        "operationId" : "Upload_uploadCsv",
+        "summary" : "POST /api/upload/csv",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "required" : [ "file" ],
+                "properties" : {
+                  "file" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "202" : {
+            "description" : "Accepted for asynchronous processing",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UploadStatusResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict with existing resource state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/upload/jobs" : {
+      "get" : {
+        "tags" : [ "upload" ],
+        "operationId" : "Upload_getJobs",
+        "summary" : "GET /api/upload/jobs",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/UploadStatusResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/upload/status/{jobId}" : {
+      "get" : {
+        "tags" : [ "upload" ],
+        "operationId" : "Upload_getStatus",
+        "summary" : "GET /api/upload/status/{jobId}",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "jobId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UploadStatusResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Validation failure or invalid request parameter",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication required or invalid credentials",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Resource not found or owned by another user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "securitySchemes" : {
+      "bearerAuth" : {
+        "type" : "http",
+        "scheme" : "bearer",
+        "bearerFormat" : "JWT"
+      }
+    },
+    "schemas" : {
+      "ApiError" : {
+        "type" : "object",
+        "required" : [ "timestamp", "status", "error", "message" ],
+        "properties" : {
+          "timestamp" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "status" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "error" : {
+            "type" : "string"
+          },
+          "message" : {
+            "type" : "string"
+          },
+          "fieldErrors" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "AuthResponse" : {
+        "type" : "object",
+        "required" : [ "accessToken", "email", "name" ],
+        "properties" : {
+          "accessToken" : {
+            "type" : "string"
+          },
+          "refreshToken" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "BacktestSummaryResponse" : {
+        "type" : "object",
+        "required" : [ "status", "evaluatedOn", "method", "algorithmVersion", "scheme", "asOf", "usableMonths", "series", "limitations" ],
+        "properties" : {
+          "status" : {
+            "type" : "string",
+            "enum" : [ "COMPLETED", "INSUFFICIENT_DATA" ]
+          },
+          "evaluatedOn" : {
+            "type" : "string",
+            "enum" : [ "USER_HISTORY" ]
+          },
+          "method" : {
+            "type" : "string"
+          },
+          "algorithmVersion" : {
+            "type" : "string"
+          },
+          "scheme" : {
+            "type" : "string"
+          },
+          "asOf" : {
+            "type" : "string"
+          },
+          "usableMonths" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "series" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/BacktestSummaryResponse_SeriesResult"
+            }
+          },
+          "limitations" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "BacktestSummaryResponse_ErrorMetrics" : {
+        "type" : "object",
+        "required" : [ "mae", "wapePercent", "rmse", "bias" ],
+        "properties" : {
+          "mae" : {
+            "type" : "number"
+          },
+          "wapePercent" : {
+            "type" : [ "number", "null" ]
+          },
+          "rmse" : {
+            "type" : "number"
+          },
+          "bias" : {
+            "type" : "number"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "BacktestSummaryResponse_HorizonResult" : {
+        "type" : "object",
+        "required" : [ "horizon", "samples", "model", "naive", "mean3", "verdict" ],
+        "properties" : {
+          "horizon" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "samples" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "model" : {
+            "$ref" : "#/components/schemas/BacktestSummaryResponse_ErrorMetrics"
+          },
+          "naive" : {
+            "$ref" : "#/components/schemas/BacktestSummaryResponse_ErrorMetrics"
+          },
+          "mean3" : {
+            "$ref" : "#/components/schemas/BacktestSummaryResponse_ErrorMetrics"
+          },
+          "verdict" : {
+            "type" : "string",
+            "enum" : [ "MODEL_BETTER", "SIMILAR", "BASELINE_BETTER", "INCONCLUSIVE" ]
+          }
+        },
+        "additionalProperties" : false
+      },
+      "BacktestSummaryResponse_SeriesResult" : {
+        "type" : "object",
+        "required" : [ "series", "observedMonths", "horizons" ],
+        "properties" : {
+          "series" : {
+            "type" : "string",
+            "enum" : [ "EXPENSES", "INCOME", "NET" ]
+          },
+          "observedMonths" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "horizons" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/BacktestSummaryResponse_HorizonResult"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "BudgetDto" : {
+        "type" : "object",
+        "required" : [ "id", "yearMonth", "category", "amount", "createdAt", "updatedAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "yearMonth" : {
+            "type" : "string"
+          },
+          "category" : {
+            "type" : [ "string", "null" ]
+          },
+          "amount" : {
+            "type" : "number"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "BudgetOverrunRiskResponse" : {
+        "type" : "object",
+        "required" : [ "month", "asOf", "period", "daysInMonth", "daysWithRecordedData", "daysRemaining", "warnings", "overall", "categories" ],
+        "properties" : {
+          "month" : {
+            "type" : "string"
+          },
+          "asOf" : {
+            "type" : "string"
+          },
+          "period" : {
+            "type" : "string",
+            "enum" : [ "PAST", "CURRENT", "FUTURE" ]
+          },
+          "daysInMonth" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "daysWithRecordedData" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "daysRemaining" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "warnings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "overall" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/BudgetOverrunRiskResponse_Item"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "categories" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/BudgetOverrunRiskResponse_Item"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "BudgetOverrunRiskResponse_Item" : {
+        "type" : "object",
+        "required" : [ "budgetId", "category", "label", "budgetAmount", "actualToDate", "remainingBudget", "recurringStillDue", "expectedLow", "expectedCentral", "expectedHigh", "estimatedOverrun", "risk", "rule", "basis", "indeterminateReason", "factors" ],
+        "properties" : {
+          "budgetId" : {
+            "type" : "string"
+          },
+          "category" : {
+            "type" : [ "string", "null" ]
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "budgetAmount" : {
+            "type" : "number"
+          },
+          "actualToDate" : {
+            "type" : "number"
+          },
+          "remainingBudget" : {
+            "type" : "number"
+          },
+          "recurringStillDue" : {
+            "type" : "number"
+          },
+          "expectedLow" : {
+            "type" : [ "number", "null" ]
+          },
+          "expectedCentral" : {
+            "type" : [ "number", "null" ]
+          },
+          "expectedHigh" : {
+            "type" : [ "number", "null" ]
+          },
+          "estimatedOverrun" : {
+            "type" : [ "number", "null" ]
+          },
+          "risk" : {
+            "type" : "string",
+            "enum" : [ "EXCEEDED", "LIKELY_OVER", "AT_RISK", "ON_TRACK", "INDETERMINATE", "COMPLETED_WITHIN", "COMPLETED_OVER" ]
+          },
+          "rule" : {
+            "type" : "string"
+          },
+          "basis" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "indeterminateReason" : {
+            "type" : [ "string", "null" ]
+          },
+          "factors" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "BudgetPerformanceSummaryDto" : {
+        "type" : "object",
+        "required" : [ "budgetId", "budgetedAmount", "actualSpend", "remainingAmount", "percentageUsed", "status" ],
+        "properties" : {
+          "budgetId" : {
+            "type" : "string"
+          },
+          "budgetedAmount" : {
+            "type" : "number"
+          },
+          "actualSpend" : {
+            "type" : "number"
+          },
+          "remainingAmount" : {
+            "type" : "number"
+          },
+          "percentageUsed" : {
+            "type" : "number"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "UNDER_BUDGET", "APPROACHING_LIMIT", "OVER_BUDGET" ]
+          }
+        },
+        "additionalProperties" : false
+      },
+      "CashFlowForecastResponse" : {
+        "type" : "object",
+        "required" : [ "reliability", "method", "algorithmVersion", "asOf", "horizonMonths", "history", "warnings", "assumptions", "intervalNote", "incomeAvailable", "historical", "currentMonth", "projected", "summary", "recurring" ],
+        "properties" : {
+          "reliability" : {
+            "type" : "string",
+            "enum" : [ "RELIABLE", "LIMITED", "UNAVAILABLE" ]
+          },
+          "method" : {
+            "type" : "string"
+          },
+          "algorithmVersion" : {
+            "type" : "string"
+          },
+          "asOf" : {
+            "type" : "string"
+          },
+          "horizonMonths" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "history" : {
+            "$ref" : "#/components/schemas/ForecastCommon_HistoryInfo"
+          },
+          "warnings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "assumptions" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "intervalNote" : {
+            "type" : "string"
+          },
+          "incomeAvailable" : {
+            "type" : "boolean"
+          },
+          "historical" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CashFlowForecastResponse_ObservedMonth"
+            }
+          },
+          "currentMonth" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/CashFlowForecastResponse_MonthToDate"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "projected" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CashFlowForecastResponse_ProjectedMonth"
+            }
+          },
+          "summary" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/CashFlowForecastResponse_Summary"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "recurring" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CashFlowForecastResponse_RecurringInfluence"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "CashFlowForecastResponse_MonthToDate" : {
+        "type" : "object",
+        "required" : [ "month", "income", "expenses", "net", "note" ],
+        "properties" : {
+          "month" : {
+            "type" : "string"
+          },
+          "income" : {
+            "type" : "number"
+          },
+          "expenses" : {
+            "type" : "number"
+          },
+          "net" : {
+            "type" : "number"
+          },
+          "note" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "CashFlowForecastResponse_ObservedMonth" : {
+        "type" : "object",
+        "required" : [ "month", "income", "expenses", "net" ],
+        "properties" : {
+          "month" : {
+            "type" : "string"
+          },
+          "income" : {
+            "type" : "number"
+          },
+          "expenses" : {
+            "type" : "number"
+          },
+          "net" : {
+            "type" : "number"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "CashFlowForecastResponse_ProjectedMonth" : {
+        "type" : "object",
+        "required" : [ "month", "income", "expenses", "net", "recurringFloorApplied", "factors" ],
+        "properties" : {
+          "month" : {
+            "type" : "string"
+          },
+          "income" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ForecastCommon_Estimate"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "expenses" : {
+            "$ref" : "#/components/schemas/ForecastCommon_Estimate"
+          },
+          "net" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ForecastCommon_Estimate"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "recurringFloorApplied" : {
+            "type" : "boolean"
+          },
+          "factors" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "CashFlowForecastResponse_RecurringInfluence" : {
+        "type" : "object",
+        "required" : [ "id", "title", "category", "monthlyAmount", "cadence", "confidence", "userConfirmed", "includedInBaseline" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "category" : {
+            "type" : [ "string", "null" ]
+          },
+          "monthlyAmount" : {
+            "type" : "number"
+          },
+          "cadence" : {
+            "type" : "string"
+          },
+          "confidence" : {
+            "type" : "string"
+          },
+          "userConfirmed" : {
+            "type" : "boolean"
+          },
+          "includedInBaseline" : {
+            "type" : "boolean"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "CashFlowForecastResponse_Summary" : {
+        "type" : "object",
+        "required" : [ "totalIncome", "totalExpenses", "totalNet", "averageMonthlyNet", "savingsRatePercent" ],
+        "properties" : {
+          "totalIncome" : {
+            "type" : [ "number", "null" ]
+          },
+          "totalExpenses" : {
+            "type" : "number"
+          },
+          "totalNet" : {
+            "type" : [ "number", "null" ]
+          },
+          "averageMonthlyNet" : {
+            "type" : [ "number", "null" ]
+          },
+          "savingsRatePercent" : {
+            "type" : [ "number", "null" ]
+          }
+        },
+        "additionalProperties" : false
+      },
+      "CategoryBreakdownResponse" : {
+        "type" : "object",
+        "required" : [ "period", "categories", "totalGrossExpenses", "totalRefunds", "totalNetExpenses", "largestCategory", "risingCategories" ],
+        "properties" : {
+          "period" : {
+            "$ref" : "#/components/schemas/PeriodDto"
+          },
+          "categories" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CategorySpendingDto"
+            }
+          },
+          "totalGrossExpenses" : {
+            "type" : "number"
+          },
+          "totalRefunds" : {
+            "type" : "number"
+          },
+          "totalNetExpenses" : {
+            "type" : "number"
+          },
+          "largestCategory" : {
+            "type" : [ "string", "null" ]
+          },
+          "risingCategories" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "CategoryBudgetPerformanceDto" : {
+        "type" : "object",
+        "required" : [ "budgetId", "category", "categoryLabel", "budgetedAmount", "actualSpend", "remainingAmount", "percentageUsed", "status", "transactionCount" ],
+        "properties" : {
+          "budgetId" : {
+            "type" : "string"
+          },
+          "category" : {
+            "type" : "string"
+          },
+          "categoryLabel" : {
+            "type" : "string"
+          },
+          "budgetedAmount" : {
+            "type" : "number"
+          },
+          "actualSpend" : {
+            "type" : "number"
+          },
+          "remainingAmount" : {
+            "type" : "number"
+          },
+          "percentageUsed" : {
+            "type" : "number"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "UNDER_BUDGET", "APPROACHING_LIMIT", "OVER_BUDGET" ]
+          },
+          "transactionCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "CategorySource" : {
+        "type" : "string",
+        "enum" : [ "NONE", "RULE", "MODEL", "USER" ]
+      },
+      "CategorySpendingDto" : {
+        "type" : "object",
+        "required" : [ "category", "label", "flow", "amount", "percentage", "transactionCount", "averageTransactionAmount", "momChangePct", "isIncreasing", "largestTransaction" ],
+        "properties" : {
+          "category" : {
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "flow" : {
+            "type" : "string"
+          },
+          "amount" : {
+            "type" : "number"
+          },
+          "percentage" : {
+            "type" : "number"
+          },
+          "transactionCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "averageTransactionAmount" : {
+            "type" : "number"
+          },
+          "momChangePct" : {
+            "type" : [ "number", "null" ]
+          },
+          "isIncreasing" : {
+            "type" : "boolean"
+          },
+          "largestTransaction" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/TransactionBriefDto"
+            }, {
+              "type" : "null"
+            } ]
+          }
+        },
+        "additionalProperties" : false
+      },
+      "CategorySpendingForecastResponse" : {
+        "type" : "object",
+        "required" : [ "reliability", "method", "algorithmVersion", "asOf", "horizonMonths", "history", "warnings", "assumptions", "categories", "withoutForecast", "risingCategories" ],
+        "properties" : {
+          "reliability" : {
+            "type" : "string",
+            "enum" : [ "RELIABLE", "LIMITED", "UNAVAILABLE" ]
+          },
+          "method" : {
+            "type" : "string"
+          },
+          "algorithmVersion" : {
+            "type" : "string"
+          },
+          "asOf" : {
+            "type" : "string"
+          },
+          "horizonMonths" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "history" : {
+            "$ref" : "#/components/schemas/ForecastCommon_HistoryInfo"
+          },
+          "warnings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "assumptions" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "categories" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CategorySpendingForecastResponse_CategoryForecast"
+            }
+          },
+          "withoutForecast" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CategorySpendingForecastResponse_CategoryWithoutForecast"
+            }
+          },
+          "risingCategories" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "CategorySpendingForecastResponse_CategoryForecast" : {
+        "type" : "object",
+        "required" : [ "category", "label", "activeMonths", "recentMonthlyAverage", "monthly", "projectedTotal", "trend", "trendPercentPerMonth", "reliability", "recurringMonthly", "outlierMonths", "explanation" ],
+        "properties" : {
+          "category" : {
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "activeMonths" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "recentMonthlyAverage" : {
+            "type" : "number"
+          },
+          "monthly" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ForecastCommon_Estimate"
+            }
+          },
+          "projectedTotal" : {
+            "type" : "number"
+          },
+          "trend" : {
+            "type" : "string",
+            "enum" : [ "UPWARD", "DOWNWARD", "STABLE", "NOT_ESTABLISHED" ]
+          },
+          "trendPercentPerMonth" : {
+            "type" : [ "number", "null" ]
+          },
+          "reliability" : {
+            "type" : "string",
+            "enum" : [ "RELIABLE", "LIMITED", "UNAVAILABLE" ]
+          },
+          "recurringMonthly" : {
+            "type" : "number"
+          },
+          "outlierMonths" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "explanation" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "CategorySpendingForecastResponse_CategoryWithoutForecast" : {
+        "type" : "object",
+        "required" : [ "category", "label", "reason" ],
+        "properties" : {
+          "category" : {
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "reason" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "CategoryUpdateRequest" : {
+        "type" : "object",
+        "required" : [ "category" ],
+        "properties" : {
+          "category" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "ClassificationStatus" : {
+        "type" : "string",
+        "enum" : [ "NOT_ATTEMPTED", "COMPLETED", "PARTIAL", "UNAVAILABLE" ]
+      },
+      "CreateBudgetRequest" : {
+        "type" : "object",
+        "required" : [ "yearMonth", "amount" ],
+        "properties" : {
+          "yearMonth" : {
+            "type" : "string"
+          },
+          "category" : {
+            "type" : [ "string", "null" ]
+          },
+          "amount" : {
+            "type" : "number"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "CreateGoalRequest" : {
+        "type" : "object",
+        "required" : [ "name", "targetAmount" ],
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "targetAmount" : {
+            "type" : "number"
+          },
+          "targetDate" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "DataQualityResponse" : {
+        "type" : "object",
+        "required" : [ "coverageFrom", "coverageTo", "totalDaysCovered", "totalMonthsCovered", "totalTransactions", "uncategorizedCount", "uncategorizedPercentage", "missingMonths", "hasSufficientHistory", "caveats" ],
+        "properties" : {
+          "coverageFrom" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "coverageTo" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "totalDaysCovered" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalMonthsCovered" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalTransactions" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "uncategorizedCount" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "uncategorizedPercentage" : {
+            "type" : "number"
+          },
+          "missingMonths" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "hasSufficientHistory" : {
+            "type" : "boolean"
+          },
+          "caveats" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "DataQualitySummaryDto" : {
+        "type" : "object",
+        "required" : [ "totalTransactions", "uncategorizedCount", "uncategorizedPercentage", "hasSufficientHistory" ],
+        "properties" : {
+          "totalTransactions" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "uncategorizedCount" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "uncategorizedPercentage" : {
+            "type" : "number"
+          },
+          "hasSufficientHistory" : {
+            "type" : "boolean"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "FinancialInsightDto" : {
+        "type" : "object",
+        "required" : [ "id", "title", "type", "message", "period", "supportingFigures", "ruleTriggered", "confidenceCaveat" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "ALERT", "TREND", "INFO", "POSITIVE" ]
+          },
+          "message" : {
+            "type" : "string"
+          },
+          "period" : {
+            "type" : "string"
+          },
+          "supportingFigures" : {
+            "type" : "object",
+            "additionalProperties" : true
+          },
+          "ruleTriggered" : {
+            "type" : "string"
+          },
+          "confidenceCaveat" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "additionalProperties" : false
+      },
+      "FinancialSummaryResponse" : {
+        "type" : "object",
+        "required" : [ "period", "totalIncome", "grossExpenses", "totalRefunds", "totalExpenses", "netCashFlow", "savingsRate", "savingsRateApplicable", "savingsRateCaveat", "totalInvested", "totalCurrentValue", "unrealizedGain", "gainPercentage", "activeLoansCount", "totalMonthlyEmi", "totalPrincipal", "momComparison", "excludes", "dataQuality", "topInsights" ],
+        "properties" : {
+          "period" : {
+            "$ref" : "#/components/schemas/PeriodDto"
+          },
+          "totalIncome" : {
+            "type" : "number"
+          },
+          "grossExpenses" : {
+            "type" : "number"
+          },
+          "totalRefunds" : {
+            "type" : "number"
+          },
+          "totalExpenses" : {
+            "type" : "number"
+          },
+          "netCashFlow" : {
+            "type" : "number"
+          },
+          "savingsRate" : {
+            "type" : [ "number", "null" ]
+          },
+          "savingsRateApplicable" : {
+            "type" : "boolean"
+          },
+          "savingsRateCaveat" : {
+            "type" : [ "string", "null" ]
+          },
+          "totalInvested" : {
+            "type" : "number"
+          },
+          "totalCurrentValue" : {
+            "type" : "number"
+          },
+          "unrealizedGain" : {
+            "type" : "number"
+          },
+          "gainPercentage" : {
+            "type" : "number"
+          },
+          "activeLoansCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalMonthlyEmi" : {
+            "type" : "number"
+          },
+          "totalPrincipal" : {
+            "type" : "number"
+          },
+          "momComparison" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/MomComparisonDto"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "excludes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "dataQuality" : {
+            "$ref" : "#/components/schemas/DataQualitySummaryDto"
+          },
+          "topInsights" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FinancialInsightDto"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "ForecastCommon_Estimate" : {
+        "type" : "object",
+        "required" : [ "point", "lower", "upper" ],
+        "properties" : {
+          "point" : {
+            "type" : "number"
+          },
+          "lower" : {
+            "type" : [ "number", "null" ]
+          },
+          "upper" : {
+            "type" : [ "number", "null" ]
+          }
+        },
+        "additionalProperties" : false
+      },
+      "ForecastCommon_HistoryInfo" : {
+        "type" : "object",
+        "required" : [ "from", "to", "monthsUsed", "minMonthsLimited", "minMonthsReliable", "missingMonths", "transactionsUsed", "firstMonthPossiblyPartial" ],
+        "properties" : {
+          "from" : {
+            "type" : [ "string", "null" ]
+          },
+          "to" : {
+            "type" : [ "string", "null" ]
+          },
+          "monthsUsed" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "minMonthsLimited" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "minMonthsReliable" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "missingMonths" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "transactionsUsed" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "firstMonthPossiblyPartial" : {
+            "type" : "boolean"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "GoalContributionDto" : {
+        "type" : "object",
+        "required" : [ "id", "goalId", "amount", "contributionDate", "createdAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "goalId" : {
+            "type" : "string"
+          },
+          "amount" : {
+            "type" : "number"
+          },
+          "contributionDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "note" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "GoalContributionRequest" : {
+        "type" : "object",
+        "required" : [ "amount" ],
+        "properties" : {
+          "amount" : {
+            "type" : "number"
+          },
+          "contributionDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "note" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "GoalDetailResponse" : {
+        "type" : "object",
+        "required" : [ "goal", "contributions", "disclaimer" ],
+        "properties" : {
+          "goal" : {
+            "$ref" : "#/components/schemas/GoalResponseDto"
+          },
+          "contributions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GoalContributionDto"
+            }
+          },
+          "disclaimer" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "GoalResponseDto" : {
+        "type" : "object",
+        "required" : [ "id", "name", "targetAmount", "currentAmount", "remainingAmount", "progressPercentage", "status", "isOverdue", "contributionCount", "createdAt", "updatedAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "targetAmount" : {
+            "type" : "number"
+          },
+          "currentAmount" : {
+            "type" : "number"
+          },
+          "remainingAmount" : {
+            "type" : "number"
+          },
+          "progressPercentage" : {
+            "type" : "number"
+          },
+          "targetDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "daysRemaining" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "requiredMonthlyPace" : {
+            "type" : "number"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/GoalStatus"
+          },
+          "isOverdue" : {
+            "type" : "boolean"
+          },
+          "contributionCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "GoalStatus" : {
+        "type" : "string",
+        "enum" : [ "ACTIVE", "COMPLETED", "ARCHIVED" ]
+      },
+      "InsightsResponse" : {
+        "type" : "object",
+        "required" : [ "period", "insights", "unusualTransactions" ],
+        "properties" : {
+          "period" : {
+            "$ref" : "#/components/schemas/PeriodDto"
+          },
+          "insights" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FinancialInsightDto"
+            }
+          },
+          "unusualTransactions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/UnusualTransactionDto"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "InvestmentRequest" : {
+        "type" : "object",
+        "required" : [ "name", "type", "amountInvested" ],
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/InvestmentType"
+          },
+          "amountInvested" : {
+            "type" : "number"
+          },
+          "currentValue" : {
+            "type" : "number"
+          },
+          "notes" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "InvestmentResponse" : {
+        "type" : "object",
+        "required" : [ "id", "name", "type", "amountInvested", "currentValue", "notes", "createdAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/InvestmentType"
+          },
+          "amountInvested" : {
+            "type" : "number"
+          },
+          "currentValue" : {
+            "type" : [ "number", "null" ]
+          },
+          "notes" : {
+            "type" : [ "string", "null" ]
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "InvestmentType" : {
+        "type" : "string",
+        "enum" : [ "STOCKS", "MUTUAL_FUND", "FD", "CRYPTO", "GOLD", "OTHER" ]
+      },
+      "JobStatus" : {
+        "type" : "string",
+        "enum" : [ "PENDING", "PROCESSING", "COMPLETED", "FAILED" ]
+      },
+      "LoanRequest" : {
+        "type" : "object",
+        "required" : [ "name", "type", "principal", "emiAmount", "interestRate", "active" ],
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/LoanType"
+          },
+          "principal" : {
+            "type" : "number"
+          },
+          "emiAmount" : {
+            "type" : "number"
+          },
+          "interestRate" : {
+            "type" : "number"
+          },
+          "startDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "endDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "active" : {
+            "type" : "boolean"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "LoanResponse" : {
+        "type" : "object",
+        "required" : [ "id", "name", "type", "principal", "emiAmount", "interestRate", "startDate", "endDate", "active", "createdAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/LoanType"
+          },
+          "principal" : {
+            "type" : "number"
+          },
+          "emiAmount" : {
+            "type" : "number"
+          },
+          "interestRate" : {
+            "type" : "number"
+          },
+          "startDate" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "endDate" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "active" : {
+            "type" : "boolean"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "LoanType" : {
+        "type" : "string",
+        "enum" : [ "HOME", "CAR", "PERSONAL", "EDUCATION", "OTHER" ]
+      },
+      "LoginRequest" : {
+        "type" : "object",
+        "required" : [ "email", "password" ],
+        "properties" : {
+          "email" : {
+            "type" : "string"
+          },
+          "password" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "LogoutRequest" : {
+        "type" : "object",
+        "properties" : {
+          "refreshToken" : {
+            "type" : "string"
+          },
+          "allDevices" : {
+            "type" : "boolean"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "MomComparisonDto" : {
+        "type" : "object",
+        "required" : [ "previousIncome", "incomeChange", "incomeChangePct", "previousExpenses", "expenseChange", "expenseChangePct", "previousNet", "netChange" ],
+        "properties" : {
+          "previousIncome" : {
+            "type" : "number"
+          },
+          "incomeChange" : {
+            "type" : "number"
+          },
+          "incomeChangePct" : {
+            "type" : [ "number", "null" ]
+          },
+          "previousExpenses" : {
+            "type" : "number"
+          },
+          "expenseChange" : {
+            "type" : "number"
+          },
+          "expenseChangePct" : {
+            "type" : [ "number", "null" ]
+          },
+          "previousNet" : {
+            "type" : "number"
+          },
+          "netChange" : {
+            "type" : "number"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "MonthlyBudgetOverviewResponse" : {
+        "type" : "object",
+        "required" : [ "yearMonth", "overallBudget", "categoryBudgets", "totalCategoryBudgeted", "totalActualExpenses", "unbudgetedSpending", "categoriesOverBudgetCount", "categoriesApproachingCount", "warnings" ],
+        "properties" : {
+          "yearMonth" : {
+            "type" : "string"
+          },
+          "overallBudget" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/BudgetPerformanceSummaryDto"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "categoryBudgets" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CategoryBudgetPerformanceDto"
+            }
+          },
+          "totalCategoryBudgeted" : {
+            "type" : "number"
+          },
+          "totalActualExpenses" : {
+            "type" : "number"
+          },
+          "unbudgetedSpending" : {
+            "type" : "number"
+          },
+          "categoriesOverBudgetCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "categoriesApproachingCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "warnings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "MonthlyFlowDto" : {
+        "type" : "object",
+        "required" : [ "month", "income", "grossExpenses", "refunds", "expenses", "netCashFlow", "savingsRate", "transactionCount", "momExpenseChangePct", "momIncomeChangePct" ],
+        "properties" : {
+          "month" : {
+            "type" : "string"
+          },
+          "income" : {
+            "type" : "number"
+          },
+          "grossExpenses" : {
+            "type" : "number"
+          },
+          "refunds" : {
+            "type" : "number"
+          },
+          "expenses" : {
+            "type" : "number"
+          },
+          "netCashFlow" : {
+            "type" : "number"
+          },
+          "savingsRate" : {
+            "type" : [ "number", "null" ]
+          },
+          "transactionCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "momExpenseChangePct" : {
+            "type" : [ "number", "null" ]
+          },
+          "momIncomeChangePct" : {
+            "type" : [ "number", "null" ]
+          }
+        },
+        "additionalProperties" : false
+      },
+      "PeriodDto" : {
+        "type" : "object",
+        "required" : [ "from", "to" ],
+        "properties" : {
+          "from" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "to" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "ReclassifyResponse" : {
+        "type" : "object",
+        "required" : [ "status", "attempted", "categorized", "needsReview", "stillUncategorized" ],
+        "properties" : {
+          "status" : {
+            "$ref" : "#/components/schemas/ClassificationStatus"
+          },
+          "attempted" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "categorized" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "needsReview" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "stillUncategorized" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "RecommendationsResponse" : {
+        "type" : "object",
+        "required" : [ "period", "disclaimer", "healthy", "recommendations", "notEvaluated", "thresholds" ],
+        "properties" : {
+          "period" : {
+            "$ref" : "#/components/schemas/RecommendationsResponse_Period"
+          },
+          "disclaimer" : {
+            "type" : "string"
+          },
+          "healthy" : {
+            "type" : "boolean"
+          },
+          "recommendations" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RecommendationsResponse_Recommendation"
+            }
+          },
+          "notEvaluated" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RecommendationsResponse_NotEvaluated"
+            }
+          },
+          "thresholds" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "number"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "RecommendationsResponse_Evidence" : {
+        "type" : "object",
+        "required" : [ "metric", "value", "unit", "source" ],
+        "properties" : {
+          "metric" : {
+            "type" : "string"
+          },
+          "value" : {
+            "type" : "number"
+          },
+          "unit" : {
+            "type" : "string"
+          },
+          "source" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "RecommendationsResponse_NotEvaluated" : {
+        "type" : "object",
+        "required" : [ "id", "title", "reason" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "reason" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "RecommendationsResponse_Period" : {
+        "type" : "object",
+        "required" : [ "from", "to", "months", "monthsWithData" ],
+        "properties" : {
+          "from" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "to" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "months" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "monthsWithData" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "RecommendationsResponse_Recommendation" : {
+        "type" : "object",
+        "required" : [ "id", "severity", "title", "explanation", "suggestedAction", "evidence", "estimatedMonthlyImpact", "scenarioPreset" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "severity" : {
+            "$ref" : "#/components/schemas/RecommendationsResponse_Severity"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "explanation" : {
+            "type" : "string"
+          },
+          "suggestedAction" : {
+            "type" : "string"
+          },
+          "evidence" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RecommendationsResponse_Evidence"
+            }
+          },
+          "estimatedMonthlyImpact" : {
+            "type" : [ "number", "null" ]
+          },
+          "scenarioPreset" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/RecommendationsResponse_ScenarioPreset"
+            }, {
+              "type" : "null"
+            } ]
+          }
+        },
+        "additionalProperties" : false
+      },
+      "RecommendationsResponse_ScenarioPreset" : {
+        "type" : "object",
+        "required" : [ "label", "request" ],
+        "properties" : {
+          "label" : {
+            "type" : "string"
+          },
+          "request" : {
+            "type" : "object",
+            "properties" : {
+              "horizonMonths" : {
+                "type" : "integer",
+                "format" : "int32"
+              },
+              "categoryAdjustments" : {
+                "type" : "array",
+                "items" : {
+                  "$ref" : "#/components/schemas/ScenarioSimulationRequest_CategoryAdjustment"
+                }
+              }
+            },
+            "additionalProperties" : false
+          }
+        },
+        "additionalProperties" : false
+      },
+      "RecommendationsResponse_Severity" : {
+        "type" : "string",
+        "enum" : [ "CRITICAL", "HIGH", "MEDIUM", "INFO" ]
+      },
+      "RecurringExpenseItemDto" : {
+        "type" : "object",
+        "required" : [ "id", "title", "merchant", "category", "amount", "cadence", "occurrences", "lastDate", "confidence", "isConfirmed", "explanation" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "merchant" : {
+            "type" : "string"
+          },
+          "category" : {
+            "type" : "string"
+          },
+          "amount" : {
+            "type" : "number"
+          },
+          "cadence" : {
+            "type" : "string",
+            "enum" : [ "MONTHLY", "WEEKLY", "ANNUAL" ]
+          },
+          "occurrences" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "lastDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "confidence" : {
+            "type" : "string",
+            "enum" : [ "HIGH", "MEDIUM", "LOW" ]
+          },
+          "isConfirmed" : {
+            "type" : "boolean"
+          },
+          "explanation" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "RecurringExpensesResponse" : {
+        "type" : "object",
+        "required" : [ "period", "items", "totalMonthlyRecurring", "recurringPercentageOfExpenses" ],
+        "properties" : {
+          "period" : {
+            "$ref" : "#/components/schemas/PeriodDto"
+          },
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RecurringExpenseItemDto"
+            }
+          },
+          "totalMonthlyRecurring" : {
+            "type" : "number"
+          },
+          "recurringPercentageOfExpenses" : {
+            "type" : "number"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "RefreshRequest" : {
+        "type" : "object",
+        "properties" : {
+          "refreshToken" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "RegisterRequest" : {
+        "type" : "object",
+        "required" : [ "name", "email", "password" ],
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "password" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "RowErrorDto" : {
+        "type" : "object",
+        "required" : [ "rowNumber", "errorMessage", "snippet" ],
+        "properties" : {
+          "rowNumber" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "errorMessage" : {
+            "type" : "string"
+          },
+          "snippet" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "SavedScenarioResponses_Detail" : {
+        "type" : "object",
+        "required" : [ "summary", "request", "snapshot" ],
+        "properties" : {
+          "summary" : {
+            "$ref" : "#/components/schemas/SavedScenarioResponses_Summary"
+          },
+          "request" : {
+            "$ref" : "#/components/schemas/ScenarioSimulationRequest"
+          },
+          "snapshot" : {
+            "$ref" : "#/components/schemas/ScenarioSimulationResponse"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "SavedScenarioResponses_Rerun" : {
+        "type" : "object",
+        "required" : [ "summary", "request", "snapshot", "current", "unchanged", "methodVersionChanged", "currentMethodVersion" ],
+        "properties" : {
+          "summary" : {
+            "$ref" : "#/components/schemas/SavedScenarioResponses_Summary"
+          },
+          "request" : {
+            "$ref" : "#/components/schemas/ScenarioSimulationRequest"
+          },
+          "snapshot" : {
+            "$ref" : "#/components/schemas/ScenarioSimulationResponse"
+          },
+          "current" : {
+            "$ref" : "#/components/schemas/ScenarioSimulationResponse"
+          },
+          "unchanged" : {
+            "type" : "boolean"
+          },
+          "methodVersionChanged" : {
+            "type" : "boolean"
+          },
+          "currentMethodVersion" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "SavedScenarioResponses_Summary" : {
+        "type" : "object",
+        "required" : [ "id", "name", "horizonMonths", "methodVersion", "createdAt", "netChange", "spendingChange" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "horizonMonths" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "methodVersion" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "netChange" : {
+            "type" : [ "number", "null" ]
+          },
+          "spendingChange" : {
+            "type" : [ "number", "null" ]
+          }
+        },
+        "additionalProperties" : false
+      },
+      "SavingsProjectionResponse" : {
+        "type" : "object",
+        "required" : [ "reliability", "method", "algorithmVersion", "asOf", "horizonMonths", "history", "warnings", "assumptions", "disclaimer", "incomeAvailable", "averageMonthlyNet", "projectedSavingsRatePercent", "points", "goals", "accounting" ],
+        "properties" : {
+          "reliability" : {
+            "type" : "string",
+            "enum" : [ "RELIABLE", "LIMITED", "UNAVAILABLE" ]
+          },
+          "method" : {
+            "type" : "string"
+          },
+          "algorithmVersion" : {
+            "type" : "string"
+          },
+          "asOf" : {
+            "type" : "string"
+          },
+          "horizonMonths" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "history" : {
+            "$ref" : "#/components/schemas/ForecastCommon_HistoryInfo"
+          },
+          "warnings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "assumptions" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "disclaimer" : {
+            "type" : "string"
+          },
+          "incomeAvailable" : {
+            "type" : "boolean"
+          },
+          "averageMonthlyNet" : {
+            "type" : [ "number", "null" ]
+          },
+          "projectedSavingsRatePercent" : {
+            "type" : [ "number", "null" ]
+          },
+          "points" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SavingsProjectionResponse_Point"
+            }
+          },
+          "goals" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SavingsProjectionResponse_GoalOutlook"
+            }
+          },
+          "accounting" : {
+            "$ref" : "#/components/schemas/SavingsProjectionResponse_Accounting"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "SavingsProjectionResponse_Accounting" : {
+        "type" : "object",
+        "required" : [ "projectedSurplusOverHorizon", "recordedGoalContributions", "verifiedBankBalance", "verifiedBankBalanceNote", "totalRequiredGoalPace", "goalsOvercommitted" ],
+        "properties" : {
+          "projectedSurplusOverHorizon" : {
+            "type" : [ "number", "null" ]
+          },
+          "recordedGoalContributions" : {
+            "type" : "number"
+          },
+          "verifiedBankBalance" : {
+            "type" : "null"
+          },
+          "verifiedBankBalanceNote" : {
+            "type" : "string"
+          },
+          "totalRequiredGoalPace" : {
+            "type" : [ "number", "null" ]
+          },
+          "goalsOvercommitted" : {
+            "type" : [ "boolean", "null" ]
+          }
+        },
+        "additionalProperties" : false
+      },
+      "SavingsProjectionResponse_GoalOutlook" : {
+        "type" : "object",
+        "required" : [ "id", "name", "targetAmount", "recordedAmount", "remaining", "targetDate", "requiredMonthlyPace", "monthsIfAllSurplusUsed", "completionMonthIfAllSurplusUsed", "onPaceIfAlone" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "targetAmount" : {
+            "type" : "number"
+          },
+          "recordedAmount" : {
+            "type" : "number"
+          },
+          "remaining" : {
+            "type" : "number"
+          },
+          "targetDate" : {
+            "type" : [ "string", "null" ]
+          },
+          "requiredMonthlyPace" : {
+            "type" : [ "number", "null" ]
+          },
+          "monthsIfAllSurplusUsed" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32"
+          },
+          "completionMonthIfAllSurplusUsed" : {
+            "type" : [ "string", "null" ]
+          },
+          "onPaceIfAlone" : {
+            "type" : [ "boolean", "null" ]
+          }
+        },
+        "additionalProperties" : false
+      },
+      "SavingsProjectionResponse_Point" : {
+        "type" : "object",
+        "required" : [ "month", "net", "cumulativeNet" ],
+        "properties" : {
+          "month" : {
+            "type" : "string"
+          },
+          "net" : {
+            "$ref" : "#/components/schemas/ForecastCommon_Estimate"
+          },
+          "cumulativeNet" : {
+            "type" : "number"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "ScenarioSimulationRequest" : {
+        "type" : "object",
+        "required" : [ "horizonMonths" ],
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "horizonMonths" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "incomeAdjustment" : {
+            "$ref" : "#/components/schemas/ScenarioSimulationRequest_Adjustment"
+          },
+          "categoryAdjustments" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ScenarioSimulationRequest_CategoryAdjustment"
+            }
+          },
+          "addedRecurringExpenses" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ScenarioSimulationRequest_AddedRecurringExpense"
+            }
+          },
+          "removedRecurringExpenseIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "loanAdjustments" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ScenarioSimulationRequest_LoanAdjustment"
+            }
+          },
+          "oneTimeItems" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ScenarioSimulationRequest_OneTimeItem"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "ScenarioSimulationRequest_AddedRecurringExpense" : {
+        "type" : "object",
+        "required" : [ "title", "monthlyAmount" ],
+        "properties" : {
+          "title" : {
+            "type" : "string"
+          },
+          "category" : {
+            "type" : "string"
+          },
+          "monthlyAmount" : {
+            "type" : "number"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "ScenarioSimulationRequest_Adjustment" : {
+        "type" : "object",
+        "required" : [ "type", "value" ],
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/ScenarioSimulationRequest_AdjustmentType"
+          },
+          "value" : {
+            "type" : "number"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "ScenarioSimulationRequest_AdjustmentType" : {
+        "type" : "string",
+        "enum" : [ "PERCENTAGE", "FIXED_AMOUNT" ]
+      },
+      "ScenarioSimulationRequest_CategoryAdjustment" : {
+        "type" : "object",
+        "required" : [ "category", "type", "value" ],
+        "properties" : {
+          "category" : {
+            "type" : "string"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/ScenarioSimulationRequest_AdjustmentType"
+          },
+          "value" : {
+            "type" : "number"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "ScenarioSimulationRequest_LoanAction" : {
+        "type" : "string",
+        "enum" : [ "CLOSE", "PREPAY", "CHANGE_EMI" ]
+      },
+      "ScenarioSimulationRequest_LoanAdjustment" : {
+        "type" : "object",
+        "required" : [ "loanId", "action" ],
+        "properties" : {
+          "loanId" : {
+            "type" : "string"
+          },
+          "action" : {
+            "$ref" : "#/components/schemas/ScenarioSimulationRequest_LoanAction"
+          },
+          "amount" : {
+            "type" : "number"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "ScenarioSimulationRequest_OneTimeItem" : {
+        "type" : "object",
+        "required" : [ "title", "kind", "month", "amount" ],
+        "properties" : {
+          "title" : {
+            "type" : "string"
+          },
+          "kind" : {
+            "$ref" : "#/components/schemas/ScenarioSimulationRequest_OneTimeKind"
+          },
+          "month" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "amount" : {
+            "type" : "number"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "ScenarioSimulationRequest_OneTimeKind" : {
+        "type" : "string",
+        "enum" : [ "INCOME", "EXPENSE" ]
+      },
+      "ScenarioSimulationResponse" : {
+        "type" : "object",
+        "required" : [ "name", "hypothetical", "disclaimer", "available", "unavailableReason", "baselineReliability", "horizonMonths", "incomeAvailable", "warnings", "baseline", "scenario", "delta", "months", "categories", "explanations", "loanEffects" ],
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "hypothetical" : {
+            "type" : "boolean",
+            "const" : true
+          },
+          "disclaimer" : {
+            "type" : "string"
+          },
+          "available" : {
+            "type" : "boolean"
+          },
+          "unavailableReason" : {
+            "type" : [ "string", "null" ]
+          },
+          "baselineReliability" : {
+            "type" : "string",
+            "enum" : [ "RELIABLE", "LIMITED", "UNAVAILABLE" ]
+          },
+          "horizonMonths" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "incomeAvailable" : {
+            "type" : "boolean"
+          },
+          "warnings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "baseline" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ScenarioSimulationResponse_Totals"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "scenario" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ScenarioSimulationResponse_Totals"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "delta" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ScenarioSimulationResponse_Delta"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "months" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ScenarioSimulationResponse_Month"
+            }
+          },
+          "categories" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ScenarioSimulationResponse_CategoryEffect"
+            }
+          },
+          "explanations" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "loanEffects" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ScenarioSimulationResponse_LoanEffect"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "ScenarioSimulationResponse_CategoryEffect" : {
+        "type" : "object",
+        "required" : [ "category", "label", "baselineMonthly", "scenarioMonthly", "deltaMonthly", "note" ],
+        "properties" : {
+          "category" : {
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "baselineMonthly" : {
+            "type" : "number"
+          },
+          "scenarioMonthly" : {
+            "type" : "number"
+          },
+          "deltaMonthly" : {
+            "type" : "number"
+          },
+          "note" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "ScenarioSimulationResponse_Delta" : {
+        "type" : "object",
+        "required" : [ "income", "expenses", "net", "savingsRatePoints" ],
+        "properties" : {
+          "income" : {
+            "type" : [ "number", "null" ]
+          },
+          "expenses" : {
+            "type" : "number"
+          },
+          "net" : {
+            "type" : [ "number", "null" ]
+          },
+          "savingsRatePoints" : {
+            "type" : [ "number", "null" ]
+          }
+        },
+        "additionalProperties" : false
+      },
+      "ScenarioSimulationResponse_LoanEffect" : {
+        "type" : "object",
+        "required" : [ "loanId", "loanName", "action", "estimatedOutstandingBalance", "baselineMonthsToPayoff", "scenarioMonthsToPayoff", "baselineRemainingInterest", "scenarioRemainingInterest", "interestSaved", "cashOutInHorizonChange", "notes" ],
+        "properties" : {
+          "loanId" : {
+            "type" : "string"
+          },
+          "loanName" : {
+            "type" : "string"
+          },
+          "action" : {
+            "type" : "string",
+            "enum" : [ "CLOSE", "PREPAY", "CHANGE_EMI" ]
+          },
+          "estimatedOutstandingBalance" : {
+            "type" : "number"
+          },
+          "baselineMonthsToPayoff" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "scenarioMonthsToPayoff" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "baselineRemainingInterest" : {
+            "type" : "number"
+          },
+          "scenarioRemainingInterest" : {
+            "type" : "number"
+          },
+          "interestSaved" : {
+            "type" : "number"
+          },
+          "cashOutInHorizonChange" : {
+            "type" : "number"
+          },
+          "notes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "additionalProperties" : false
+      },
+      "ScenarioSimulationResponse_Month" : {
+        "type" : "object",
+        "required" : [ "month", "baselineIncome", "scenarioIncome", "baselineExpenses", "scenarioExpenses", "baselineNet", "scenarioNet" ],
+        "properties" : {
+          "month" : {
+            "type" : "string"
+          },
+          "baselineIncome" : {
+            "type" : [ "number", "null" ]
+          },
+          "scenarioIncome" : {
+            "type" : [ "number", "null" ]
+          },
+          "baselineExpenses" : {
+            "type" : "number"
+          },
+          "scenarioExpenses" : {
+            "type" : "number"
+          },
+          "baselineNet" : {
+            "type" : [ "number", "null" ]
+          },
+          "scenarioNet" : {
+            "type" : [ "number", "null" ]
+          }
+        },
+        "additionalProperties" : false
+      },
+      "ScenarioSimulationResponse_Totals" : {
+        "type" : "object",
+        "required" : [ "income", "expenses", "net", "savingsRatePercent" ],
+        "properties" : {
+          "income" : {
+            "type" : [ "number", "null" ]
+          },
+          "expenses" : {
+            "type" : "number"
+          },
+          "net" : {
+            "type" : [ "number", "null" ]
+          },
+          "savingsRatePercent" : {
+            "type" : [ "number", "null" ]
+          }
+        },
+        "additionalProperties" : false
+      },
+      "TransactionBriefDto" : {
+        "type" : "object",
+        "required" : [ "id", "title", "amount", "date", "category" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "amount" : {
+            "type" : "number"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "category" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "additionalProperties" : false
+      },
+      "TransactionRequest" : {
+        "type" : "object",
+        "required" : [ "title", "amount", "type" ],
+        "properties" : {
+          "title" : {
+            "type" : "string"
+          },
+          "amount" : {
+            "type" : "number"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/TransactionType"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "category" : {
+            "type" : "string"
+          },
+          "note" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "TransactionResponse" : {
+        "type" : "object",
+        "required" : [ "id", "title", "amount", "type", "date", "category", "note", "source", "createdAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "amount" : {
+            "type" : "number"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/TransactionType"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "category" : {
+            "type" : [ "string", "null" ]
+          },
+          "note" : {
+            "type" : [ "string", "null" ]
+          },
+          "source" : {
+            "$ref" : "#/components/schemas/TransactionSource"
+          },
+          "categorySource" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/CategorySource"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "categoryConfidence" : {
+            "type" : [ "number", "null" ]
+          },
+          "categoryConfidenceCalibrated" : {
+            "type" : "boolean"
+          },
+          "categoryNeedsReview" : {
+            "type" : "boolean"
+          },
+          "categoryModelVersion" : {
+            "type" : [ "string", "null" ]
+          },
+          "categoryRule" : {
+            "type" : [ "string", "null" ]
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "TransactionSource" : {
+        "type" : "string",
+        "enum" : [ "MANUAL", "IMPORT" ]
+      },
+      "TransactionType" : {
+        "type" : "string",
+        "enum" : [ "INCOME", "EXPENSE" ]
+      },
+      "UnusualTransactionDto" : {
+        "type" : "object",
+        "required" : [ "transactionId", "title", "amount", "date", "category", "benchmarkAmount", "ratio", "reason", "rule" ],
+        "properties" : {
+          "transactionId" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "amount" : {
+            "type" : "number"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "category" : {
+            "type" : "string"
+          },
+          "benchmarkAmount" : {
+            "type" : "number"
+          },
+          "ratio" : {
+            "type" : "number"
+          },
+          "reason" : {
+            "type" : "string"
+          },
+          "rule" : {
+            "type" : "string"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "UpdateBudgetRequest" : {
+        "type" : "object",
+        "required" : [ "amount" ],
+        "properties" : {
+          "amount" : {
+            "type" : "number"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "UpdateGoalRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "targetAmount" : {
+            "type" : "number"
+          },
+          "targetDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/GoalStatus"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "UploadStatusResponse" : {
+        "type" : "object",
+        "required" : [ "jobId", "status", "bankName", "originalFilename", "totalRows", "rowsProcessed", "duplicateRows", "rejectedRows", "skippedRows", "errorMessage", "createdAt", "completedAt" ],
+        "properties" : {
+          "jobId" : {
+            "type" : "string"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/JobStatus"
+          },
+          "bankName" : {
+            "type" : "string"
+          },
+          "originalFilename" : {
+            "type" : "string"
+          },
+          "totalRows" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "rowsProcessed" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "duplicateRows" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "rejectedRows" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "skippedRows" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "rowErrors" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RowErrorDto"
+            }
+          },
+          "classificationStatus" : {
+            "$ref" : "#/components/schemas/ClassificationStatus"
+          },
+          "classifiedRows" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "closingBalance" : {
+            "type" : [ "number", "null" ]
+          },
+          "statementFrom" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "statementTo" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "errorMessage" : {
+            "type" : [ "string", "null" ]
+          },
+          "createdAt" : {
+            "type" : [ "string", "null" ],
+            "format" : "date-time"
+          },
+          "completedAt" : {
+            "type" : [ "string", "null" ],
+            "format" : "date-time"
+          }
+        },
+        "additionalProperties" : false
+      }
+    }
+  }
+}

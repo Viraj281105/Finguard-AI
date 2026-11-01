@@ -2,7 +2,7 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getRefreshToken, getToken, setToken, setTokens } from '../auth/tokenStorage'
 import { fakeJwt } from '../../test/jwt'
-import { apiClient, apiErrorMessage, setSessionExpiredHandler } from './client'
+import { apiClient, apiErrorMessage, generateTraceparent, setSessionExpiredHandler } from './client'
 
 const originalAdapter = apiClient.defaults.adapter
 
@@ -41,6 +41,18 @@ describe('request interceptor', () => {
     }
     await apiClient.get('/transactions')
     expect(sent).toBeUndefined()
+  })
+
+  it('attaches a W3C traceparent header when not already supplied (S1-01)', async () => {
+    let sentTraceparent: unknown
+    apiClient.defaults.adapter = async (config) => {
+      sentTraceparent = config.headers.traceparent
+      return { data: {}, status: 200, statusText: '', headers: {}, config }
+    }
+    await apiClient.get('/transactions')
+    expect(typeof sentTraceparent).toBe('string')
+    expect(sentTraceparent).toMatch(/^00-[0-9a-f]{32}-[0-9a-f]{16}-01$/)
+    expect(generateTraceparent()).toMatch(/^00-[0-9a-f]{32}-[0-9a-f]{16}-01$/)
   })
 })
 

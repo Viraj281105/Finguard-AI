@@ -5,7 +5,12 @@ upload (`multipart/form-data`).
 
 **Status:** every endpoint listed here exists and is exercised by an automated test unless a row says otherwise
 (tests: `AuthApiTest`, `OwnershipApiTest`, `LedgerApiTest`, `CategoryApiTest`, `ImportApiTest`,
-`ImportClassificationTest`, `AnalyticsApiTest`, `BudgetApiTest`, `GoalApiTest`, `ForecastApiTest`). Nothing outside this list exists (see [ROADMAP.md](ROADMAP.md)).
+`ImportClassificationTest`, `AnalyticsApiTest`, `BudgetApiTest`, `GoalApiTest`, `ForecastApiTest`, `OpenApiContractTest`). Nothing outside this list exists (see [ROADMAP.md](ROADMAP.md)).
+
+**Machine-Verified Contract Source of Truth (S1-03):**
+- Canonical OpenAPI 3.1.0 specification: [`contracts/openapi/finguard-api.v1.json`](../contracts/openapi/finguard-api.v1.json), generated directly from Spring Boot's `RequestMappingHandlerMapping` and DTO records.
+- Generated TypeScript client definitions: [`frontend/src/shared/api/generated/openapi.ts`](../frontend/src/shared/api/generated/openapi.ts).
+- Automated CI contract & breaking-change diff gate: `OpenApiContractTest` and `OpenApiDiffGate` verify 100% endpoint parity with this document, reject undocumented routes or breaking schema changes, and verify byte-for-byte TypeScript synchronization.
 
 There is no API version prefix. See [DECISIONS.md](DECISIONS.md) D-07.
 
@@ -175,7 +180,14 @@ Invalid date formats or negative pagination values return `400 Bad Request` with
 | `notes` | string | optional |
 
 Response: the same fields plus `id` and `createdAt`; `currentValue` and `notes` may be `null`.
-Same five operations and status codes as transactions.
+
+| Method & path | Result |
+|---|---|
+| `POST /api/investments` | `201` created object |
+| `GET /api/investments` | `200` JSON array of the caller's investments |
+| `GET /api/investments/{id}` | `200` object · `404` if missing or owned by someone else |
+| `PUT /api/investments/{id}` | `200` updated object · `404` |
+| `DELETE /api/investments/{id}` | `204` · `404` |
 
 ## Loans — `/api/loans`
 
@@ -189,7 +201,15 @@ Same five operations and status codes as transactions.
 | `startDate`, `endDate` | `yyyy-MM-dd` | optional |
 | `active` | boolean | optional; `null`/absent means `true` |
 
-Response: the same fields plus `id` and `createdAt`. Same five operations and status codes.
+Response: the same fields plus `id` and `createdAt`.
+
+| Method & path | Result |
+|---|---|
+| `POST /api/loans` | `201` created object |
+| `GET /api/loans` | `200` JSON array of the caller's loans |
+| `GET /api/loans/{id}` | `200` object · `404` if missing or owned by someone else |
+| `PUT /api/loans/{id}` | `200` updated object · `404` |
+| `DELETE /api/loans/{id}` | `204` · `404` |
 
 ## Statement import — `/api/upload`
 
@@ -602,10 +622,10 @@ Response `200`: `MonthlyBudgetOverviewResponse`:
 ```json
 {
   "yearMonth": "2026-10",
-  "overall": {
+  "overallBudget": {
     "budgetId": "bgt-1",
-    "budgetAmount": 50000.00,
-    "actualSpending": 32450.00,
+    "budgetedAmount": 50000.00,
+    "actualSpend": 32450.00,
     "remainingAmount": 17550.00,
     "percentageUsed": 64.90,
     "status": "UNDER_BUDGET"
@@ -614,16 +634,20 @@ Response `200`: `MonthlyBudgetOverviewResponse`:
     {
       "budgetId": "bgt-2",
       "category": "DINING",
-      "budgetAmount": 8000.00,
-      "actualSpending": 7200.00,
+      "categoryLabel": "Dining",
+      "budgetedAmount": 8000.00,
+      "actualSpend": 7200.00,
       "remainingAmount": 800.00,
       "percentageUsed": 90.00,
       "status": "APPROACHING_LIMIT",
       "transactionCount": 12
     }
   ],
+  "totalCategoryBudgeted": 8000.00,
+  "totalActualExpenses": 32450.00,
   "unbudgetedSpending": 5400.00,
-  "totalSpending": 32450.00,
+  "categoriesOverBudgetCount": 0,
+  "categoriesApproachingCount": 1,
   "warnings": [
     "DINING has reached 90.0% of its budget limit."
   ]
@@ -682,13 +706,13 @@ Response `200`: Array of `GoalResponseDto`:
     "description": "6 months of living expenses",
     "targetAmount": 150000.00,
     "currentAmount": 60000.00,
-    "targetDate": "2027-03-31",
-    "status": "ACTIVE",
-    "progressPercentage": 40.00,
     "remainingAmount": 90000.00,
-    "isCompleted": false,
+    "progressPercentage": 40.00,
+    "targetDate": "2027-03-31",
+    "daysRemaining": 158,
+    "requiredMonthlyPace": 18000.00,
+    "status": "ACTIVE",
     "isOverdue": false,
-    "requiredMonthlyContribution": 18000.00,
     "contributionCount": 4,
     "createdAt": "2026-10-01T10:00:00Z",
     "updatedAt": "2026-10-24T10:00:00Z"

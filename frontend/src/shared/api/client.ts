@@ -10,11 +10,41 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
-// Attach the JWT to every request.
+function randomHex(bytes: number): string {
+  const buf = new Uint8Array(bytes);
+  if (typeof globalThis.crypto?.getRandomValues === "function") {
+    globalThis.crypto.getRandomValues(buf);
+  } else {
+    for (let i = 0; i < bytes; i++) {
+      buf[i] = Math.floor(Math.random() * 256);
+    }
+  }
+  let allZero = true;
+  for (let i = 0; i < bytes; i++) {
+    if (buf[i] !== 0) {
+      allZero = false;
+      break;
+    }
+  }
+  if (allZero && bytes > 0) {
+    buf[bytes - 1] = 1;
+  }
+  return Array.from(buf, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** Generates a fresh W3C Trace Context `traceparent` header (`00-<32-hex>-<16-hex>-01`). */
+export function generateTraceparent(): string {
+  return `00-${randomHex(16)}-${randomHex(8)}-01`;
+}
+
+// Attach the JWT and W3C traceparent to every request.
 apiClient.interceptors.request.use((config) => {
   const token = getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  if (!config.headers.traceparent) {
+    config.headers.traceparent = generateTraceparent();
   }
   return config;
 });

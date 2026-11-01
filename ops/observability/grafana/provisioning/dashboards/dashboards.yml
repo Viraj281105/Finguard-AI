@@ -1,0 +1,12 @@
+apiVersion: 1
+
+providers:
+  - name: "FinGuard-AI Dashboards"
+    orgId: 1
+    folder: "FinGuard-AI"
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards
+

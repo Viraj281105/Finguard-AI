@@ -11,6 +11,13 @@ from app import __version__
 from app.api import classify, health
 from app.classification.engine import build_default_classifier
 from app.core.config import Settings, get_settings, validate_settings
+from app.core.observability import (
+    AiMetricsRegistry,
+    TraceAndMetricsMiddleware,
+)
+from app.core.observability import (
+    router as observability_router,
+)
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -25,7 +32,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.state.settings = settings
     app.state.classifier = build_default_classifier()
+    app.state.metrics = AiMetricsRegistry()
+    app.add_middleware(TraceAndMetricsMiddleware)
     app.include_router(health.router)
+    app.include_router(observability_router)
     app.include_router(classify.router)
     return app
 

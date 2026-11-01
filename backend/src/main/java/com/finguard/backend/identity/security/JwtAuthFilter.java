@@ -2,8 +2,10 @@ package com.finguard.backend.identity.security;
 
 import tools.jackson.databind.ObjectMapper;
 import com.finguard.backend.common.error.ApiError;
+import com.finguard.backend.common.observability.TraceContext;
 import com.finguard.backend.identity.domain.UserRepository;
 import io.jsonwebtoken.JwtException;
+import org.slf4j.MDC;
 import org.springframework.dao.DataAccessException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -69,6 +71,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                MDC.put(TraceContext.MDC_USER_HASH, TraceContext.hashUserId(user.getId()));
             });
         } catch (JwtException | IllegalArgumentException e) {
             log.debug("Rejected bearer token: {}", e.getMessage());

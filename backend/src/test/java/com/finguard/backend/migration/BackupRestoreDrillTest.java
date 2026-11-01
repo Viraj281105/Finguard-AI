@@ -47,7 +47,11 @@ class BackupRestoreDrillTest {
             "budgets",
             "financial_goals",
             "goal_contributions",
-            "saved_scenarios"
+            "saved_scenarios",
+            "event_outbox",
+            "processed_event",
+            "event_dead_letter",
+            "audit_log"
     );
 
     private static final Path ROOT = Path.of("..").normalize();
@@ -214,6 +218,18 @@ class BackupRestoreDrillTest {
 
         jdbc.update("INSERT INTO saved_scenarios (id, user_id, name, horizon_months, request_json, result_json, method_version, created_at) "
                 + "VALUES ('sc-1', 'u-drill-1', 'Car Purchase Check', 6, '{\"horizonMonths\":6}', '{\"feasible\":true}', 'v1.0', '2026-07-02 00:00:00')");
+
+        jdbc.update("INSERT INTO event_outbox (id, aggregate_type, aggregate_id, event_type, schema_version, tenant, trace_id, occurred_at, payload, published_at, attempts) "
+                + "VALUES ('0194c4e7-5a1b-7d2e-9f3a-6c1d2b8e4a90', 'upload_job', 'job-1', 'com.finguard.import.completed', 1, 'user:u-drill-1', '4bf92f3577b34da6a3ce929d0e0e4736', '2026-07-02 00:00:00+00', '{\"id\":\"0194c4e7-5a1b-7d2e-9f3a-6c1d2b8e4a90\"}'::jsonb, '2026-07-02 00:00:01+00', 1)");
+
+        jdbc.update("INSERT INTO processed_event (consumer, event_id, processed_at) "
+                + "VALUES ('audit-writer', '0194c4e7-5a1b-7d2e-9f3a-6c1d2b8e4a90', '2026-07-02 00:00:01+00')");
+
+        jdbc.update("INSERT INTO event_dead_letter (id, event_id, consumer, event_type, payload, error, attempts, failed_at) "
+                + "VALUES ('0194c4e7-5a1b-7d2e-9f3a-6c1d2b8e4a91', '0194c4e7-5a1b-7d2e-9f3a-6c1d2b8e4a99', 'audit-writer', 'com.finguard.import.completed', '{\"poison\":true}'::jsonb, 'Simulated failure', 3, '2026-07-02 00:00:02+00')");
+
+        jdbc.update("INSERT INTO audit_log (id, event_id, tenant_hash, event_type, aggregate_type, aggregate_id, trace_id, occurred_at, recorded_at, summary_json) "
+                + "VALUES ('0194c4e7-5a1b-7d2e-9f3a-6c1d2b8e4a92', '0194c4e7-5a1b-7d2e-9f3a-6c1d2b8e4a90', '0123456789ab', 'com.finguard.import.completed', 'upload_job', 'job-1', '4bf92f3577b34da6a3ce929d0e0e4736', '2026-07-02 00:00:00+00', '2026-07-02 00:00:01+00', '{\"rowsProcessed\":3}'::jsonb)");
     }
 
     private static String sha256Hex(Path file) throws Exception {

@@ -122,6 +122,29 @@ def test_with_a_configured_token_requests_must_present_it():
 def test_health_stays_open_when_a_token_is_configured():
     secured = TestClient(create_app(Settings(internal_token="s3cret")))
     assert secured.get("/health").status_code == 200
+    assert secured.get("/metrics").status_code == 200
+
+
+def test_traceparent_is_propagated_and_prometheus_metrics_never_leak_descriptions():
+    local_client = TestClient(create_app(Settings()))
+    traceparent = "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+    secret_desc = "CONFIDENTIAL-UPI-NARRATION-98765"
+
+    res = local_client.post(
+        "/v1/classify",
+        json={"transactions": [{"id": "tx-1", "description": secret_desc, "type": "EXPENSE"}]},
+        headers={"traceparent": traceparent, "X-Request-Id": "req-obs-42"},
+    )
+    assert res.status_code == 200
+    assert res.headers["traceparent"].startswith("00-4bf92f3577b34da6a3ce929d0e0e4736-")
+    assert res.headers["X-Request-Id"] == "req-obs-42"
+
+    metrics_res = local_client.get("/metrics")
+    assert metrics_res.status_code == 200
+    metrics_text = metrics_res.text
+    assert "finguard_ai_classify_batches_total 1" in metrics_text
+    assert "finguard_ai_classify_items_total" in metrics_text
+    assert secret_desc not in metrics_text
 
 
 # ---- Recorded examples shared with the Java client's tests -------------------------------------

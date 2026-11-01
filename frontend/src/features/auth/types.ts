@@ -1,16 +1,8 @@
-/** Body returned by POST /api/auth/login, /register and /refresh. */
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  email: string;
-  name: string;
-}
+import type { components } from "../../shared/api/generated/openapi";
 
-export interface LoginInput {
-  email: string;
-  password: string;
-}
-
-export interface RegisterInput extends LoginInput {
-  name: string;
-}
+/** Body returned by POST /api/auth/login, /register and /refresh (generated from OpenAPI contract). */
+export type AuthResponse = components["schemas"]["AuthResponse"];
+export type LoginInput = components["schemas"]["LoginRequest"];
+export type RegisterInput = components["schemas"]["RegisterRequest"];
+export type RefreshInput = components["schemas"]["RefreshRequest"];
+export type LogoutInput = components["schemas"]["LogoutRequest"];

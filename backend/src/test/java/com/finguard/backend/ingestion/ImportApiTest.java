@@ -21,9 +21,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * polling, persisted transactions. The AI service is unreachable here, which also covers the
  * "classification unavailable" fallback.
  */
-class ImportApiTest extends IntegrationTest {
+public class ImportApiTest extends IntegrationTest {
 
-    static MockMultipartFile csv(String fixture) throws IOException {
+    public static MockMultipartFile csv(String fixture) throws IOException {
         try (var in = ImportApiTest.class.getResourceAsStream("/fixtures/statements/" + fixture)) {
             return new MockMultipartFile("file", fixture, "text/csv", in.readAllBytes());
         }
