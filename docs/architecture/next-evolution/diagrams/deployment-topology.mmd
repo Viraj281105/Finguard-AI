@@ -1,0 +1,59 @@
+%% Deployment topology across environments (dashed = planned). Production default = managed containers;
+%% Kubernetes appears as a local pilot and a gated alternative (docs 03 section 9).
+flowchart TB
+    subgraph DEV["Developer machine — no Kubernetes needed"]
+        direction LR
+        dcomp["docker compose (profile: infra)<br/>postgres 18 + ai"]
+        host["host processes<br/>./mvnw spring-boot:run · npm run dev"]
+        dobs["optional profile: obs<br/>otel-lgtm single container"]
+        dfull["profile: full<br/>backend + frontend images too"]
+    end
+
+    subgraph CI["GitHub Actions (ephemeral)"]
+        direction LR
+        unit["unit + embedded Postgres tests"]
+        itest["compose-booted stack:<br/>contract + e2e (Playwright) + k6 smoke"]
+        scan["lockfile audit · secret scan · image scan · SBOM"]
+        sign["build once -> sign (cosign) -> attest provenance"]
+        unit --> itest --> scan --> sign
+    end
+
+    subgraph STG["Staging (reproducible, synthetic data only)"]
+        direction LR
+        sstack["same images as production,<br/>prod profile, TLS, generated secrets"]
+        spg[("PostgreSQL 18 (separate instance)")]
+        sstack --> spg
+    end
+
+    subgraph PRD["Production (default: managed container platform)"]
+        direction LR
+        edge["TLS termination + HSTS<br/>(managed ingress / CDN)"]
+        spa["static SPA (object storage + CDN or container)"]
+        api["backend containers x2+<br/>rolling revision deploys"]
+        ai["ai container x1-2<br/>private network only"]
+        pgm[("Managed PostgreSQL 18<br/>PITR, encrypted, private subnet")]
+        obj[("object storage: backups, exports")]
+        sm["secret manager<br/>(no secrets in images/env files)"]
+        edge --> spa & api
+        api --> ai
+        api --> pgm
+        pgm -.-> obj
+        sm -.-> api & ai
+    end
+
+    subgraph K8S["Kubernetes pilot (kind/k3d locally; gated for prod)"]
+        direction LR
+        kdep["Deployments + probes + resources"]
+        knp["NetworkPolicies: default deny"]
+        khpa["HPA (CPU + custom latency metric)"]
+        kmig["Migration Job (Flyway) as pre-deploy hook"]
+        kgitops["Argo CD / Flux GitOps (only with a real cluster)"]
+    end
+
+    DEV -->|"git push"| CI
+    sign -->|"promote by digest"| STG
+    STG -->|"smoke + migration rehearsal pass"| PRD
+    sign -.->|"same digests"| K8S
+
+    classDef planned stroke-dasharray: 5 3
+    class STG,PRD,K8S planned

@@ -1,0 +1,52 @@
+%% Event flow — import completes, derived analytics refresh, failure and replay.
+%% Guarantees: event is written in the SAME PostgreSQL transaction as the ledger change (outbox);
+%% delivery is at-least-once; consumers are idempotent (inbox) -> effectively-once results.
+sequenceDiagram
+    autonumber
+    participant B as Browser
+    participant API as Ingestion / Ledger (Spring Boot)
+    participant DB as PostgreSQL
+    participant REG as Event publication registry (Spring Modulith)
+    participant C1 as Consumer: analytics-refresh
+    participant C2 as Consumer: audit-writer
+    participant REC as Go reconciler (nightly)
+
+    B->>API: POST /api/upload/csv (Idempotency-Key)
+    API->>DB: UploadJob = PENDING
+    API-->>B: 202 + job id
+    Note over API: async worker parses, de-duplicates by fingerprint
+    rect rgb(235, 245, 235)
+    Note over API,DB: ONE local ACID transaction
+    API->>DB: INSERT new transactions (unique fingerprint index)
+    API->>DB: UPDATE upload_job = COMPLETED
+    API->>REG: publish ImportCompleted v1 + LedgerPeriodChanged v1
+    REG->>DB: INSERT event_publication rows (same tx)
+    end
+    DB-->>REG: commit
+    par each listener gets its own publication row
+        REG->>C1: deliver ImportCompleted
+        C1->>DB: BEGIN, INSERT processed_event (consumer, event_id), on conflict skip
+        C1->>DB: recompute analytics for affected months, COMMIT
+        C1-->>REG: mark publication complete
+    and
+        REG->>C2: deliver ImportCompleted
+        C2->>DB: append audit record (idempotent by event_id)
+        C2-->>REG: mark complete
+    end
+
+    alt listener throws / process crashes
+        REG->>REG: publication stays incomplete
+        Note over REG: re-submitted on restart and by a scheduled retry with backoff
+        REG->>C1: redeliver (same event_id)
+        C1->>DB: inbox hit -> no duplicate effect
+    end
+    alt still failing after N attempts
+        REG->>DB: mark FAILED / copy to dead-letter table + alert
+        Note over API: operator fixes cause, replays by id or time range
+    end
+
+    REC->>DB: read-only: re-aggregate ledger independently
+    REC->>DB: compare with analytics schema
+    REC-->>API: report (JSON): zero delta required, else alert
+
+    Note over REG,C1: Later, only if the broker gate fires (docs 05 section 7):<br/>a relay publishes outbox rows to Kafka; consumers keep the same inbox

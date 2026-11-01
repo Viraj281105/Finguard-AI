@@ -1,0 +1,33 @@
+%% System context — FinGuard-AI next evolution (planned state; solid = exists today, dashed = planned)
+flowchart TB
+    user(["Person managing their own finances<br/>(web browser, desktop or phone)"])
+    operator(["Operator / maintainer<br/>(single engineer today)"])
+    files[/"Bank statement CSV files<br/>HDFC · ICICI · SBI · Axis · Kotak<br/>(user-supplied, untrusted input)"/]
+
+    subgraph platform["FinGuard-AI platform"]
+        direction TB
+        core["Financial core<br/>React SPA + Spring Boot modular monolith<br/>+ PostgreSQL (system of record)"]
+        ai["AI classification service<br/>(Python/FastAPI, stateless, can abstain)"]
+        batch["Offline data and evaluation workflows<br/>(planned: Airflow pilot, Go reconciler)"]
+    end
+
+    ci["GitHub Actions<br/>build · test · scan · sign"]
+    obs["Observability backends<br/>(planned: OTel -> Prometheus, Loki, Tempo, Grafana)"]
+    store[("Object storage<br/>(planned: backups, exports)")]
+    reg[/"Package registries and base images<br/>Maven Central · npm · PyPI · container registry"/]
+
+    user -->|"HTTPS, JWT session"| core
+    user -.->|"uploads"| files
+    files -->|"POST /api/upload/csv (max 5 MB)"| core
+    core -->|"POST /v1/classify + shared secret"| ai
+    batch -.->|"read-only role / exports"| core
+    core -.->|"backups, exports"| store
+    core -.->|"traces, metrics, logs"| obs
+    ai -.->|"traces, metrics, logs"| obs
+    operator -->|"deploy, review alerts, rotate secrets"| platform
+    operator --> ci
+    ci -->|"fetch dependencies"| reg
+    ci -.->|"signed images + SBOM"| platform
+
+    classDef planned stroke-dasharray: 5 3
+    class batch,obs,store planned

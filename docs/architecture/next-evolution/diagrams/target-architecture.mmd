@@ -1,0 +1,58 @@
+%% Target container architecture — hypothesis after Stage 3 (dashed = not built yet; stage tag in the label)
+flowchart LR
+    SPA["React SPA (TypeScript)<br/>generated API client"]
+
+    subgraph JVM["Spring Boot 4.1 · JDK 25 · modular monolith (ONE deployable)"]
+        direction TB
+        WEB["web + OpenAPI snapshot"]
+        ID["identity"]
+        LED["ledger"]
+        ING["ingestion"]
+        CAT["categorization"]
+        INT["intelligence"]
+        BUD["budgeting"]
+        FOR["forecasting"]
+        PRIV["privacy + audit<br/>(S1)"]
+        EVT["domain events + outbox<br/>(Spring Modulith, S1)"]
+        WEB --> ID & LED & ING & INT & BUD & FOR & PRIV
+        ING --> LED & CAT
+        LED --> EVT
+        ING --> EVT
+        CAT --> EVT
+        INT --> LED
+        BUD --> LED
+        FOR --> INT
+    end
+
+    AI["AI service (Python 3.14)<br/>classify · evaluation artifacts<br/>no DB access"]
+
+    subgraph PG["PostgreSQL 18 — the only system of record"]
+        direction TB
+        PUB[("schema public<br/>ledger tables (Java writes)")]
+        EV[("event publication / outbox<br/>(S1)")]
+        AN[("schema analytics<br/>derived, rebuildable (S2)")]
+    end
+
+    REC["Go reconciler (S2)<br/>read-only role<br/>verifies aggregates + invariants"]
+    AF["Airflow 3.3 pilot (S2)<br/>own metadata DB<br/>NEVER in request path"]
+    OBJ[("S3-compatible object storage<br/>backups · Parquet exports (S3)")]
+
+    subgraph OBS["Observability (S1 local, S3 production)"]
+        OTEL["OTel Collector"] --> PROM["Prometheus"] & LOKI["Loki"] & TEMPO["Tempo"]
+        PROM & LOKI & TEMPO --> GRAF["Grafana + alerts"]
+    end
+
+    SPA -->|"HTTPS / JSON / JWT"| WEB
+    ING & CAT -->|"POST /v1/classify<br/>X-Internal-Token"| AI
+    LED & ING & BUD --> PUB
+    EVT --> EV
+    EV -->|"in-process consumers<br/>(inbox, idempotent)"| AN
+    REC -.->|"SELECT only"| PUB
+    REC -.-> AN
+    AF -.->|"SELECT only on a read-only role"| PUB
+    AF -.->|"writes exports + reports"| OBJ
+    PUB -.->|"base backups + WAL"| OBJ
+    JVM & AI -.->|"OTLP"| OTEL
+
+    classDef planned stroke-dasharray: 5 3
+    class PRIV,EVT,REC,AF,OBJ,AN,EV,OBS planned
