@@ -25,6 +25,8 @@ public class AuthRateLimiter {
     public static final long LOGIN_LOCKOUT_SECONDS = 60;
     public static final int MAX_REGISTRATIONS_PER_MINUTE = 1000;
     public static final int MAX_REFRESHES_PER_MINUTE = 1000;
+    public static final int MAX_PRIVACY_ACTIONS_PER_WINDOW = 10;
+    public static final long PRIVACY_WINDOW_SECONDS = 300;
     public static final int MAX_MAP_ENTRIES = 5000;
 
     private static class LoginAttemptState {
@@ -45,6 +47,7 @@ public class AuthRateLimiter {
     private final Map<String, LoginAttemptState> loginAttempts = createBoundedMap(MAX_MAP_ENTRIES);
     private final Map<String, Deque<Instant>> registerRequests = createBoundedMap(MAX_MAP_ENTRIES);
     private final Map<String, Deque<Instant>> refreshRequests = createBoundedMap(MAX_MAP_ENTRIES);
+    private final Map<String, Deque<Instant>> privacyRequests = createBoundedMap(MAX_MAP_ENTRIES);
 
     public void checkLoginAllowed(String clientIp, String email) {
         Instant now = Instant.now();
@@ -101,10 +104,16 @@ public class AuthRateLimiter {
         checkRate(refreshRequests, "refresh:" + clean(clientIp), MAX_REFRESHES_PER_MINUTE, 60, "refresh");
     }
 
+    public void checkPrivacyActionAllowed(String userId, String action) {
+        checkRate(privacyRequests, "privacy:" + clean(action) + ":" + clean(userId),
+                MAX_PRIVACY_ACTIONS_PER_WINDOW, PRIVACY_WINDOW_SECONDS, "privacy " + action);
+    }
+
     public void reset() {
         loginAttempts.clear();
         registerRequests.clear();
         refreshRequests.clear();
+        privacyRequests.clear();
     }
 
     private void checkRate(Map<String, Deque<Instant>> map, String key, int maxRequests, long windowSeconds, String action) {

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://finguard.ai/contracts/events/auth.logged_in.v1.json",
+  "title": "com.finguard.auth.logged_in.v1",
+  "description": "Emitted when a user successfully authenticates. Recorded in append-only audit_log without PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "type",
+    "schema_version",
+    "source",
+    "time",
+    "subject",
+    "tenant",
+    "trace_id",
+    "data"
+  ],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "type": { "const": "com.finguard.auth.logged_in" },
+    "schema_version": { "const": 1 },
+    "source": { "type": "string" },
+    "time": { "type": "string", "format": "date-time" },
+    "subject": { "type": "string" },
+    "tenant": { "type": "string" },
+    "trace_id": { "type": ["string", "null"] },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "sessionIssued"],
+      "properties": {
+        "method": { "type": "string", "enum": ["PASSWORD"] },
+        "sessionIssued": { "type": "boolean" }
+      }
+    }
+  }
+}
+

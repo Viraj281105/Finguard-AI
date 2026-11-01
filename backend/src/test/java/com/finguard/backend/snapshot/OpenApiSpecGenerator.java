@@ -112,10 +112,21 @@ public final class OpenApiSpecGenerator {
                     "name", "incomeAdjustment", "categoryAdjustments", "addedRecurringExpenses",
                     "removedRecurringExpenseIds", "loanAdjustments", "oneTimeItems")),
             Map.entry("ScenarioSimulationRequest_AddedRecurringExpense", Set.of("category")),
-            Map.entry("ScenarioSimulationRequest_LoanAdjustment", Set.of("amount"))
+            Map.entry("ScenarioSimulationRequest_LoanAdjustment", Set.of("amount")),
+            Map.entry("AccountDeletionRequest", Set.of("immediate"))
     );
 
     private static final Map<String, Set<String>> NULLABLE_FIELDS = Map.ofEntries(
+            Map.entry("PrivacyStatusResponse", Set.of("deletionRequestedAt", "deletionScheduledAt")),
+            Map.entry("AccountExportResponse_UserProfileExportDto", Set.of("deletionRequestedAt", "deletionScheduledAt")),
+            Map.entry("AccountExportResponse_ExportTransactionDto", Set.of("category", "categoryConfidence", "note", "importJobId")),
+            Map.entry("AccountExportResponse_ExportInvestmentDto", Set.of("currentValue", "notes")),
+            Map.entry("AccountExportResponse_ExportLoanDto", Set.of("startDate", "endDate")),
+            Map.entry("AccountExportResponse_ExportUploadJobDto", Set.of("closingBalance", "statementFrom", "statementTo", "completedAt")),
+            Map.entry("AccountExportResponse_ExportBudgetDto", Set.of("category")),
+            Map.entry("AccountExportResponse_ExportGoalDto", Set.of("description", "targetDate")),
+            Map.entry("AccountExportResponse_ExportGoalContributionDto", Set.of("note")),
+            Map.entry("AuditLogEntryDto", Set.of("traceId")),
             Map.entry("TransactionResponse", Set.of(
                     "category", "note", "categorySource", "categoryConfidence",
                     "categoryModelVersion", "categoryRule")),

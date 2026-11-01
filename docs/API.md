@@ -954,6 +954,19 @@ Response: `{ period: { from, to, months, monthsWithData }, disclaimer, healthy, 
 - `healthy` is `true` only when at least the minimum months of records exist and no item above `INFO` was produced; with too little data it is `false` and nothing is recommended.
 - `thresholds` echoes the active values. Rules and defaults: [FINANCIAL_RULES.md section 9](FINANCIAL_RULES.md#9-recommendation-rules-v0100).
 
+## Privacy & Data Lifecycle — `/api/privacy` (S1-05)
+
+All privacy endpoints require a valid bearer access token (`401` otherwise) and operate strictly on the authenticated caller's tenant. Mutating or exporting operations (`export`, `export/csv`, `delete-request`, `delete-cancel`) additionally require re-authentication with the user's current password (`401` on mismatch) and are rate-limited (`429` after 10 requests per 5-minute window).
+
+| Method | Path | Behaviour |
+|---|---|---|
+| `GET` | `/api/privacy/status` | Returns account deletion status (`deletionPending`, `deletionRequestedAt`, `deletionScheduledAt`, `gracePeriodDays`) and active retention policy (`rowErrorsRetentionDays=90`, `outboxRetentionDays=14`, `inboxRetentionDays=30`, `auditLogRetentionDays=365`). |
+| `POST` | `/api/privacy/export` | Body `{ "password": "…" }`. Verifies current password, emits `com.finguard.account.exported` (`JSON`), and returns `AccountExportResponse` containing `profile`, `recordCounts`, and complete lists of `transactions`, `investments`, `loans`, `uploadJobs`, `budgets`, `goals`, `goalContributions`, and `savedScenarios`. |
+| `POST` | `/api/privacy/export/csv` | Body `{ "password": "…" }`. Verifies current password, emits `com.finguard.account.exported` (`CSV`), and returns a formula-neutralised RFC 4180 CSV document (`text/csv; charset=UTF-8`) where cells beginning with `=`, `+`, `-`, `@`, `\t`, or `\r` are prefixed with `'`. |
+| `POST` | `/api/privacy/delete-request` | Body `{ "password": "…", "immediate": false }`. Verifies current password, revokes all active refresh tokens, clears the `refreshToken` cookie, and schedules account deletion after the 30-day grace period (`status: "SCHEDULED"`). When `immediate: true`, executes deterministic FK-ordered hard deletion across all 10 user-owned tables immediately (`status: "DELETED"`). |
+| `POST` | `/api/privacy/delete-cancel` | Body `{ "password": "…" }`. Verifies current password and cancels a pending deletion request during the grace window, emitting `com.finguard.account.deletion_cancelled`. Returns `400` if no deletion request is pending. |
+| `GET` | `/api/privacy/audit-log` | Returns the caller's most recent 100 append-only `audit_log` entries (`id`, `eventId`, `eventType`, `aggregateType`, `aggregateId`, `traceId`, `occurredAt`, `summary`). Never contains transaction narration text or raw PII. |
+
 ## Errors
 
 Every error body has the same shape (`ApiError`):

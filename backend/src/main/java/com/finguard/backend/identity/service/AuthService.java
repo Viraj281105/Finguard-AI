@@ -1,6 +1,8 @@
 package com.finguard.backend.identity.service;
 
 import com.finguard.backend.common.error.ApiException;
+import com.finguard.backend.common.events.DomainEventEnvelope;
+import com.finguard.backend.common.events.OutboxEventService;
 import com.finguard.backend.identity.domain.RefreshToken;
 import com.finguard.backend.identity.domain.RefreshTokenRepository;
 import com.finguard.backend.identity.domain.User;
@@ -35,6 +37,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final AuthRateLimiter authRateLimiter;
+    private final OutboxEventService outboxEventService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request, String clientIp) {
@@ -75,7 +78,17 @@ public class AuthService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> ApiException.unauthorized("Invalid email or password"));
-        return issueTokens(user);
+        AuthResponse response = issueTokens(user);
+        outboxEventService.publish(
+                "user",
+                user.getId(),
+                DomainEventEnvelope.TYPE_AUTH_LOGGED_IN,
+                "finguard-backend/identity",
+                "user/" + user.getId(),
+                user.getId(),
+                new DomainEventEnvelope.AuthLoggedInPayload("PASSWORD", true)
+        );
+        return response;
     }
 
     public AuthResponse login(LoginRequest request) {
