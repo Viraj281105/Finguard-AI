@@ -1,12 +1,21 @@
-# Classifier evaluation report
+# SYNTHETIC — Classifier evaluation report
 
-> **Read this first.** The data is **synthetic**: written by the project's developers, not taken from
+> **PROVENANCE STAMP (`data_provenance: synthetic` · synthetic ≠ real).**
+> Every dataset scored in this report is **synthetic**: written by the project's developers, not taken from
 > real bank statements. The same author wrote the rules and the data, so these figures are
-> **optimistic** and are **not** an estimate of accuracy on real statements. The classifier is a
-> deterministic rule baseline; **no machine-learning model was trained**, so there is no model metric.
-> `confidence` is a rule-strength tier, not a calibrated probability.
+> **optimistic** and are **not** an estimate of accuracy on real statements (`synthetic != real`).
+> The classifier is a deterministic rule baseline; **no machine-learning model was trained**, so there
+> is no model metric. `confidence` is a rule-strength tier, not a calibrated probability.
 
 Classifier under test: `rules-1.0.0` (method: rules). Regenerate with `cd ai; .\.venv\Scripts\python -m evaluation.evaluate`.
+
+## Dataset Manifests & Provenance
+
+| Split | Dataset ID | File | Provenance | Rows | Frozen Holdout | SHA-256 |
+|---|---|---|---|---:|---|---|
+| `dev` | `synthetic_dev` | `synthetic_dev.csv` | `synthetic` | 63 | `False` | `bfc8f0ce2fb2a914…` |
+| `holdout` | `synthetic_holdout` | `synthetic_holdout.csv` | `synthetic` | 134 | `True` | `80d859761d4eda4d…` |
+| `adversarial` | `synthetic_adversarial` | `synthetic_adversarial.csv` | `synthetic` | 28 | `True` | `49a34d855dfd3e60…` |
 
 ## Summary
 
@@ -23,7 +32,32 @@ Classifier under test: `rules-1.0.0` (method: rules). Regenerate with `cd ai; .\
 | Rows asserted and flagged for review (precision) | 5 (100.0%) | 8 (100.0%) |
 | Rows asserted and not flagged for review (precision) | 46 (100.0%) | 109 (100.0%) |
 
-Latency (in-process, 200 items, median of 20 runs): **26.47 ms** (max 31.14 ms). Measured on the machine that generated this report; it excludes HTTP and JSON overhead.
+Latency (in-process, 200 items, median of 20 runs): **27.79 ms** (max 29.73 ms). Measured on the machine that generated this report; it excludes HTTP and JSON overhead.
+
+## Coverage vs. Accuracy by Confidence Tier
+
+| Split | Confidence Tier | Asserted Rows | Coverage of Assignable | Abstention Rate | Precision on Asserted | Wrong Category Asserted |
+|---|---|---:|---:|---:|---:|---:|
+| `dev` | `>= 0.90 (strong)` | 45 | 88.2% | 28.6% | 100.0% | 0 |
+| `dev` | `>= 0.75 (medium+)` | 51 | 100.0% | 19.1% | 100.0% | 0 |
+| `dev` | `>= 0.55 (all asserted)` | 51 | 100.0% | 19.1% | 100.0% | 0 |
+| `holdout` | `>= 0.90 (strong)` | 103 | 88.0% | 23.1% | 100.0% | 0 |
+| `holdout` | `>= 0.75 (medium+)` | 115 | 98.3% | 14.2% | 100.0% | 0 |
+| `holdout` | `>= 0.55 (all asserted)` | 117 | 100.0% | 12.7% | 100.0% | 0 |
+
+## Adversarial Robustness Suite
+
+Total adversarial cases: **28** · Overall accuracy: **100.0%** · Wrong categories asserted: **0** · Abstention on uncategorisable attacks: **100.0%**.
+
+| Attack Category | Cases | Passed | Pass Rate | Wrong Category Asserted |
+|---|---:|---:|---:|---:|
+| `direction_mismatch` | 4 | 4 | 100.0% | 0 |
+| `homoglyphs` | 4 | 4 | 100.0% | 0 |
+| `merchant_lookalikes` | 4 | 4 | 100.0% | 0 |
+| `mixed_case` | 4 | 4 | 100.0% | 0 |
+| `prompt_injection` | 4 | 4 | 100.0% | 0 |
+| `reference_noise` | 4 | 4 | 100.0% | 0 |
+| `truncation` | 4 | 4 | 100.0% | 0 |
 
 ## `dev` — per-category results
 

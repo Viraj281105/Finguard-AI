@@ -31,12 +31,19 @@ It abstains (`UNCATEGORIZED`, `method: "none"`, confidence 0, with a `reason`) f
 people, ATM cash, payment gateways, ambiguous narrations and credits that name an expense merchant. Same input → same output.
 Descriptions are never logged. Contract: [docs/API.md](../docs/API.md#internal-contract-backend--ai-service).
 
-## Evaluation
+## Evaluation & Governance (`S1-09`)
 
 ```powershell
 .\.venv\Scripts\python -m evaluation.evaluate          # rewrite evaluation/report.md and metrics.json
-.\.venv\Scripts\python -m evaluation.evaluate --check  # fail if metrics.json no longer matches the classifier
+.\.venv\Scripts\python -m evaluation.evaluate --check  # enforce manifest hashes, overlap, PII, provenance & regressions
 ```
+The evaluation harness (`evaluation/evaluate.py`) enforces strict evaluation governance:
+* **Dataset manifest (`evaluation/data/manifest.json`):** Cryptographic SHA-256 hashes (canonical LF-normalized), exact row counts, label procedures, and `data_provenance: "synthetic"` for `dev`, frozen `holdout`, and `adversarial` suites.
+* **Zero train/holdout leakage:** Rejects any exact or normalized `(description, type)` overlap between `synthetic_dev.csv` and `synthetic_holdout.csv`.
+* **Adversarial & perturbation suite (`synthetic_adversarial.csv`):** 28 cases across 7 perturbation categories (`homoglyphs`, `truncation`, `mixed_case`, `reference_noise`, `merchant_lookalikes`, `direction_mismatch`, `prompt_injection`).
+* **Confidence-tier coverage vs. accuracy curve:** Evaluates precision, coverage, and wrong assertions at thresholds `>= 0.90`, `>= 0.75`, and `>= 0.55`.
+* **Provenance stamp (`synthetic != real`):** Every generated report (`evaluation/report.md`) and metrics artifact (`evaluation/metrics.json`) carries an explicit `# SYNTHETIC —` provenance banner and `synthetic != real` (`synthetic ≠ real`) disclosure. No real bank statement data may be committed to git.
+
 The data (`evaluation/data/`) is **synthetic and written by the same author as the rules**, so the figures are
 optimistic. Read [`evaluation/report.md`](evaluation/report.md) before quoting any number: it contains the first-look
 result, the rule changes made afterwards, and what it cannot tell you.
@@ -46,7 +53,7 @@ result, the rule changes made afterwards, and what it cannot tell you.
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python -m pip install -e ".[dev]"
-.\.venv\Scripts\python -m pytest -q                                   # 121 tests
+.\.venv\Scripts\python -m pytest -q
 .\.venv\Scripts\python -m ruff check .
 .\.venv\Scripts\python -m uvicorn app.main:app --port 8000            # http://localhost:8000/health
 ```
@@ -55,7 +62,8 @@ while development used 3.14.7 — [docs/KNOWN_ISSUES.md](../docs/KNOWN_ISSUES.md
 scientific libraries, so the Python-version question in KI-025 is closed for now).
 
 Environment: `AI_LOG_LEVEL` (default `INFO`); `AI_INTERNAL_TOKEN` — shared secret the backend sends as
-`X-Internal-Token`; when empty (default) the check is **disabled** (local development only, KI-033).
+`X-Internal-Token`; when empty (default) the check is **disabled** (local development only, KI-033);
+`AI_CLASSIFIER_CHAIN` (default `rules-1.0.0`) — comma-separated list of registered classifier versions (e.g., `rules-1.0.0`, `rules-0.9.0`) supporting zero-code rollback.
 
 ## Layout
 
@@ -65,7 +73,7 @@ app/api/               health.py, classify.py
 app/core/              config.py (environment), security.py (shared secret)
 app/schemas/           classify.py (request/response models)
 app/classification/    taxonomy, normalize, rules, engine, base
-evaluation/            evaluate.py, export_examples.py, data/ (synthetic), report.md, metrics.json
+evaluation/            evaluate.py, export_examples.py, data/ (synthetic + manifest.json), report.md, metrics.json
 tests/                 pytest (classifier, API, taxonomy, evaluation, health)
 Dockerfile · pyproject.toml
 ```

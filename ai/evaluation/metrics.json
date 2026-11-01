@@ -1,4 +1,205 @@
 {
+  "adversarial": {
+    "abstention_correct": 1.0,
+    "accuracy": 1.0,
+    "by_attack_category": {
+      "direction_mismatch": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "rows": 4,
+        "wrong_category_asserted": 0
+      },
+      "homoglyphs": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "rows": 4,
+        "wrong_category_asserted": 0
+      },
+      "merchant_lookalikes": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "rows": 4,
+        "wrong_category_asserted": 0
+      },
+      "mixed_case": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "rows": 4,
+        "wrong_category_asserted": 0
+      },
+      "prompt_injection": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "rows": 4,
+        "wrong_category_asserted": 0
+      },
+      "reference_noise": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "rows": 4,
+        "wrong_category_asserted": 0
+      },
+      "truncation": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "rows": 4,
+        "wrong_category_asserted": 0
+      }
+    },
+    "confusion": {
+      "DINING": {
+        "DINING": 1
+      },
+      "GROCERIES": {
+        "GROCERIES": 3
+      },
+      "HEALTHCARE": {
+        "HEALTHCARE": 1
+      },
+      "INCOME": {
+        "INCOME": 1
+      },
+      "INVESTMENTS": {
+        "INVESTMENTS": 1
+      },
+      "LOAN_PAYMENTS": {
+        "LOAN_PAYMENTS": 1
+      },
+      "SHOPPING": {
+        "SHOPPING": 1
+      },
+      "SUBSCRIPTIONS": {
+        "SUBSCRIPTIONS": 1
+      },
+      "TRANSPORT": {
+        "TRANSPORT": 1
+      },
+      "UNCATEGORIZED": {
+        "UNCATEGORIZED": 16
+      },
+      "UTILITIES": {
+        "UTILITIES": 1
+      }
+    },
+    "confusion_columns": [
+      "DINING",
+      "GROCERIES",
+      "HEALTHCARE",
+      "INCOME",
+      "INVESTMENTS",
+      "LOAN_PAYMENTS",
+      "SHOPPING",
+      "SUBSCRIPTIONS",
+      "TRANSPORT",
+      "UNCATEGORIZED",
+      "UTILITIES"
+    ],
+    "coverage_accuracy_curve": [
+      {
+        "abstention_rate": 0.6071,
+        "asserted": 11,
+        "coverage_of_assignable": 0.9167,
+        "precision_when_classified": 1.0,
+        "threshold": 0.9,
+        "tier": ">= 0.90 (strong)",
+        "wrong_category_asserted": 0
+      },
+      {
+        "abstention_rate": 0.5714,
+        "asserted": 12,
+        "coverage_of_assignable": 1.0,
+        "precision_when_classified": 1.0,
+        "threshold": 0.75,
+        "tier": ">= 0.75 (medium+)",
+        "wrong_category_asserted": 0
+      },
+      {
+        "abstention_rate": 0.5714,
+        "asserted": 12,
+        "coverage_of_assignable": 1.0,
+        "precision_when_classified": 1.0,
+        "threshold": 0.55,
+        "tier": ">= 0.55 (all asserted)",
+        "wrong_category_asserted": 0
+      }
+    ],
+    "coverage_of_assignable": 1.0,
+    "data_provenance": "synthetic",
+    "errors": [],
+    "macro_f1": 1.0,
+    "per_class": {
+      "DINING": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 1
+      },
+      "GROCERIES": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 3
+      },
+      "HEALTHCARE": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 1
+      },
+      "INCOME": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 1
+      },
+      "INVESTMENTS": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 1
+      },
+      "LOAN_PAYMENTS": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 1
+      },
+      "SHOPPING": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 1
+      },
+      "SUBSCRIPTIONS": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 1
+      },
+      "TRANSPORT": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 1
+      },
+      "UTILITIES": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 1
+      }
+    },
+    "precision_when_classified": 1.0,
+    "recall_on_assignable": 1.0,
+    "review_flag": {
+      "flagged": 2,
+      "precision_when_flagged": 1.0,
+      "precision_when_unflagged": 1.0,
+      "unflagged": 10
+    },
+    "rows": 28,
+    "wrong_category_asserted": 0
+  },
   "dev": {
     "abstention_correct": 1.0,
     "accuracy": 1.0,
@@ -82,7 +283,37 @@
       "UNCATEGORIZED",
       "UTILITIES"
     ],
+    "coverage_accuracy_curve": [
+      {
+        "abstention_rate": 0.2857,
+        "asserted": 45,
+        "coverage_of_assignable": 0.8824,
+        "precision_when_classified": 1.0,
+        "threshold": 0.9,
+        "tier": ">= 0.90 (strong)",
+        "wrong_category_asserted": 0
+      },
+      {
+        "abstention_rate": 0.1905,
+        "asserted": 51,
+        "coverage_of_assignable": 1.0,
+        "precision_when_classified": 1.0,
+        "threshold": 0.75,
+        "tier": ">= 0.75 (medium+)",
+        "wrong_category_asserted": 0
+      },
+      {
+        "abstention_rate": 0.1905,
+        "asserted": 51,
+        "coverage_of_assignable": 1.0,
+        "precision_when_classified": 1.0,
+        "threshold": 0.55,
+        "tier": ">= 0.55 (all asserted)",
+        "wrong_category_asserted": 0
+      }
+    ],
     "coverage_of_assignable": 1.0,
+    "data_provenance": "synthetic",
     "errors": [],
     "macro_f1": 1.0,
     "per_class": {
@@ -289,7 +520,37 @@
       "UNCATEGORIZED",
       "UTILITIES"
     ],
+    "coverage_accuracy_curve": [
+      {
+        "abstention_rate": 0.2313,
+        "asserted": 103,
+        "coverage_of_assignable": 0.8803,
+        "precision_when_classified": 1.0,
+        "threshold": 0.9,
+        "tier": ">= 0.90 (strong)",
+        "wrong_category_asserted": 0
+      },
+      {
+        "abstention_rate": 0.1418,
+        "asserted": 115,
+        "coverage_of_assignable": 0.9829,
+        "precision_when_classified": 1.0,
+        "threshold": 0.75,
+        "tier": ">= 0.75 (medium+)",
+        "wrong_category_asserted": 0
+      },
+      {
+        "abstention_rate": 0.1269,
+        "asserted": 117,
+        "coverage_of_assignable": 1.0,
+        "precision_when_classified": 1.0,
+        "threshold": 0.55,
+        "tier": ">= 0.55 (all asserted)",
+        "wrong_category_asserted": 0
+      }
+    ],
     "coverage_of_assignable": 1.0,
+    "data_provenance": "synthetic",
     "errors": [],
     "macro_f1": 1.0,
     "per_class": {
