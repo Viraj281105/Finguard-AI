@@ -8,7 +8,7 @@ RUN chmod +x mvnw && ./mvnw -B dependency:go-offline
 
 COPY src/main/ src/main/
 RUN ./mvnw -B -DskipTests package && \
-    java -Djarmode=tools -jar target/backend-*.jar extract --layers --destination extracted
+    java -Djarmode=tools -jar target/backend-*.jar extract --layers --launcher --destination extracted
 
 FROM eclipse-temurin:25-jre AS runtime
 RUN groupadd --system --gid 10001 finguard && \
