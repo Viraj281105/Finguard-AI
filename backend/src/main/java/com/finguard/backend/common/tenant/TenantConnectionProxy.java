@@ -72,7 +72,7 @@ public final class TenantConnectionProxy implements InvocationHandler {
         }
     }
 
-    private void applyTenantContext() {
+    private void applyTenantContext() throws SQLException {
         if (contextApplied) {
             return;
         }
@@ -111,7 +111,11 @@ public final class TenantConnectionProxy implements InvocationHandler {
             }
             contextApplied = true;
         } catch (SQLException e) {
-            log.trace("Failed to apply tenant context to JDBC connection: {}", e.getMessage());
+            // Fail closed: if the tenant context cannot be set, the statement must not run. Continuing would execute it
+            // with no tenant restriction (a superuser connection bypasses RLS entirely), i.e. fail open.
+            log.error("Could not apply the tenant context to the JDBC connection; refusing to run the statement: {}",
+                    e.getMessage());
+            throw new SQLException("Could not apply the tenant context to the database connection", e);
         }
     }
 

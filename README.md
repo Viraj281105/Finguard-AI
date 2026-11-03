@@ -23,7 +23,7 @@ Evidence and exact test counts: [docs/PROGRESS.md](docs/PROGRESS.md). Roadmap: [
 | Cash-flow, category, budget-outlook and savings forecasts; loan / one-time what-if scenarios; saved scenarios | ✅ | Statistical (no machine learning), with evidence rules and a per-user backtest; quality on real histories unknown |
 | Recommendations | ✅ | General-guidance rules over your own figures, configurable thresholds; not financial advice |
 | Explainable risk score | 🗓️ | Not built |
-| Backend/frontend container images, production deployment | 🗓️ | Only PostgreSQL and the AI service are containerised |
+| Container images for backend, frontend and AI; reproducible local staging; backup/restore drill | ⚠️ | Compose `full` profile and staging scripts exist; the CI staging-smoke job had not yet run green when this was written. Base images are tag-pinned, not digest-pinned. Production deployment: 🗓️ |
 
 No accuracy, performance or security-certification claims are made anywhere in this repository. Evaluation data for the
 classifier is synthetic and written by the same author as the rules, so its scores say nothing about real-world accuracy.
@@ -33,10 +33,10 @@ classifier is synthetic and written by the same author as the rules, so its scor
 ```
 React 19 + TypeScript + Vite + Tailwind  (port 5173)
         │  JSON + Bearer JWT (refresh token in an HttpOnly cookie)
-Spring Boot 3.5 · Java 21  (port 8080)  — modular monolith
+Spring Boot 4.1 · Java 21  (port 8080)  — modular monolith
    identity · ledger · ingestion · categorization · intelligence · budgeting · forecasting · ai-client · common
         │ JPA / Flyway                         │ POST /v1/classify (shared secret header)
-PostgreSQL 15  (host port 5433)         FastAPI service (port 8000) — stateless, rules-based classifier
+PostgreSQL 18  (host port 5433)         FastAPI service (port 8000) — stateless, rules-based classifier
 ```
 Spring Boot owns all data. The Python service has no database and is optional at runtime (imports complete without it).
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
@@ -82,7 +82,7 @@ Full contracts, error format and limits: [docs/API.md](docs/API.md). Endpoints f
 
 The most important ones (full list with versions: [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md)): parsers and the classifier have
 never seen real bank data (KI-019, KI-030) · forecast quality on real histories is unknown (KI-040) · rate limiting and token
-state are single-instance (O-10) · no backend/frontend images and no production deployment · no account deletion or data export.
+state are single-instance (O-10) · no production deployment, base images not digest-pinned (KI-062) · RLS pilot has residual weaknesses (KI-064).
 
 ## Repository layout
 

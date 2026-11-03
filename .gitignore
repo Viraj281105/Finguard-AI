@@ -43,3 +43,8 @@ desktop.ini
 *.secret
 # ===== LOCAL STAGING (generated secrets, logs, build output) =====
 .staging/
+
+# ===== BACKUPS (database dumps hold password hashes and ledger data: never commit) =====
+.backups/
+*.dump
+*.dump.sha256

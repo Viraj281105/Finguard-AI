@@ -29,6 +29,9 @@ STALE_PHRASES: list[tuple[str, str]] = [
     (r"24 h access / 7 d refresh", "access tokens live 15 minutes (jwt.expiration default 900000)"),
     (r"≈ 309 kB", "the measured production bundle is 488 kB (2026-10-28)"),
     (r"`simulation` \(v0\.9\.0\)", "there is no simulation module; scenarios live in forecasting"),
+    (r"Spring Boot 3\.5", "the backend is on Spring Boot 4.1 (KI-063 / S0-03)"),
+    (r"PostgreSQL 15", "the stack runs PostgreSQL 18 (S0-04)"),
+    (r"no backend/frontend images", "backend and frontend Dockerfiles exist (S0-05)"),
 ]
 HISTORY_FILES = {
     "CHANGELOG.md",
@@ -36,7 +39,10 @@ HISTORY_FILES = {
     "AUDIT_E2E_2026-10-27.md",
     "RELEASE_PLAN.md",
     "01-current-state-assessment.md",
+    "Week1.md",
 }
+# Planning documents describe the state on the day they were written (they quote what they replaced).
+HISTORY_PREFIXES = ("docs/architecture/",)
 
 KI_ROW = re.compile(r"^\|\s*(KI-\d{3})\s*\|", re.MULTILINE)
 KI_REF = re.compile(r"\bKI-(\d{3})\b")
@@ -71,7 +77,7 @@ def main() -> int:
             if f"KI-{number}" not in defined:
                 problems.append(f"{rel}: refers to KI-{number}, which is not defined in docs/KNOWN_ISSUES.md")
 
-        if path.name not in HISTORY_FILES and rel != "docs/KNOWN_ISSUES.md":
+        if path.name not in HISTORY_FILES and not rel.startswith(HISTORY_PREFIXES) and rel != "docs/KNOWN_ISSUES.md":
             for index, line in enumerate(lines, start=1):
                 for pattern, why in STALE_PHRASES:
                     if re.search(pattern, line):

@@ -18,6 +18,21 @@ Labels: see [README.md](README.md#status-vocabulary-used-in-every-document).
 > Blocking audit proven: a throwaway PR adding `lodash@4.17.11` made the Frontend job fail at the audit step while the other two jobs passed (PR closed, branch deleted).
 > Still unverified in CI: Docker image builds (none exist for backend/frontend), the compose stack.
 
+> **Review and hardening pass (2026-11-03).** `main` had moved on by 25 commits (platform currency, containers, observability, outbox,
+> OpenAPI, privacy lifecycle, AI governance, tenant isolation — roadmap S0-03…S1-09) that were merged directly to `main` without a green
+> CI run. Re-verified on `origin/main` (443e3c7): backend **425**, frontend **151**, AI **152** tests pass locally = 728; yet CI on `main`
+> was red in four places, all fixed in the review branch: (1) `ai/requirements.lock` was incomplete (`typing-inspection` missing), so every
+> `pip install --require-hashes` failed in CI and in the AI Docker build — regenerated with pip-compile, plus a hashed
+> `requirements-dev.lock` for the AI job; (2) `npm audit` high (`follow-redirects`); (3) gitleaks flagged three fake keys in
+> `JwtRotationTest` — narrow allowlist; (4) staging smoke was skipped because the above failed. A **regression** was also found: the
+> concurrent-import retry from audit finding E-08 had been dropped when `ImportWorker` was rewritten (a unique-fingerprint race failed the
+> job; `MAX_SAVE_ATTEMPTS` was unused) and the timing-dependent end-to-end test did not notice — restored, with a deterministic
+> forced-race test (`ImportWorkerConcurrentRetryTest`, proven red on the old code). Also: client-IP resolution for the login limiter read `X-Forwarded-For` from the left (client-controlled) and could not trust
+> container networks (exact IPs only), so behind the nginx container every user shared one IP bucket — now read from the right with CIDR support
+> (`ClientIpResolver`), trusted in the Compose stacks; RLS now fails closed, the management
+> port binds to loopback by default, backup dumps are git-ignored and written `umask 077`, the OSV gate is blocking (KI-063 resolved
+> by Spring Boot 4.1.2 plus a beanutils override). Open: KI-064 (RLS residual risks), digest pinning of base images, branch protection.
+
 ## 1. Snapshot
 
 | | |

@@ -8,7 +8,7 @@ RUN chmod +x mvnw && ./mvnw -B dependency:go-offline
 
 COPY src/main/ src/main/
 RUN ./mvnw -B -DskipTests package && \
-    java -Djarmode=tools -jar target/backend-*.jar extract --layers --destination extracted
+    java -Djarmode=tools -jar target/backend-*.jar extract --layers --launcher --destination extracted
 
 FROM eclipse-temurin:25-jre AS runtime
 RUN groupadd --system --gid 10001 finguard && \
@@ -23,8 +23,9 @@ COPY --from=builder --chown=finguard:finguard /build/extracted/application/ ./
 USER 10001:10001
 EXPOSE 8080 8081
 
+# The JRE image has no curl: probe readiness with bash's built-in /dev/tcp instead of adding a package.
 HEALTHCHECK --interval=10s --timeout=3s --start-period=25s --retries=6 \
-  CMD curl -fsS http://127.0.0.1:8081/actuator/health/readiness || exit 1
+  CMD ["bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8081 && printf 'GET /actuator/health/readiness HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && head -n1 <&3 | grep -q ' 200'"]
 
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-XX:+ExitOnOutOfMemoryError", "org.springframework.boot.loader.launch.JarLauncher"]
 

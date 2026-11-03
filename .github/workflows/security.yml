@@ -78,17 +78,13 @@ jobs:
           echo "${OSV_SHA256}  osv-scanner" | sha256sum --check -
           chmod +x osv-scanner
 
-      # Scans package-lock.json and the Maven pom. The AI service has no lockfile yet (planned S0-04), so it is
-      # not covered until it has one.
-      #
-      # REPORT-ONLY for now: on 2026-10-29 the backend pom (Spring Boot 3.5.11) had 67 known advisories (9 critical, 23 high)
-      # and even Boot 3.5.16 leaves 20 whose fixes need Tomcat 10.1.58+ / Spring Framework 7 (see KNOWN_ISSUES KI-063).
-      # S0-03 (Spring Boot 4.1) removes `continue-on-error` so this becomes a blocking gate.
+      # Scans package-lock.json and the Maven pom; BLOCKING since the Spring Boot 4.1 upgrade cleared the backend advisories
+      # (KI-063). Accepted exceptions live, with a reason and an expiry, in osv-scanner.toml. The AI service's hashed lock
+      # files are named requirements*.lock, which OSV-Scanner does not recognise, so Python dependencies are not scanned yet.
       - name: Scan lockfiles and manifests
-        continue-on-error: true
         run: |
           set +e
-          ./osv-scanner scan source --recursive ./ | tee osv-report.txt
+          ./osv-scanner scan source --config osv-scanner.toml --recursive ./ | tee osv-report.txt
           status=${PIPESTATUS[0]}
           { echo '### OSV-Scanner'; echo; echo '```'; tail -n 120 osv-report.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           exit "$status"

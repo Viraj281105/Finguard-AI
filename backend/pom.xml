@@ -28,6 +28,13 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<!-- opencsv 5.9 pulls commons-beanutils 1.9.4 (GHSA-wxr5-93ph-8wr9, CVSS 8.8); 1.11.0 is the fixed release.
+			     Remove this override once opencsv ships a fixed transitive version. -->
+			<dependency>
+				<groupId>commons-beanutils</groupId>
+				<artifactId>commons-beanutils</artifactId>
+				<version>1.11.0</version>
+			</dependency>
 			<!-- Pins the PostgreSQL major version used by integration tests (matches docker-compose: 15) -->
 			<dependency>
 				<groupId>io.zonky.test.postgres</groupId>

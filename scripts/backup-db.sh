@@ -5,6 +5,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT_DIR="${1:-${ROOT_DIR}/.backups}"
+umask 077   # dumps are readable by the current user only
 mkdir -p "${OUT_DIR}"
 
 CONTAINER="${PG_CONTAINER:-finguard-postgres}"
