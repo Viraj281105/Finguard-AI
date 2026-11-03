@@ -14,7 +14,7 @@ on the development machine is marked *unverified*. The machine used so far runs 
 | Git | | |
 
 **Running the automated tests does not need Docker or a local PostgreSQL**: backend integration tests download and
-start an embedded PostgreSQL 15 (network access needed the first time; binaries are cached in the Maven repository
+start an embedded PostgreSQL 18 (network access needed the first time; binaries are cached in the Maven repository
 and extracted under `%TEMP%\embedded-pg`).
 
 ## 2. First-time setup

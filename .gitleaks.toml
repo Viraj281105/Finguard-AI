@@ -8,3 +8,8 @@ useDefault = true
 description = "Fake production-profile JWT secret used by ProfilesTest (a test constant, not a credential)"
 targetRules = ["generic-api-key"]
 regexes = ['''prod-secret-0123456789abcdef0123456789abcdef''']
+
+[[allowlists]]
+description = "Fake signing keys used only by JwtRotationTest (test constants, not credentials)"
+targetRules = ["generic-api-key"]
+paths = ['''backend/src/test/java/com/finguard/backend/identity/security/JwtRotationTest\.java''']

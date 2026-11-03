@@ -1,6 +1,6 @@
 # FinGuard AI — Backend 🛡️
 
-Spring Boot 3.5 modular monolith built on Java 21, Spring Security 6.5, Hibernate 6.6, and Flyway 11.
+Spring Boot 4.1 modular monolith built on Java 21 (Spring Security, Hibernate and Flyway versions come from the Boot 4.1 BOM).
 
 ## Architecture & Package Structure
 

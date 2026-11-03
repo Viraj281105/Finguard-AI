@@ -13,7 +13,7 @@ flowchart LR
     subgraph Browser
         SPA["React 19 SPA<br/>(Vite, Tailwind)"]
     end
-    subgraph JVM["Spring Boot 3.5 · Java 21 · port 8080"]
+    subgraph JVM["Spring Boot 4.1 · Java 21 · port 8080"]
         direction TB
         SEC["identity<br/>JWT filter, auth"]
         LED["ledger<br/>transactions · investments · loans"]
@@ -28,7 +28,7 @@ flowchart LR
         LED --> SEC
         ING --> SEC
     end
-    DB[("PostgreSQL 15<br/>Flyway-managed")]
+    DB[("PostgreSQL 18<br/>Flyway-managed")]
     PY["FastAPI service · port 8000<br/>/health · POST /v1/classify"]
     SPA -- "HTTPS/JSON + Bearer JWT" --> JVM
     JVM -- JPA --> DB
@@ -37,10 +37,10 @@ flowchart LR
 
 | Component | Technology (observed versions) | Responsibility | Status |
 |---|---|---|---|
-| Backend | Spring Boot 3.5.11, Java 21, Spring Security 6.5.8, Hibernate 6.6.42, Flyway 11.7.2, jjwt 0.12.6, OpenCSV 5.9 | Authentication, all persistence, statement import, (later) all financial computation | Implemented & tested |
+| Backend | Spring Boot 4.1.2, Java 21 (container images use JDK 25; Spring Security, Hibernate, Flyway versions come from the Boot 4.1 BOM), jjwt 0.12.6, OpenCSV 5.9 | Authentication, all persistence, statement import, (later) all financial computation | Implemented & tested |
 | Frontend | React 19, TypeScript 5.9, Vite 7, Tailwind 3.4, React Router 7, axios | UI; talks only to the backend | Implemented & tested (unit/component); not browser-tested |
 | AI service | Python ≥ 3.11 (3.14.7 used locally, 3.12 in the Docker image), FastAPI 0.159, pydantic 2.14 | Stateless computation: rule-based transaction classification (`POST /v1/classify`); forecasting later | Implemented & tested (rules only — **no ML model**) |
-| Database | PostgreSQL 15 | System of record | Implemented & tested |
+| Database | PostgreSQL 18 | System of record | Implemented & tested |
 
 ## 2. Backend modules
 

@@ -1,0 +1,6 @@
+# OSV-Scanner configuration. Every ignore needs a reason and an expiry so it cannot be forgotten.
+
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+ignoreUntil = 2027-02-01
+reason = "minimatch ReDoS (moderate), dev-only build tooling pulled in by eslint/typescript-eslint; never shipped in the production bundle. The non-breaking fix is not available (needs typescript-eslint major). Revisit with the eslint 10 migration."
