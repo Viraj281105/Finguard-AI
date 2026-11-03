@@ -12,7 +12,9 @@ services:
       # Host port 5433 (not 5432) bound to 127.0.0.1 so it is not exposed to the local network.
       - "127.0.0.1:${POSTGRES_HOST_PORT:-5433}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # PostgreSQL 18+ images keep data in a versioned subdirectory (/var/lib/postgresql/18/docker): mount the parent.
+      # A volume created by the old PostgreSQL 15 setup cannot be reused: docker compose down -v, then restore a dump.
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
