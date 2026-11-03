@@ -29,7 +29,7 @@ public class AuthController {
     @org.springframework.beans.factory.annotation.Value("${jwt.cookie-secure:false}")
     private boolean cookieSecure;
 
-    @org.springframework.beans.factory.annotation.Value("${app.trusted-proxies:127.0.0.1,::1,0:0:0:0:0:0:0:1}")
+    @org.springframework.beans.factory.annotation.Value("${app.trusted-proxies:" + ClientIpResolver.DEFAULT_TRUSTED_PROXIES + "}")
     private String trustedProxiesConfig;
 
     @PostMapping("/register")
@@ -104,35 +104,7 @@ public class AuthController {
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
-    private java.util.Set<String> getTrustedProxies() {
-        if (trustedProxiesConfig == null || trustedProxiesConfig.isBlank()) {
-            return java.util.Set.of("127.0.0.1", "::1", "0:0:0:0:0:0:0:1");
-        }
-        return java.util.Arrays.stream(trustedProxiesConfig.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .collect(java.util.stream.Collectors.toSet());
-    }
-
     public String resolveClientIp(HttpServletRequest request) {
-        String remoteAddr = request.getRemoteAddr();
-        if (remoteAddr == null || remoteAddr.isBlank()) {
-            return "unknown";
-        }
-        java.util.Set<String> trusted = getTrustedProxies();
-        if (trusted.contains(remoteAddr.trim())) {
-            String forwarded = request.getHeader("X-Forwarded-For");
-            if (forwarded != null && !forwarded.isBlank()) {
-                String[] hops = forwarded.split(",");
-                for (String hop : hops) {
-                    String cleanHop = hop.trim();
-                    if (!cleanHop.isEmpty() && !trusted.contains(cleanHop)) {
-                        return cleanHop;
-                    }
-                }
-                return hops[0].trim();
-            }
-        }
-        return remoteAddr.trim();
+        return ClientIpResolver.resolve(request.getRemoteAddr(), request.getHeader("X-Forwarded-For"), trustedProxiesConfig);
     }
 }

@@ -104,18 +104,31 @@ public class ImportWorker {
                         .filter(java.util.Objects::nonNull)
                         .collect(java.util.stream.Collectors.toSet());
 
-                Set<String> existing = transactions.findExistingFingerprints(userId, candidateFingerprints);
-                List<Transaction> fresh = candidates.stream()
-                        .filter(t -> t.getFingerprint() == null || !existing.contains(t.getFingerprint()))
-                        .toList();
-
-                int duplicateCount = candidates.size() - fresh.size();
-                job.setDuplicateRows(duplicateCount);
-
-                List<Transaction> saved = new ArrayList<>();
-                if (!fresh.isEmpty()) {
-                    saved = transactions.saveAll(fresh);
+                // Two imports of overlapping statements can run at the same time: both see the rows as new and one hits
+                // the unique fingerprint index. The whole batch rolls back, so look again (the other import's rows are
+                // now duplicates) and save only what is still new, instead of failing the job (audit finding E-08; this
+                // retry was lost in a later rewrite, leaving MAX_SAVE_ATTEMPTS unused, and is restored here).
+                int duplicateCount;
+                List<Transaction> saved;
+                for (int attempt = 1; ; attempt++) {
+                    Set<String> existing = transactions.findExistingFingerprints(userId, candidateFingerprints);
+                    List<Transaction> fresh = candidates.stream()
+                            .filter(t -> t.getFingerprint() == null || !existing.contains(t.getFingerprint()))
+                            .toList();
+                    duplicateCount = candidates.size() - fresh.size();
+                    try {
+                        // Persist first: saving financial data never depends on the AI service.
+                        saved = fresh.isEmpty() ? new ArrayList<>() : transactions.saveAll(fresh);
+                        break;
+                    } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                        if (attempt >= MAX_SAVE_ATTEMPTS) {
+                            throw e;
+                        }
+                        log.warn("[Job {}] a concurrent import stored some of the same rows; re-checking duplicates (attempt {})",
+                                jobId, attempt);
+                    }
                 }
+                job.setDuplicateRows(duplicateCount);
 
                 job.setRowsProcessed(saved.size());
                 categorize(job, userId, saved);

@@ -34,6 +34,9 @@ services:
       AI_INTERNAL_TOKEN: ${AI_INTERNAL_TOKEN}
       MANAGEMENT_SERVER_PORT: 8081
       MANAGEMENT_SERVER_ADDRESS: 0.0.0.0
+      # The frontend container (nginx) is the only client of the API on the container network and forwards the real client
+      # address in X-Forwarded-For; trust the private container ranges so the login rate limiter sees real clients.
+      APP_TRUSTED_PROXIES: ${APP_TRUSTED_PROXIES:-127.0.0.1,::1,172.16.0.0/12,10.0.0.0/8,192.168.0.0/16,fd00::/8}
     ports: !override
       - "127.0.0.1:${STAGING_API_PORT:-18080}:8080"
 

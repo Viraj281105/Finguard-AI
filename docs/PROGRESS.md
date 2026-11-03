@@ -24,7 +24,12 @@ Labels: see [README.md](README.md#status-vocabulary-used-in-every-document).
 > was red in four places, all fixed in the review branch: (1) `ai/requirements.lock` was incomplete (`typing-inspection` missing), so every
 > `pip install --require-hashes` failed in CI and in the AI Docker build — regenerated with pip-compile, plus a hashed
 > `requirements-dev.lock` for the AI job; (2) `npm audit` high (`follow-redirects`); (3) gitleaks flagged three fake keys in
-> `JwtRotationTest` — narrow allowlist; (4) staging smoke was skipped because the above failed. Also: RLS now fails closed, the management
+> `JwtRotationTest` — narrow allowlist; (4) staging smoke was skipped because the above failed. A **regression** was also found: the
+> concurrent-import retry from audit finding E-08 had been dropped when `ImportWorker` was rewritten (a unique-fingerprint race failed the
+> job; `MAX_SAVE_ATTEMPTS` was unused) and the timing-dependent end-to-end test did not notice — restored, with a deterministic
+> forced-race test (`ImportWorkerConcurrentRetryTest`, proven red on the old code). Also: client-IP resolution for the login limiter read `X-Forwarded-For` from the left (client-controlled) and could not trust
+> container networks (exact IPs only), so behind the nginx container every user shared one IP bucket — now read from the right with CIDR support
+> (`ClientIpResolver`), trusted in the Compose stacks; RLS now fails closed, the management
 > port binds to loopback by default, backup dumps are git-ignored and written `umask 077`, the OSV gate is blocking (KI-063 resolved
 > by Spring Boot 4.1.2 plus a beanutils override). Open: KI-064 (RLS residual risks), digest pinning of base images, branch protection.
 

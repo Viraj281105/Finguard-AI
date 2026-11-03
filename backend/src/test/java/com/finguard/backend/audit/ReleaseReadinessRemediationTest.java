@@ -242,10 +242,12 @@ class ReleaseReadinessRemediationTest extends IntegrationTest {
         void trustedProxyHonoursForwardedFor() {
             MockHttpServletRequest request = new MockHttpServletRequest();
             request.setRemoteAddr("127.0.0.1"); // Trusted local proxy
+            // Only loopback is trusted by default, so 10.0.0.1 is the nearest untrusted hop = the client as the proxy saw it.
+            // (The left-most value is attacker-controlled and must never win; see ClientIpResolverTest.)
             request.addHeader("X-Forwarded-For", "203.0.113.195, 10.0.0.1");
 
             String resolved = authController.resolveClientIp(request);
-            assertThat(resolved).isEqualTo("203.0.113.195");
+            assertThat(resolved).isEqualTo("10.0.0.1");
         }
 
         @Test
